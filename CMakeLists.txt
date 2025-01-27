@@ -12,6 +12,8 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(cmake/Utils.cmake)
 
 find_package(Qt REQUIRED COMPONENTS Core Gui Widgets)
+find_package(GenO)
+#find_package(Jsoner)
 
 add_subdirectory(src)
 
@@ -22,3 +24,6 @@ if (WIDGETRY_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
+if (TRUE)
+    add_subdirectory(examples)
+endif()
