@@ -22,12 +22,13 @@ public:
     };
 
     DataEdit(QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
+    virtual ~DataEdit();
 
     GenO::Object object() const;
     Operation operation() const;
     void setObject(const GenO::Object &object, Operation operation);
 
-    virtual bool isComplete() const;
+    bool isComplete() const;
     QString completionError() const;
 
     bool isReadOnly() const;
@@ -43,16 +44,39 @@ public slots:
     virtual void clear();
 
 signals:
-    void completeChanged();
+    void complete();
 
 protected:
+    enum FieldMemberType {
+        PropertyMember,
+        SignalMember,
+        DeduceMember
+    };
+
+    DataEdit(DataEditPrivate *d, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
+
     virtual void render(const GenO::Object &object, Operation operation) = 0;
     virtual void extract(GenO::Object &object, Operation operation) const = 0;
+    virtual bool validateInput();
     virtual void makeWriteable(bool writeable) = 0;
 
-    void setCompletionErrorString(const QString &str);
+    void setCompletionError(const QString &str);
+    void clearCompletionError();
+
+    bool registerField(QWidget *field);
+    bool registerField(QWidget *field, const char *member);
+    bool registerField(QWidget *field, const char *member, FieldMemberType type);
 
     QScopedPointer<DataEditPrivate> d_ptr;
+
+private slots:
+    void handleFieldChange();
+    void handleFieldChange(bool);
+    void handleFieldChange(int);
+    void handleFieldChange(double);
+    void handleFieldChange(const QString &);
+
+    friend class DataEditDialogHelper;
 };
 
 } // namespace Widgetry
