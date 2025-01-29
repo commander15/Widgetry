@@ -27,8 +27,8 @@ void UserEdit::clear()
 
 void UserEdit::render(const GenO::Object &object, Operation operation)
 {
-    ui->nameInput->setText(object.property("name").toString());
-    ui->scoreInput->setValue(object.property("score").toInt());
+    ui->nameInput->setText(object.string("name"));
+    ui->scoreInput->setValue(object.integer("score"));
 }
 
 void UserEdit::extract(GenO::Object &object, Operation operation) const
