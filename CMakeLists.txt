@@ -10,10 +10,12 @@ option(WIDGETRY_BUILD_TESTS "Build tests" OFF)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(cmake/Utils.cmake)
+include(cmake/FindHelper.cmake)
 
 find_package(Qt REQUIRED COMPONENTS Core Gui Widgets)
-find_package(GenO)
-#find_package(Jsoner)
+
+find(GenO   REPOSITORY "https://github.com/commander15/GenO")
+find(Jsoner REPOSITORY "https://github.com/commander15/Jsoner")
 
 add_subdirectory(src)
 
