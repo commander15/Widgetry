@@ -7,15 +7,20 @@ target_headers(Widgetry
         global.h config.h
         userinterface.h
         dataedit.h formdataedit.h
+        interfaceholder.h
+        interfaceserver.h operation.h
     PRIVATE
         userinterface_p.h
         dataedit_p.h formdataedit_p.h
+        interfaceserver_p.h operation_p.h
 )
 
 target_sources(Widgetry
     PRIVATE
         userinterface.cpp
         dataedit.cpp formdataedit.cpp
+        interfaceholder.cpp
+        interfaceserver.cpp operation.cpp
 )
 
 if (BUILD_SHARED_LIBS)
@@ -31,6 +36,6 @@ target_compile_definitions(Widgetry
         WIDGETRY_BUILD
 )
 
-target_link_libraries(Widgetry PUBLIC Qt::Widgets GenO::GenO)
+target_link_libraries(Widgetry PUBLIC Qt::Widgets GenO::GenO Jsoner::Jsoner)
 
 generate_target_headers(Widgetry FOLDER Widgetry)

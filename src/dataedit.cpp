@@ -26,6 +26,7 @@ public:
         layout->addWidget(edit);
 
         m_errorOutput = new QLabel(this);
+        m_errorOutput->setWordWrap(true);
         m_errorOutput->setStyleSheet("color: red");
         layout->addWidget(m_errorOutput);
 

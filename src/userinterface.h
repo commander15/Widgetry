@@ -7,6 +7,8 @@
 
 namespace Widgetry {
 
+class Operation;
+
 class UserInterfacePrivate;
 class WIDGETRY_EXPORT UserInterface : public QWidget
 {
@@ -18,24 +20,43 @@ public:
     virtual ~UserInterface();
 
     QByteArray id() const;
+    QIcon icon() const;
+    QString title() const;
+    QAction *action() const;
 
-    virtual bool isOperationSupported(int operation) const;
-    QVariant operate(int operation);
-    QVariant operate(int operation, const QVariant &parameter);
-    QVariant operate(int operation, const QVariantHash &parameters);
+    virtual bool isOperationSupported(const QString &operation) const;
+    QVariant operate(const QString &operation);
+    QVariant operate(const QString &operation, const QVariant &parameter);
+    QVariant operate(const QString &operation, const QVariantHash &parameters);
 
 public slots:
+    void setIcon(const QIcon &icon);
+    void setTitle(const QString &title);
+    void setAction(QAction *action);
+
     virtual void sync();
 
 signals:
-    void operationSupportChanged(int operation, bool supported);
+    void iconChanged(const QIcon &icon);
+    void titleChanged(const QString &title);
+
+    void operationSupportChanged(const QString &operation, bool supported);
+    void operationRequested(const Operation &operation);
 
 protected:
     UserInterface(UserInterfacePrivate *d, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
 
-    virtual QVariantHash handleOperation(int operation, const QVariantHash &parameters);
+    virtual bool handleOperation(Operation *operation);
+    virtual void handleOperationResult(const Operation &operation);
+
+    void requestServerOperation(const Operation &operation);
+    void requestOperation(const Operation &operation);
+
+    UserInterface *findInterface(const QByteArray &id) const;
 
     QScopedPointer<UserInterfacePrivate> d_ptr;
+
+    friend class InterfaceServer;
 };
 
 } // namespace Widgetry

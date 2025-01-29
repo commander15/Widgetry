@@ -14,6 +14,7 @@ public:
     UserInterface *q_ptr;
 
     const QByteArray id;
+    QAction *action;
 };
 
 } // namespace Widgetry
