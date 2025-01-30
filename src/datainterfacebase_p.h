@@ -8,8 +8,16 @@ namespace Widgetry {
 class DataInterfaceBasePrivate
 {
 public:
-    Jsoner::TableModel *model = nullptr;
+    QWidget *filterWidget = nullptr;
+
+    Jsoner::TableModel *tableModel = nullptr;
+
     QMenu *contextMenu = nullptr;
+    QAction *showAction = nullptr;
+    QAction *editAction = nullptr;
+    QAction *deleteAction = nullptr;
+
+    DataEdit *dataEdit = nullptr;
 };
 
 }

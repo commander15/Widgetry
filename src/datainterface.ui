@@ -93,7 +93,7 @@
         </item>
         <item row="0" column="0" colspan="3">
          <widget class="QWidget" name="filterContainer" native="true">
-          <layout class="QVBoxLayout" name="verticalLayout">
+          <layout class="QVBoxLayout" name="filterContainerLayout">
            <property name="leftMargin">
             <number>0</number>
            </property>
