@@ -9,10 +9,12 @@ target_headers(Widgetry
         dataedit.h formdataedit.h
         interfaceholder.h
         interfaceserver.h operation.h
+        datainterfacebase.h datainterface.h
     PRIVATE
         userinterface_p.h
         dataedit_p.h formdataedit_p.h
         interfaceserver_p.h operation_p.h
+        datainterfacebase_p.h datainterface_p.h
 )
 
 target_sources(Widgetry
@@ -21,6 +23,8 @@ target_sources(Widgetry
         dataedit.cpp formdataedit.cpp
         interfaceholder.cpp
         interfaceserver.cpp operation.cpp
+        datainterfacebase.cpp datainterface.cpp datainterface.ui
+        resources/widgetry_resources.qrc
 )
 
 if (BUILD_SHARED_LIBS)
