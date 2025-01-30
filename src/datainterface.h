@@ -14,6 +14,8 @@ class DataInterface;
 class DataInterfacePrivate;
 class WIDGETRY_EXPORT DataInterface : public UserInterface, public DataInterfaceBase
 {
+    Q_OBJECT
+
 public:
     DataInterface(QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
     DataInterface(const QByteArray &id, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
