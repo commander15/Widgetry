@@ -16,7 +16,7 @@ include(cmake/FindHelper.cmake)
 
 find_package(Qt REQUIRED COMPONENTS Core Gui Widgets)
 
-find(Jsoner REPOSITORY "https://github.com/commander15/Jsoner")
+add_subdirectory(3rdparty/Jsoner)
 
 add_subdirectory(src)
 

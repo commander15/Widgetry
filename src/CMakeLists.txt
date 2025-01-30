@@ -36,6 +36,6 @@ target_compile_definitions(Widgetry
         WIDGETRY_BUILD
 )
 
-target_link_libraries(Widgetry PUBLIC Qt::Widgets Jsoner::Jsoner)
+target_link_libraries(Widgetry PUBLIC Qt::Widgets Jsoner)
 
 generate_target_headers(Widgetry FOLDER Widgetry)

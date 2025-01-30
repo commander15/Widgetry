@@ -1,0 +1,4 @@
+[submodule "3rdparty/Jsoner"]
+	path = 3rdparty/Jsoner
+	url = https://github.com/commander15/Jsoner
+	branch = jsoner-1
