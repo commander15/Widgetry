@@ -42,12 +42,9 @@ public:
     QAbstractButton *editButton() const;
     QAbstractButton *deleteButton() const;
 
-    QAbstractButton *button(int index) const;
-    int buttonIndex(QAbstractButton *button) const;
-    int buttonCount() const;
     void addButton(QAbstractButton *button);
-    void insertButton(int index, QAbstractButton *button);
-    void removeButton(int index);
+    void insertButton(QAbstractButton *before, QAbstractButton *button);
+    void removeButton(QAbstractButton *button);
 
     QWidget *filterWidget() const;
     QAbstractButton *filterButton() const;
