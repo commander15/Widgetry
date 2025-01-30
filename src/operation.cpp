@@ -27,6 +27,16 @@ QString Operation::name() const
     return d_ptr->name;
 }
 
+QVariantHash Operation::parameters() const
+{
+    return d_ptr->parameters;
+}
+
+void Operation::setParameters(const QVariantHash &parameters)
+{
+    d_ptr->parameters = parameters;
+}
+
 QByteArray Operation::senderId() const
 {
     return d_ptr->senderId;
