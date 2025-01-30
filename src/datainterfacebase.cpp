@@ -49,4 +49,30 @@ QAbstractButton *DataInterfaceBase::deleteButton() const
     return ui->deleteButton;
 }
 
+void DataInterfaceBase::addButton(QAbstractButton *button)
+{
+    ui->topBarLayout->addWidget(button);
+}
+
+void DataInterfaceBase::insertButton(QAbstractButton *before, QAbstractButton *button)
+{
+    int index = ui->topBarLayout->indexOf(before);
+    ui->topBarLayout->insertWidget(index, button);
+}
+
+void DataInterfaceBase::removeButton(QAbstractButton *button)
+{
+    ui->topBarLayout->removeWidget(button);
+}
+
+QWidget *DataInterfaceBase::filterWidget() const
+{
+    return ui->filterContainer;
+}
+
+QAbstractButton *DataInterfaceBase::filterButton() const
+{
+    return ui->filterButton;
+}
+
 } // namespace Widgetry
