@@ -25,16 +25,16 @@ void UserEdit::clear()
     ui->scoreInput->setValue(0);
 }
 
-void UserEdit::render(const GenO::Object &object, Operation operation)
+void UserEdit::render(const Jsoner::Object &object, Operation operation)
 {
     ui->nameInput->setText(object.string("name"));
     ui->scoreInput->setValue(object.integer("score"));
 }
 
-void UserEdit::extract(GenO::Object &object, Operation operation) const
+void UserEdit::extract(Jsoner::Object &object, Operation operation) const
 {
-    object.setProperty("name", ui->nameInput->text());
-    object.setProperty("score", ui->scoreInput->value());
+    object.insert("name", ui->nameInput->text());
+    object.insert("score", ui->scoreInput->value());
 }
 
 bool UserEdit::validateInput()

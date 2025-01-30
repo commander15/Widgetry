@@ -157,12 +157,12 @@ void FormDataEdit::clear()
     DataEdit::clear();
 }
 
-void FormDataEdit::render(const GenO::Object &object, Operation operation)
+void FormDataEdit::render(const Jsoner::Object &object, Operation operation)
 {
     //
 }
 
-void FormDataEdit::extract(GenO::Object &object, Operation operation) const
+void FormDataEdit::extract(Jsoner::Object &object, Operation operation) const
 {
     //
 }

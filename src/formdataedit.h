@@ -45,8 +45,8 @@ public slots:
     void clear() override;
 
 protected:
-    void render(const GenO::Object &object, Operation operation) override;
-    void extract(GenO::Object &object, Operation operation) const override;
+    void render(const Jsoner::Object &object, Operation operation) override;
+    void extract(Jsoner::Object &object, Operation operation) const override;
     void makeWriteable(bool writeable) override;
 };
 

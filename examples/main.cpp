@@ -10,12 +10,12 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     UserEdit *e1 = new UserEdit;
-    e1->setObject(GenO::Object(), Widgetry::DataEdit::AddOperation);
+    e1->setObject(Jsoner::Object(), Widgetry::DataEdit::AddOperation);
     QDialog *d1 = Widgetry::DataEdit::dialogFromEdit(e1);
     monitor(d1);
 
     UserEdit *e2 = new UserEdit;
-    e2->setObject(GenO::Object(), Widgetry::DataEdit::AddOperation);
+    e2->setObject(Jsoner::Object(), Widgetry::DataEdit::AddOperation);
     e2->registerFields();
     QDialog *d2 = Widgetry::DataEdit::dialogFromEdit(e2);
     monitor(d2);

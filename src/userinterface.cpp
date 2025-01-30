@@ -131,6 +131,12 @@ bool UserInterface::handleOperation(Operation *operation)
     return false;
 }
 
+void UserInterface::handleOperationResult(const Operation &operation)
+{
+    // No-op
+    Q_UNUSED(operation);
+}
+
 void UserInterface::requestServerOperation(const Operation &operation)
 {
     Operation op(operation);
