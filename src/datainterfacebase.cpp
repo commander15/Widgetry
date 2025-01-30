@@ -2,6 +2,8 @@
 
 #include "ui_datainterface.h"
 
+#include <Jsoner/tablemodel.h>
+
 namespace Widgetry {
 
 DataInterfaceBase::DataInterfaceBase(Ui::DataInterface *ui, DataInterfaceBasePrivate *d)
@@ -73,6 +75,31 @@ QWidget *DataInterfaceBase::filterWidget() const
 QAbstractButton *DataInterfaceBase::filterButton() const
 {
     return ui->filterButton;
+}
+
+QTableView *DataInterfaceBase::tableView() const
+{
+    return ui->tableView;
+}
+
+Jsoner::TableModel *DataInterfaceBase::tableModel() const
+{
+    return static_cast<Jsoner::TableModel *>(ui->tableView->model());
+}
+
+QSpinBox *DataInterfaceBase::pageInput() const
+{
+    return ui->pageInput;
+}
+
+QAbstractButton *DataInterfaceBase::previousPageButton() const
+{
+    return ui->previousPageButton;
+}
+
+QAbstractButton *DataInterfaceBase::nextPageButton() const
+{
+    return ui->nextPageButton;
 }
 
 } // namespace Widgetry
