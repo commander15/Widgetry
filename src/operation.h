@@ -12,7 +12,8 @@ class WIDGETRY_EXPORT Operation
 {
 public:
     Operation(const QString &name);
-    Operation(const Operation &other) = default;
+    Operation(const Operation &other);
+    Operation(Operation &&other);
     ~Operation();
 
     QString name() const;

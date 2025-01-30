@@ -8,6 +8,16 @@ Operation::Operation(const QString &name)
 {
 }
 
+Operation::Operation(const Operation &other)
+    : d_ptr(other.d_ptr)
+{
+}
+
+Operation::Operation(Operation &&other)
+    : d_ptr(std::move(other.d_ptr))
+{
+}
+
 Operation::~Operation()
 {
 }
