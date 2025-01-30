@@ -6,6 +6,8 @@
 #include <QtWidgets/qlabel.h>
 #include <QtWidgets/qdialogbuttonbox.h>
 
+#include <QtCore/qmetaobject.h>
+
 namespace Widgetry {
 
 class DataEditDialogHelper : public QDialog
@@ -112,7 +114,7 @@ DataEdit::~DataEdit()
 {
 }
 
-GenO::Object DataEdit::object() const
+Jsoner::Object DataEdit::object() const
 {
     extract(d_ptr->object, d_ptr->operation);
     return d_ptr->object;
@@ -123,7 +125,7 @@ DataEdit::Operation DataEdit::operation() const
     return d_ptr->operation;
 }
 
-void DataEdit::setObject(const GenO::Object &object, Operation operation)
+void DataEdit::setObject(const Jsoner::Object &object, Operation operation)
 {
     render(object, operation);
     d_ptr->operation = operation;
@@ -162,19 +164,19 @@ QDialog *DataEdit::dialogFromEdit(DataEdit *edit, QWidget *parent, Qt::WindowFla
     return helper;
 }
 
-void DataEdit::show(const GenO::Object &object)
+void DataEdit::show(const Jsoner::Object &object)
 {
     setObject(object, ShowOperation);
     QWidget::show();
 }
 
-void DataEdit::add(const GenO::Object &object)
+void DataEdit::add(const Jsoner::Object &object)
 {
     setObject(object, AddOperation);
     QWidget::show();
 }
 
-void DataEdit::edit(const GenO::Object &object)
+void DataEdit::edit(const Jsoner::Object &object)
 {
     setObject(object, EditOperation);
     QWidget::show();
@@ -182,7 +184,7 @@ void DataEdit::edit(const GenO::Object &object)
 
 void DataEdit::clear()
 {
-    setObject(GenO::Object(), d_ptr->operation);
+    setObject(Jsoner::Object(), d_ptr->operation);
 }
 
 bool DataEdit::validateInput()

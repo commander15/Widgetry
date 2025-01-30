@@ -1,4 +1,4 @@
-qt_add_library(Widgetry)
+add_library(Widgetry)
 
 configure_file(config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/config.h @ONLY)
 
@@ -36,6 +36,6 @@ target_compile_definitions(Widgetry
         WIDGETRY_BUILD
 )
 
-target_link_libraries(Widgetry PUBLIC Qt::Widgets GenO::GenO Jsoner::Jsoner)
+target_link_libraries(Widgetry PUBLIC Qt::Widgets Jsoner::Jsoner)
 
 generate_target_headers(Widgetry FOLDER Widgetry)

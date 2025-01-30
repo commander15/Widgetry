@@ -5,7 +5,7 @@
 
 #include <QtWidgets/qwidget.h>
 
-#include <GenO/object.h>
+#include <Jsoner/object.h>
 
 namespace Widgetry {
 
@@ -24,9 +24,9 @@ public:
     DataEdit(QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
     virtual ~DataEdit();
 
-    GenO::Object object() const;
+    Jsoner::Object object() const;
     Operation operation() const;
-    void setObject(const GenO::Object &object, Operation operation);
+    void setObject(const Jsoner::Object &object, Operation operation);
 
     bool isComplete() const;
     QString completionError() const;
@@ -37,9 +37,9 @@ public:
     static QDialog *dialogFromEdit(DataEdit *edit, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
 
 public slots:
-    void show(const GenO::Object &object);
-    void add(const GenO::Object &object);
-    void edit(const GenO::Object &object);
+    void show(const Jsoner::Object &object);
+    void add(const Jsoner::Object &object);
+    void edit(const Jsoner::Object &object);
 
     virtual void clear();
 
@@ -55,8 +55,8 @@ protected:
 
     DataEdit(DataEditPrivate *d, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
 
-    virtual void render(const GenO::Object &object, Operation operation) = 0;
-    virtual void extract(GenO::Object &object, Operation operation) const = 0;
+    virtual void render(const Jsoner::Object &object, Operation operation) = 0;
+    virtual void extract(Jsoner::Object &object, Operation operation) const = 0;
     virtual bool validateInput();
     virtual void makeWriteable(bool writeable) = 0;
 

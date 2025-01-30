@@ -12,7 +12,7 @@ public:
 
     DataEdit *q_ptr;
 
-    GenO::Object object;
+    Jsoner::Object object;
     DataEdit::Operation operation;
     bool readOnly;
 
