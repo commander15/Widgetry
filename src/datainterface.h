@@ -36,7 +36,7 @@ protected:
     void handleOperationResult(const Operation &operation) override;
 
     Jsoner::TableModel *createModel(const QStringList &fields);
-    QMenu *createContextMenu(bool addDefaultActions = false);
+    QMenu *createContextMenu(bool addDefaultActions = true);
 
     friend class DataInterfaceBase;
 };
