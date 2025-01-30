@@ -134,6 +134,11 @@ QList<Jsoner::Object> DataInterfaceBase::selectedObjects() const
     return objects;
 }
 
+void DataInterfaceBase::fetchObjects()
+{
+    //
+}
+
 void DataInterfaceBase::showObject(const Jsoner::Object &object)
 {
     if (d->dataEdit) {

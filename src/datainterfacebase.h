@@ -63,6 +63,7 @@ protected:
     Jsoner::Object currentObject() const;
     QList<Jsoner::Object> selectedObjects() const;
 
+    virtual void fetchObjects();
     virtual void showObject(const Jsoner::Object &object);
     virtual void addObject(const Jsoner::Object &object);
     virtual void editObject(const Jsoner::Object &object);

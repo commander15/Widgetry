@@ -38,12 +38,18 @@ bool DataInterface::isOperationSupported(const QString &operation) const
 void DataInterface::search(const QString &query)
 {
     ui->searchInput->setText(query);
-    refresh();
+    fetchObjects();
 }
 
 void DataInterface::filter(const QVariantHash &filters)
 {
     // ToDo: implement filtering logic
+    fetchObjects();
+}
+
+void DataInterface::refresh()
+{
+    fetchObjects();
 }
 
 void DataInterface::addItem()
