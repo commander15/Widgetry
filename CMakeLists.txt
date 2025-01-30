@@ -12,7 +12,6 @@ option(BUILD_SHARED_LIBS "" OFF)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(cmake/Utils.cmake)
-include(cmake/FindHelper.cmake)
 
 find_package(Qt REQUIRED COMPONENTS Core Gui Widgets)
 
