@@ -171,7 +171,7 @@
    </item>
    <item row="0" column="0" colspan="5">
     <widget class="QWidget" name="topBar" native="true">
-     <layout class="QHBoxLayout" name="topBar_2">
+     <layout class="QHBoxLayout" name="topBarLayout">
       <item>
        <widget class="QLineEdit" name="searchInput">
         <property name="maxLength">
