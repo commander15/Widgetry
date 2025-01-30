@@ -8,6 +8,7 @@
 #include <Jsoner/tablemodel.h>
 
 #include <QtWidgets/qmessagebox.h>
+#include <QtWidgets/qmenu.h>
 
 namespace Widgetry {
 
