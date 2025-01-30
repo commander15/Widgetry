@@ -35,6 +35,8 @@ protected:
     bool handleOperation(Operation *operation) override;
     void handleOperationResult(const Operation &operation) override;
 
+    bool canDeleteObjects(const QList<Jsoner::Object> &objects) override;
+
     Jsoner::TableModel *createModel(const QStringList &fields);
     QMenu *createContextMenu(bool addDefaultActions = true);
 

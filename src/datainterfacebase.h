@@ -67,8 +67,8 @@ protected:
     virtual void addObject(const Jsoner::Object &object);
     virtual void editObject(const Jsoner::Object &object);
 
-    virtual bool canDeleteObjects(const QList<Jsoner::Object> &objects) = 0;
-    virtual void deleteObjects(const QList<Jsoner::Object> &objects) = 0;
+    virtual bool canDeleteObjects(const QList<Jsoner::Object> &objects);
+    virtual void deleteObjects(const QList<Jsoner::Object> &objects);
 
     void showContextMenu(const QList<Jsoner::Object> &objects, const QPoint &pos);
     virtual bool prepareContextMenu(const QList<Jsoner::Object> &objects, QMenu *menu);

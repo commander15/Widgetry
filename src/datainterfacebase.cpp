@@ -7,7 +7,6 @@
 
 #include <Jsoner/tablemodel.h>
 
-#include <QtWidgets/qmessagebox.h>
 #include <QtWidgets/qmenu.h>
 
 namespace Widgetry {
@@ -152,6 +151,18 @@ void DataInterfaceBase::editObject(const Jsoner::Object &object)
 {
     if (d->dataEdit)
         d->dataEdit->edit(object);
+}
+
+bool DataInterfaceBase::canDeleteObjects(const QList<Jsoner::Object> &objects)
+{
+    return !objects.isEmpty();
+}
+
+void DataInterfaceBase::deleteObjects(const QList<Jsoner::Object> &objects)
+{
+    const Jsoner::Array array = d->tableModel->array();
+    for (const Jsoner::Object &object : objects)
+        ;
 }
 
 void DataInterfaceBase::showContextMenu(const QList<Jsoner::Object> &objects, const QPoint &pos)

@@ -7,7 +7,7 @@
 #include <Jsoner/object.h>
 #include <Jsoner/tablemodel.h>
 
-#include <QtWidgets/qmenu.h>
+#include <QtWidgets/qmessagebox.h>
 
 namespace Widgetry {
 
@@ -101,6 +101,18 @@ bool DataInterface::handleOperation(Operation *operation)
 void DataInterface::handleOperationResult(const Operation &operation)
 {
     Q_UNUSED(operation);
+}
+
+bool DataInterface::canDeleteObjects(const QList<Jsoner::Object> &objects)
+{
+    if (objects.isEmpty())
+        return false;
+
+    int response = QMessageBox::question(nullptr, tr("Deletion..."), tr("Do you really want to delete these %n record(s)", "", objects.size()));
+    if (response == QMessageBox::No)
+        return false;
+
+    return true;
 }
 
 Jsoner::TableModel *DataInterface::createModel(const QStringList &fields)
