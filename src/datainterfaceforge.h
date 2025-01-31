@@ -4,6 +4,7 @@
 #include <Widgetry/global.h>
 
 #include <QtWidgets/qwidget.h>
+#include <QtWidgets/qheaderview.h>
 
 class QLineEdit;
 class QAbstractButton;
@@ -32,6 +33,11 @@ public:
     DataInterfaceForge(DataInterfaceForgePrivate *d);
     ~DataInterfaceForge();
 
+    void tableHeader(int index, const QString &label);
+    void tableHeader(int index, const QString &label, QHeaderView::ResizeMode resizeMode);
+    void tableHeader(int index, const QString &label, const QString &field, QHeaderView::ResizeMode resizeMode);
+
+public:
     QWidget *topBar() const;
 
     QLineEdit *searchBar() const;

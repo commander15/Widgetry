@@ -25,6 +25,28 @@ DataInterfaceForge::~DataInterfaceForge()
 {
 }
 
+void DataInterfaceForge::tableHeader(int index, const QString &label)
+{
+    d_ptr->tableModel->setHeaderData(index, Qt::Horizontal, label);
+}
+
+void DataInterfaceForge::tableHeader(int index, const QString &label, QHeaderView::ResizeMode resizeMode)
+{
+    QHeaderView *view = ui->tableView->horizontalHeader();
+    view->setSectionResizeMode(index, resizeMode);
+
+    tableHeader(index, label);
+}
+
+void DataInterfaceForge::tableHeader(int index, const QString &label, const QString &field, QHeaderView::ResizeMode resizeMode)
+{
+    QStringList fields = d_ptr->tableModel->fields();
+    fields.insert(index, field);
+    d_ptr->tableModel->setFields(fields << field);
+
+    tableHeader(index, label, resizeMode);
+}
+
 QWidget *DataInterfaceForge::topBar() const
 {
     return ui->topBar;
