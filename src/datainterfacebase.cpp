@@ -8,12 +8,13 @@
 #include <Jsoner/tablemodel.h>
 
 #include <QtWidgets/qmenu.h>
+#include <QtWidgets/qdialog.h>
 
 namespace Widgetry {
 
 DataInterfaceBase::DataInterfaceBase(Ui::DataInterface *ui, DataInterfaceBasePrivate *d)
     : ui(ui)
-    , d(d)
+    , data(d)
 {
 }
 
@@ -109,71 +110,69 @@ QAbstractButton *DataInterfaceBase::nextPageButton() const
 
 QMenu *DataInterfaceBase::contextMenu() const
 {
-    return d->contextMenu;
+    return data->contextMenu;
 }
 
 DataEdit *DataInterfaceBase::dataEdit() const
 {
-    return d->dataEdit;
+    return data->dataEdit;
 }
 
 Jsoner::Object DataInterfaceBase::currentObject() const
 {
     const int index = ui->tableView->currentIndex().row();
-    return (index >= 0 ? d->tableModel->object(index) : Jsoner::Object());
+    return (index >= 0 ? data->tableModel->object(index) : Jsoner::Object());
 }
 
-QList<Jsoner::Object> DataInterfaceBase::selectedObjects() const
+Jsoner::Array DataInterfaceBase::selectedObjects() const
 {
     QItemSelectionModel *model = ui->tableView->selectionModel();
     const QModelIndexList indexes = (model ? model->selectedRows() : QModelIndexList());
 
-    QList<Jsoner::Object> objects;
+    Jsoner::Array objects;
     for (const QModelIndex &index : indexes)
-        objects.append(d->tableModel->object(index.row()));
+        objects.append(data->tableModel->object(index.row()));
     return objects;
-}
-
-void DataInterfaceBase::fetchObjects()
-{
-    //
 }
 
 void DataInterfaceBase::showObject(const Jsoner::Object &object)
 {
-    if (d->dataEdit) {
-        d->dataEdit->show(object);
-    }
+    if (!data->dataEdit)
+        return;
+
+    data->dataEdit->show(object);
 }
 
-void DataInterfaceBase::addObject(const Jsoner::Object &object)
+Jsoner::Object DataInterfaceBase::addObject(const Jsoner::Object &object)
 {
-    if (d->dataEdit)
-        d->dataEdit->add(object);
+    if (!data->dataEdit)
+        return Jsoner::Object();
+
+    data->dataEdit->add(object);
+
+    if (!data->dataEditDialog || !data->dataEditDialog->exec())
+        return Jsoner::Object();
+
+    return (data->dataEdit->isComplete() ? data->dataEdit->object() : Jsoner::Object());
 }
 
-void DataInterfaceBase::editObject(const Jsoner::Object &object)
+Jsoner::Object DataInterfaceBase::editObject(const Jsoner::Object &object)
 {
-    if (d->dataEdit)
-        d->dataEdit->edit(object);
-}
+    if (!data->dataEdit)
+        return Jsoner::Object();
 
-bool DataInterfaceBase::canDeleteObjects(const QList<Jsoner::Object> &objects)
-{
-    return !objects.isEmpty();
-}
+    data->dataEdit->edit(object);
 
-void DataInterfaceBase::deleteObjects(const QList<Jsoner::Object> &objects)
-{
-    const Jsoner::Array array = d->tableModel->array();
-    for (const Jsoner::Object &object : objects)
-        ;
+    if (!data->dataEditDialog || !data->dataEditDialog->exec())
+        return Jsoner::Object();
+
+    return (data->dataEdit->isComplete() ? data->dataEdit->object() : Jsoner::Object());
 }
 
 void DataInterfaceBase::showContextMenu(const QList<Jsoner::Object> &objects, const QPoint &pos)
 {
-    if (d->contextMenu && prepareContextMenu(objects, d->contextMenu))
-        d->contextMenu->popup(pos);
+    if (data->contextMenu && prepareContextMenu(objects, data->contextMenu))
+        data->contextMenu->popup(pos);
 }
 
 bool DataInterfaceBase::prepareContextMenu(const QList<Jsoner::Object> &objects, QMenu *menu)
@@ -184,14 +183,14 @@ bool DataInterfaceBase::prepareContextMenu(const QList<Jsoner::Object> &objects,
     const bool single = objects.size() == 1;
     const bool multiple = objects.size() > 1;
 
-    if (d->showAction)
-        d->showAction->setVisible(single);
+    if (data->showAction)
+        data->showAction->setVisible(single);
 
-    if (d->editAction)
-        d->editAction->setVisible(single);
+    if (data->editAction)
+        data->editAction->setVisible(single);
 
-    if (d->deleteAction)
-        d->deleteAction->setVisible(multiple);
+    if (data->deleteAction)
+        data->deleteAction->setVisible(multiple);
 
     return true;
 }
@@ -199,31 +198,38 @@ bool DataInterfaceBase::prepareContextMenu(const QList<Jsoner::Object> &objects,
 void DataInterfaceBase::setFilterWidget(QWidget *widget)
 {
     ui->filterContainerLayout->addWidget(widget);
-    d->filterWidget = widget;
+    data->filterWidget = widget;
 }
 
 void DataInterfaceBase::setTableModel(Jsoner::TableModel *model)
 {
     ui->tableView->setModel(model);
-    d->tableModel = model;
+    data->tableModel = model;
 }
 
 void DataInterfaceBase::setDataEdit(DataEdit *edit)
 {
-    d->dataEdit = edit;
+    data->dataEdit = edit;
+}
+
+void DataInterfaceBase::setDataEdit(DataEdit *edit, QWidget *dialogParent)
+{
+    data->dataEdit = edit;
+    if (dialogParent)
+        data->dataEditDialog = DataEdit::dialogFromEdit(edit, dialogParent);
 }
 
 void DataInterfaceBase::setContextMenu(QMenu *menu, bool addDefaultActions)
 {
     if (addDefaultActions) {
-        d->showAction = new QAction(QIcon(":/icons/action_show.png"), QString(), ui->tableView);
-        d->editAction = new QAction(ui->editButton->icon(), QString(), ui->tableView);
-        d->deleteAction = new QAction(ui->deleteButton->icon(), QString(), ui->tableView);
+        data->showAction = new QAction(QIcon(":/icons/action_show.png"), QString(), ui->tableView);
+        data->editAction = new QAction(ui->editButton->icon(), QString(), ui->tableView);
+        data->deleteAction = new QAction(ui->deleteButton->icon(), QString(), ui->tableView);
 
         QList<QAction *> actions = menu->actions();
         QAction *first = (!actions.isEmpty() ? actions.first() : nullptr);
 
-        actions = { d->showAction, d->editAction, d->deleteAction };
+        actions = { data->showAction, data->editAction, data->deleteAction };
         if (first) {
             QAction *separator = new QAction();
             separator->setSeparator(true);
@@ -233,7 +239,7 @@ void DataInterfaceBase::setContextMenu(QMenu *menu, bool addDefaultActions)
         menu->insertActions(first, actions);
     }
 
-    d->contextMenu = menu;
+    data->contextMenu = menu;
 }
 
 } // namespace Widgetry

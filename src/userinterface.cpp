@@ -12,7 +12,7 @@ UserInterface::UserInterface(QWidget *parent, Qt::WindowFlags flags)
 }
 
 UserInterface::UserInterface(const QByteArray &id, QWidget *parent, Qt::WindowFlags flags)
-    : UserInterface(new UserInterfacePrivate(id, this), parent, flags)
+    : UserInterface(new UserInterfacePrivate(this, id), parent, flags)
 {
 }
 
@@ -52,6 +52,20 @@ bool UserInterface::isOperationSupported(const QString &operation) const
 {
     Q_UNUSED(operation);
     return false;
+}
+
+QStringList UserInterface::supportedOperations() const
+{
+    QStringList operations = availableOperations();
+    std::remove_if(operations.begin(), operations.end(), [this](const QString &operation) {
+        return !isOperationSupported(operation);
+    });
+    return operations;
+}
+
+QStringList UserInterface::availableOperations() const
+{
+    return QStringList();
 }
 
 QVariant UserInterface::operate(const QString &operation)
@@ -121,7 +135,9 @@ void UserInterface::setAction(QAction *action)
 
 void UserInterface::sync()
 {
-    // No-op
+    const QStringList availableOperations = this->availableOperations();
+    for (const QString &operation : availableOperations)
+        emit operationSupportChanged(operation, isOperationSupported(operation));
 }
 
 bool UserInterface::handleOperation(Operation *operation)
@@ -152,17 +168,12 @@ void UserInterface::requestOperation(const Operation &operation)
     emit operationRequested(op);
 }
 
-UserInterface *UserInterface::findInterface(const QByteArray &id) const
-{
-    return nullptr;
-}
-
 UserInterfacePrivate::UserInterfacePrivate(UserInterface *q)
-    : UserInterfacePrivate(QByteArray(), q)
+    : UserInterfacePrivate(q, QByteArray())
 {
 }
 
-UserInterfacePrivate::UserInterfacePrivate(const QByteArray &id, UserInterface *q)
+UserInterfacePrivate::UserInterfacePrivate(UserInterface *q, const QByteArray &id)
     : q_ptr(q)
     , id(id)
     , action(nullptr)

@@ -25,6 +25,9 @@ public:
     QAction *action() const;
 
     virtual bool isOperationSupported(const QString &operation) const;
+    QStringList supportedOperations() const;
+    virtual QStringList availableOperations() const;
+
     QVariant operate(const QString &operation);
     QVariant operate(const QString &operation, const QVariant &parameter);
     QVariant operate(const QString &operation, const QVariantHash &parameters);
@@ -51,8 +54,6 @@ protected:
 
     void requestServerOperation(const Operation &operation);
     void requestOperation(const Operation &operation);
-
-    UserInterface *findInterface(const QByteArray &id) const;
 
     QScopedPointer<UserInterfacePrivate> d_ptr;
 

@@ -5,6 +5,7 @@
 #include <Widgetry/operation.h>
 
 #include <QtCore/qcoreapplication.h>
+#include <QtCore/qmetaobject.h>
 
 namespace Widgetry {
 
@@ -41,6 +42,12 @@ void InterfaceServer::setCurrentIndex(int index)
     emit currentIconChanged(d->currentInterface ? d->currentInterface->icon() : QIcon());
     emit currentTitleChanged(d->currentInterface ? d->currentInterface->title() : QString());
     emit currentOperationSupportChanged("*", false);
+}
+
+void InterfaceServer::sync()
+{
+    for (int i(0); i < count(); ++i)
+        QMetaObject::invokeMethod(interface(i), &UserInterface::sync, Qt::QueuedConnection);
 }
 
 void InterfaceServer::registerInterface(UserInterface *interface)
@@ -105,6 +112,11 @@ void InterfaceServer::processRequestedOperation(const Operation &operation)
 
 bool InterfaceServer::processServerOperation(UserInterface *origin, Operation *operation)
 {
+    if (operation->name() == "sync") {
+        sync();
+        return true;
+    }
+
     return false;
 }
 

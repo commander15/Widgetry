@@ -3,6 +3,7 @@
 #include "ui_datainterface.h"
 
 #include <Widgetry/operation.h>
+#include <Widgetry/abstractdatacontroller.h>
 
 #include <Jsoner/object.h>
 #include <Jsoner/tablemodel.h>
@@ -18,7 +19,7 @@ DataInterface::DataInterface(QWidget *parent, Qt::WindowFlags flags)
 }
 
 DataInterface::DataInterface(const QByteArray &id, QWidget *parent, Qt::WindowFlags flags)
-    : UserInterface(new DataInterfacePrivate(id, this), parent, flags)
+    : UserInterface(new DataInterfacePrivate(this, id), parent, flags)
     , DataInterfaceBase(new Ui::DataInterface, static_cast<DataInterfacePrivate *>(d_ptr.data()))
 {
     ui->setupUi(this);
@@ -31,47 +32,121 @@ DataInterface::~DataInterface()
 
 bool DataInterface::isOperationSupported(const QString &operation) const
 {
-    static const QStringList operations = { "search", "filter", "refresh", "showItem", "addItem", "deleteItem" };
-    return operations.contains(operation);
+    return s_availableOperations.contains(operation);
+}
+
+QStringList DataInterface::availableOperations() const
+{
+    return UserInterface::availableOperations() + s_availableOperations;
+}
+
+void DataInterface::setDataController(AbstractDataController *controller)
+{
+    WIDGETRY_D(DataInterface);
+
+    AbstractDataController *oldController = d->dataController;
+    AbstractDataController *newController = controller;
+
+    if (oldController) {
+        disconnect(oldController, &AbstractDataController::objectsFetched, this, &DataInterface::handleFetchedObjects);
+        disconnect(oldController, &AbstractDataController::objectFetched, this, &DataInterface::handleFetchedObject);
+        disconnect(oldController, &AbstractDataController::objectAdded, this, &DataInterface::handleAddedObject);
+        disconnect(oldController, &AbstractDataController::objectEdited, this, &DataInterface::handleEditedObject);
+        disconnect(oldController, &AbstractDataController::objectsDeleted, this, &DataInterface::handleDeletedObjects);
+        disconnect(oldController, &AbstractDataController::errorOccured, this, &DataInterface::handleError);
+    }
+
+    if (newController) {
+        connect(newController, &AbstractDataController::objectsFetched, this, &DataInterface::handleFetchedObjects);
+        connect(newController, &AbstractDataController::objectFetched, this, &DataInterface::handleFetchedObject);
+        connect(newController, &AbstractDataController::objectAdded, this, &DataInterface::handleAddedObject);
+        connect(newController, &AbstractDataController::objectEdited, this, &DataInterface::handleEditedObject);
+        connect(newController, &AbstractDataController::objectsDeleted, this, &DataInterface::handleDeletedObjects);
+        connect(newController, &AbstractDataController::errorOccured, this, &DataInterface::handleError);
+    }
+
+    d->dataController = controller;
 }
 
 void DataInterface::search(const QString &query)
 {
     ui->searchInput->setText(query);
-    fetchObjects();
+    refresh();
 }
 
 void DataInterface::filter(const QVariantHash &filters)
 {
-    // ToDo: implement filtering logic
-    fetchObjects();
+    // ToDo: handle filters
+    refresh();
 }
 
 void DataInterface::refresh()
 {
-    fetchObjects();
+    WIDGETRY_D(DataInterface);
+
+    if (!d->dataController)
+        return;
+
+    DataQuery query = generateQuery();
+    query.setQuery(ui->searchInput->text());
+    query.setPage(ui->pageInput->value());
+    // ToDo: handle filters
+
+    d->dataController->fetchObjects(query);
+}
+
+void DataInterface::showCurrentItem()
+{
+    WIDGETRY_D(DataInterface);
+
+    if (!d->dataController)
+        return;
+
+    d->dataController->fetchObject(currentObject(), AbstractDataController::FetchRequest);
 }
 
 void DataInterface::addItem()
 {
-    addObject(Jsoner::Object());
+    WIDGETRY_D(DataInterface);
+
+    if (!d->dataController)
+        return;
+
+    Jsoner::Object object = addObject(Jsoner::Object());
+    if (!object.isEmpty()) {
+        d->dataController->addObject(object);
+    }
 }
 
-void DataInterface::editItem()
+void DataInterface::editCurrentItem()
 {
-    editObject(currentObject());
+    WIDGETRY_D(DataInterface);
+
+    if (!d->dataController)
+        return;
+
+    const Jsoner::Object object = currentObject();
+    if (!object.isEmpty()) {
+        d->dataController->editObject(object);
+    }
 }
 
-void DataInterface::deleteItems()
+void DataInterface::deleteSelectedItems()
 {
-    const QList<Jsoner::Object> objects = selectedObjects();
-    if (canDeleteObjects(objects))
-        deleteObjects(objects);
-}
+    WIDGETRY_D(DataInterface);
 
-void DataInterface::sync()
-{
-    //
+    if (!d->dataController)
+        return;
+
+    const Jsoner::Array objects = selectedObjects();
+    if (objects.empty())
+        return;
+
+    int response = QMessageBox::question(nullptr, tr("Deletion..."), tr("Do you really want to delete these %n record(s)", "", objects.size()));
+    if (response == QMessageBox::No)
+        return;
+
+    d->dataController->deleteObjects(objects);
 }
 
 bool DataInterface::handleOperation(Operation *operation)
@@ -80,28 +155,102 @@ bool DataInterface::handleOperation(Operation *operation)
     const QVariantHash parameters = operation->parameters();
 
     if (name == "search") {
-        search(parameters.value("query").toString());
-    } else if (name == "filter") {
-        filter(parameters.value("filters").toHash());
-    } else if (name == "refresh") {
-        refresh();
-    } else if (name == "showItem") {
-        showObject(parameters.value("item").value<Jsoner::Object>());
-    } else if (name == "addItem") {
-        if (parameters.contains("item"))
-            addObject(parameters.value("item").value<Jsoner::Object>());
-        else
-            addObject(Jsoner::Object());
-    } else if (name == "editItem") {
-        editObject(parameters.value("item").value<Jsoner::Object>());
-    } else if (name == "deleteItems") {
-        const QList<Jsoner::Object> objects = parameters.value("items").value<QList<Jsoner::Object>>();
-        if (canDeleteObjects(objects))
-            deleteObjects(objects);
-    } else {
-        return false;
+        return handleSearch(parameters);
+    }
+    if (name == "filter") {
+        return handleFilter(parameters);
+    }
+    if (name == "refresh") {
+        return handleRefresh(parameters);
+    }
+    if (name == "showItem") {
+        return handleShowItem(parameters);
+    }
+    if (name == "addItem") {
+        return handleAddItem(parameters);
+    }
+    if (name == "editItem") {
+        return handleEditItem(parameters);
+    }
+    if (name == "deleteItems") {
+        return handleDeleteItems(parameters);
     }
 
+    return false;
+}
+bool DataInterface::handleSearch(const QVariantHash &parameters)
+{
+    WIDGETRY_D(DataInterface);
+    const QString query = parameters.value("query").toString();
+
+    search(query);
+    return true;
+}
+
+bool DataInterface::handleFilter(const QVariantHash &parameters)
+{
+    WIDGETRY_D(DataInterface);
+    const QVariantHash filters = parameters.value("filters").toHash();
+
+    filter(filters);
+    return true;
+}
+
+bool DataInterface::handleRefresh(const QVariantHash &parameters)
+{
+    WIDGETRY_D(DataInterface);
+    refresh();
+    return true;
+}
+
+bool DataInterface::handleShowItem(const QVariantHash &parameters)
+{
+    WIDGETRY_D(DataInterface);
+    const Jsoner::Object item = parameters.value("item").value<Jsoner::Object>();
+
+    if (!d->dataController)
+        return false;
+
+    d->dataController->fetchObject(item, AbstractDataController::FetchRequest);
+    return true;
+}
+
+bool DataInterface::handleAddItem(const QVariantHash &parameters)
+{
+    WIDGETRY_D(DataInterface);
+    Jsoner::Object object = parameters.value("item").value<Jsoner::Object>();
+
+    if (object.isEmpty())
+        object = Jsoner::Object();
+
+    if (!d->dataController)
+        return false;
+
+    d->dataController->addObject(object);
+    return true;
+}
+
+bool DataInterface::handleEditItem(const QVariantHash &parameters)
+{
+    WIDGETRY_D(DataInterface);
+    const Jsoner::Object object = parameters.value("item").value<Jsoner::Object>();
+
+    if (!d->dataController)
+        return false;
+
+    d->dataController->editObject(object);
+    return true;
+}
+
+bool DataInterface::handleDeleteItems(const QVariantHash &parameters)
+{
+    WIDGETRY_D(DataInterface);
+    const Jsoner::Array objects = parameters.value("items").value<Jsoner::Array>();
+
+    if (objects.isEmpty() || !d->dataController)
+        return false;
+
+    d->dataController->deleteObjects(objects);
     return true;
 }
 
@@ -110,16 +259,9 @@ void DataInterface::handleOperationResult(const Operation &operation)
     Q_UNUSED(operation);
 }
 
-bool DataInterface::canDeleteObjects(const QList<Jsoner::Object> &objects)
+DataQuery DataInterface::generateQuery() const
 {
-    if (objects.isEmpty())
-        return false;
-
-    int response = QMessageBox::question(nullptr, tr("Deletion..."), tr("Do you really want to delete these %n record(s)", "", objects.size()));
-    if (response == QMessageBox::No)
-        return false;
-
-    return true;
+    return DataQuery();
 }
 
 Jsoner::TableModel *DataInterface::createModel(const QStringList &fields)
@@ -134,6 +276,116 @@ QMenu *DataInterface::createContextMenu(bool addDefaultActions)
     QMenu *menu = new QMenu(this);
     setContextMenu(menu, addDefaultActions);
     return menu;
+}
+
+void DataInterface::handleFetchedObjects(const Jsoner::Array &objects, const DataResponse &response)
+{
+    WIDGETRY_D(DataInterface);
+    ui->pageInput->setMaximum(response.pageCount());
+    ui->pageInput->setValue(response.page());
+    d->tableModel->setArray(objects);
+    Q_UNUSED(response);
+}
+
+void DataInterface::handleFetchedObject(const Jsoner::Object &object, const DataResponse &response, int targetRequestType)
+{
+    WIDGETRY_D(DataInterface);
+
+    Jsoner::Object newObject;
+    switch (targetRequestType) {
+    case AbstractDataController::FetchRequest:
+        showObject(object);
+        break;
+
+    case AbstractDataController::AddRequest:
+        newObject = addObject(object);
+        if (!newObject.isEmpty())
+            d->dataController->addObject(newObject);
+        break;
+
+    case AbstractDataController::EditRequest:
+        newObject = editObject(object);
+        if (!newObject.isEmpty())
+            d->dataController->addObject(newObject);
+        break;
+
+    default:
+        break;
+    }
+    Q_UNUSED(response);
+}
+
+void DataInterface::handleAddedObject(const Jsoner::Object &object, const DataResponse &response)
+{
+    WIDGETRY_D(DataInterface);
+    d->dataController->fetchObjects(generateQuery());
+
+    Q_UNUSED(object);
+    Q_UNUSED(response);
+}
+
+void DataInterface::handleEditedObject(const Jsoner::Object &object, const DataResponse &response)
+{
+    WIDGETRY_D(DataInterface);
+    d->dataController->fetchObjects(generateQuery());
+
+    Q_UNUSED(object);
+    Q_UNUSED(response);
+}
+
+void DataInterface::handleDeletedObjects(const Jsoner::Array &objects, const DataResponse &response)
+{
+    WIDGETRY_D(DataInterface);
+    d->dataController->fetchObjects(generateQuery());
+
+    Q_UNUSED(objects);
+    Q_UNUSED(response);
+}
+
+void DataInterface::handleError(int requestType, const Jsoner::Array &objects, const DataResponse &error)
+{
+    Q_UNUSED(objects);
+
+    QMessageBox box;
+    box.setWindowTitle(tr("Error"));
+
+    QString text = error.text();
+
+    if (text.isEmpty()) {
+        switch (requestType) {
+        case AbstractDataController::FetchRequest:
+            text = tr("Unable to retrieve data");
+            break;
+
+        case AbstractDataController::AddRequest:
+            text = tr("Unable to add data");
+            break;
+
+        case AbstractDataController::EditRequest:
+            text = tr("Unable to edit data");
+            break;
+
+        case AbstractDataController::DeleteRequest:
+            text = tr("Unable to delete data");
+            break;
+
+        default:
+            text = tr("Unknown error occurred");
+            break;
+        }
+    }
+
+    box.setText("<b>" + text + "</b>");
+    box.setInformativeText(error.informativeText());
+    box.setDetailedText(error.detailedText());
+    box.exec();
+}
+
+QStringList DataInterface::s_availableOperations = { "search", "filter", "refresh", "showItem", "addItem", "deleteItem" };
+
+DataInterfacePrivate::DataInterfacePrivate(DataInterface *q, const QByteArray &id)
+    : UserInterfacePrivate(q, id)
+{
 }
 
 } // namespace Widgetry

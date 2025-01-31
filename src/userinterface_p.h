@@ -9,7 +9,7 @@ class UserInterfacePrivate
 {
 public:
     UserInterfacePrivate(UserInterface *q);
-    UserInterfacePrivate(const QByteArray &id, UserInterface *q);
+    UserInterfacePrivate(UserInterface *q, const QByteArray &id);
 
     UserInterface *q_ptr;
 

@@ -11,7 +11,9 @@ namespace Widgetry {
 class DataInterfacePrivate : public UserInterfacePrivate, public DataInterfaceBasePrivate
 {
 public:
-    DataInterfacePrivate(const QByteArray &id, DataInterface *q);
+    DataInterfacePrivate(DataInterface *q, const QByteArray &id);
+
+    AbstractDataController *dataController;
 };
 
 } // namespace Widgetry

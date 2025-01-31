@@ -18,6 +18,7 @@ public:
     QAction *deleteAction = nullptr;
 
     DataEdit *dataEdit = nullptr;
+    QDialog *dataEditDialog = nullptr;
 };
 
 }

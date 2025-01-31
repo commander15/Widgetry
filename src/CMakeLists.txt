@@ -10,6 +10,7 @@ target_headers(Widgetry
         interfaceholder.h
         interfaceserver.h operation.h
         datainterfacebase.h datainterface.h
+        abstractdatacontroller.h
     PRIVATE
         userinterface_p.h
         dataedit_p.h formdataedit_p.h
@@ -24,6 +25,7 @@ target_sources(Widgetry
         interfaceholder.cpp
         interfaceserver.cpp operation.cpp
         datainterfacebase.cpp datainterface.cpp datainterface.ui
+        abstractdatacontroller.cpp
         resources/widgetry_resources.qrc
 )
 

@@ -14,6 +14,7 @@ class QMenu;
 namespace Jsoner {
 class TableModel;
 class Object;
+class Array;
 }
 
 namespace Widgetry {
@@ -61,15 +62,11 @@ public:
 
 protected:
     Jsoner::Object currentObject() const;
-    QList<Jsoner::Object> selectedObjects() const;
+    Jsoner::Array selectedObjects() const;
 
-    virtual void fetchObjects();
     virtual void showObject(const Jsoner::Object &object);
-    virtual void addObject(const Jsoner::Object &object);
-    virtual void editObject(const Jsoner::Object &object);
-
-    virtual bool canDeleteObjects(const QList<Jsoner::Object> &objects);
-    virtual void deleteObjects(const QList<Jsoner::Object> &objects);
+    virtual Jsoner::Object addObject(const Jsoner::Object &object);
+    virtual Jsoner::Object editObject(const Jsoner::Object &object);
 
     void showContextMenu(const QList<Jsoner::Object> &objects, const QPoint &pos);
     virtual bool prepareContextMenu(const QList<Jsoner::Object> &objects, QMenu *menu);
@@ -78,12 +75,13 @@ protected:
     void setFilterWidget(QWidget *widget);
     void setTableModel(Jsoner::TableModel *model);
     void setDataEdit(DataEdit *edit);
+    void setDataEdit(DataEdit *edit, QWidget *dialogParent);
     void setContextMenu(QMenu *menu, bool addDefaultActions = true);
 
     Ui::DataInterface *ui;
 
 private:
-    DataInterfaceBasePrivate *d;
+    DataInterfaceBasePrivate *data;
 };
 
 } // namespace Widgetry

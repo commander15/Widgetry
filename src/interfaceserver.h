@@ -30,6 +30,8 @@ public:
 public slots:
     void setCurrentIndex(int index) override;
 
+    void sync();
+
 signals:
     void currentIconChanged(const QIcon &icon);
     void currentTitleChanged(const QString &title);
