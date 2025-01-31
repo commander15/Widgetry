@@ -29,7 +29,7 @@ class DataInterfaceForgePrivate;
 class WIDGETRY_EXPORT DataInterfaceForge
 {
 public:
-    DataInterfaceForge(Ui::DataInterface *ui, DataInterfaceForgePrivate *d);
+    DataInterfaceForge(DataInterfaceForgePrivate *d);
     ~DataInterfaceForge();
 
     QWidget *topBar() const;
@@ -70,6 +70,8 @@ protected:
     bool prepareContextMenu(const Jsoner::Array &objects, QMenu *menu);
 
 private:
+    void init();
+
     Ui::DataInterface *ui;
     DataInterfaceForgePrivate *d_ptr;
 

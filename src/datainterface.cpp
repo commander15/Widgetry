@@ -21,6 +21,7 @@ DataInterface::DataInterface(QWidget *parent, Qt::WindowFlags flags)
 
 DataInterface::DataInterface(const QByteArray &id, QWidget *parent, Qt::WindowFlags flags)
     : UserInterface(new DataInterfacePrivate(this, id), parent, flags)
+    , ui(new Ui::DataInterface())
 {
     ui->setupUi(this);
 
@@ -28,6 +29,9 @@ DataInterface::DataInterface(const QByteArray &id, QWidget *parent, Qt::WindowFl
     connect(ui->addButton, &QAbstractButton::clicked, this, &DataInterface::addItem);
     connect(ui->editButton, &QAbstractButton::clicked, this, &DataInterface::editCurrentItem);
     connect(ui->deleteButton, &QAbstractButton::clicked, this, &DataInterface::deleteSelectedItems);
+
+    WIDGETRY_D(DataInterface);
+    d->forge->init();
 }
 
 DataInterface::~DataInterface()
@@ -473,7 +477,7 @@ QStringList DataInterface::s_availableOperations = { "search", "filter", "refres
 
 DataInterfacePrivate::DataInterfacePrivate(DataInterface *q, const QByteArray &id)
     : UserInterfacePrivate(q, id)
-    , forge(new DataInterfaceForge(q->ui, this))
+    , forge(new DataInterfaceForge(this))
     , dataController(nullptr)
 {
 }

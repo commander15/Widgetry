@@ -15,8 +15,8 @@
 
 namespace Widgetry {
 
-DataInterfaceForge::DataInterfaceForge(Ui::DataInterface *ui, DataInterfaceForgePrivate *d)
-    : ui(ui)
+DataInterfaceForge::DataInterfaceForge(DataInterfaceForgePrivate *d)
+    : ui(nullptr)
     , d_ptr(d)
 {
 }
@@ -205,6 +205,11 @@ bool DataInterfaceForge::prepareContextMenu(const Jsoner::Array &objects, QMenu 
         d_ptr->deleteAction->setVisible(single && multiple);
 
     return true;
+}
+
+void DataInterfaceForge::init()
+{
+    ui = d_ptr->forgeInterface()->ui;
 }
 
 } // namespace Widgetry
