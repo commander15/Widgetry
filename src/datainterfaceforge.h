@@ -25,14 +25,13 @@ class DataInterface;
 
 class DataEdit;
 
-class DataInterfaceBasePrivate;
-class WIDGETRY_EXPORT DataInterfaceBase
+class DataInterfaceForgePrivate;
+class WIDGETRY_EXPORT DataInterfaceForge
 {
 public:
-    DataInterfaceBase(Ui::DataInterface *ui, DataInterfaceBasePrivate *d);
-    virtual ~DataInterfaceBase();
+    DataInterfaceForge(Ui::DataInterface *ui, DataInterfaceForgePrivate *d);
+    ~DataInterfaceForge();
 
-public:
     QWidget *topBar() const;
 
     QLineEdit *searchBar() const;
@@ -60,28 +59,21 @@ public:
     QMenu *contextMenu() const;
     DataEdit *dataEdit() const;
 
-protected:
-    Jsoner::Object currentObject() const;
-    Jsoner::Array selectedObjects() const;
-
-    virtual void showObject(const Jsoner::Object &object);
-    virtual Jsoner::Object addObject(const Jsoner::Object &object);
-    virtual Jsoner::Object editObject(const Jsoner::Object &object);
-
-    void showContextMenu(const QList<Jsoner::Object> &objects, const QPoint &pos);
-    virtual bool prepareContextMenu(const QList<Jsoner::Object> &objects, QMenu *menu);
-
-protected:
+public:
     void setFilterWidget(QWidget *widget);
     void setTableModel(Jsoner::TableModel *model);
     void setDataEdit(DataEdit *edit);
     void setDataEdit(DataEdit *edit, QWidget *dialogParent);
     void setContextMenu(QMenu *menu, bool addDefaultActions = true);
 
-    Ui::DataInterface *ui;
+protected:
+    bool prepareContextMenu(const Jsoner::Array &objects, QMenu *menu);
 
 private:
-    DataInterfaceBasePrivate *data;
+    Ui::DataInterface *ui;
+    DataInterfaceForgePrivate *d_ptr;
+
+    friend class DataInterface;
 };
 
 } // namespace Widgetry

@@ -6,122 +6,200 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>742</width>
-    <height>365</height>
+    <width>733</width>
+    <height>390</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Interface</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout">
-   <item row="3" column="4">
-    <spacer name="horizontalSpacer_2">
-     <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>238</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
+  <layout class="QGridLayout" name="gridLayout" columnstretch="0,1,0,0,0,1">
+   <item row="0" column="0" colspan="6">
+    <widget class="QWidget" name="topBar" native="true">
+     <layout class="QHBoxLayout" name="topBarLayout" stretch="0,0,0,0">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLineEdit" name="searchInput">
+        <property name="maxLength">
+         <number>30</number>
+        </property>
+        <property name="placeholderText">
+         <string>Search...</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="toggleFiltersButtons">
+        <property name="icon">
+         <iconset resource="resources/widgetry_resources.qrc">
+          <normaloff>:/icons/filter_icon.png</normaloff>:/icons/filter_icon.png</iconset>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QWidget" name="buttonsContainer" native="true">
+        <layout class="QHBoxLayout" name="buttonsContainerLayout">
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QToolButton" name="editButton">
+           <property name="icon">
+            <iconset resource="resources/widgetry_resources.qrc">
+             <normaloff>:/icons/action_edit.png</normaloff>:/icons/action_edit.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="addButton">
+           <property name="icon">
+            <iconset resource="resources/widgetry_resources.qrc">
+             <normaloff>:/icons/action_add.png</normaloff>:/icons/action_add.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="deleteButton">
+           <property name="icon">
+            <iconset resource="resources/widgetry_resources.qrc">
+             <normaloff>:/icons/action_delete.png</normaloff>:/icons/action_delete.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="refreshButton">
+           <property name="icon">
+            <iconset resource="resources/widgetry_resources.qrc">
+             <normaloff>:/icons/action_refresh.png</normaloff>:/icons/action_refresh.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
-   <item row="3" column="1">
-    <widget class="QToolButton" name="previousPageButton">
-     <property name="enabled">
-      <bool>false</bool>
+   <item row="1" column="0" rowspan="2">
+    <widget class="QFrame" name="filterFrame">
+     <property name="frameShape">
+      <enum>QFrame::Shape::StyledPanel</enum>
      </property>
-     <property name="text">
-      <string notr="true">&lt;</string>
+     <layout class="QGridLayout" name="gridLayout_3">
+      <item row="2" column="0">
+       <spacer name="horizontalSpacer_4">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="2" column="2">
+       <spacer name="horizontalSpacer_5">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="2" column="1">
+       <widget class="QPushButton" name="filterButton">
+        <property name="text">
+         <string>Filter</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" colspan="3">
+       <widget class="QWidget" name="filterContainer" native="true">
+        <layout class="QVBoxLayout" name="filterContainerLayout">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+        </layout>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="3">
+       <widget class="Line" name="line">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="1" colspan="5">
+    <widget class="QTableView" name="tableView">
+     <property name="contextMenuPolicy">
+      <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
+     </property>
+     <property name="editTriggers">
+      <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+     </property>
+     <property name="sortingEnabled">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
-   <item row="1" column="0" colspan="5">
-    <layout class="QGridLayout" name="gridLayout_2" columnstretch="0,1">
-     <item row="0" column="1">
-      <widget class="QTableView" name="tableView">
-       <property name="editTriggers">
-        <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
-       </property>
-       <property name="selectionBehavior">
-        <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
-       </property>
-       <property name="sortingEnabled">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QFrame" name="filterFrame">
-       <property name="frameShape">
-        <enum>QFrame::Shape::StyledPanel</enum>
-       </property>
-       <layout class="QGridLayout" name="gridLayout_3">
-        <item row="2" column="0">
-         <spacer name="horizontalSpacer_4">
-          <property name="orientation">
-           <enum>Qt::Orientation::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="2" column="2">
-         <spacer name="horizontalSpacer_5">
-          <property name="orientation">
-           <enum>Qt::Orientation::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="2" column="1">
-         <widget class="QPushButton" name="filterButton">
-          <property name="text">
-           <string>Filter</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0" colspan="3">
-         <widget class="QWidget" name="filterContainer" native="true">
-          <layout class="QVBoxLayout" name="filterContainerLayout">
-           <property name="leftMargin">
-            <number>0</number>
-           </property>
-           <property name="topMargin">
-            <number>0</number>
-           </property>
-           <property name="rightMargin">
-            <number>0</number>
-           </property>
-           <property name="bottomMargin">
-            <number>0</number>
-           </property>
-          </layout>
-         </widget>
-        </item>
-        <item row="1" column="0" colspan="3">
-         <widget class="Line" name="line">
-          <property name="orientation">
-           <enum>Qt::Orientation::Horizontal</enum>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="3" column="0">
+   <item row="2" column="1">
     <spacer name="horizontalSpacer">
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
@@ -134,17 +212,17 @@
      </property>
     </spacer>
    </item>
-   <item row="3" column="3">
-    <widget class="QToolButton" name="nextPageButton">
+   <item row="2" column="2">
+    <widget class="QToolButton" name="previousPageButton">
      <property name="enabled">
       <bool>false</bool>
      </property>
      <property name="text">
-      <string notr="true">&gt;</string>
+      <string notr="true">&lt;</string>
      </property>
     </widget>
    </item>
-   <item row="3" column="2">
+   <item row="2" column="3">
     <widget class="QSpinBox" name="pageInput">
      <property name="minimumSize">
       <size>
@@ -169,77 +247,28 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="0" colspan="5">
-    <widget class="QWidget" name="topBar" native="true">
-     <layout class="QHBoxLayout" name="topBarLayout">
-      <item>
-       <widget class="QLineEdit" name="searchInput">
-        <property name="maxLength">
-         <number>30</number>
-        </property>
-        <property name="placeholderText">
-         <string>Search...</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="toggleFiltersButtons">
-        <property name="icon">
-         <iconset resource="resources/widgetry_resources.qrc">
-          <normaloff>:/icons/filter_icon.png</normaloff>:/icons/filter_icon.png</iconset>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_3">
-        <property name="orientation">
-         <enum>Qt::Orientation::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QToolButton" name="refreshButton">
-        <property name="icon">
-         <iconset resource="resources/widgetry_resources.qrc">
-          <normaloff>:/icons/action_refresh.png</normaloff>:/icons/action_refresh.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="addButton">
-        <property name="icon">
-         <iconset resource="resources/widgetry_resources.qrc">
-          <normaloff>:/icons/action_add.png</normaloff>:/icons/action_add.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="editButton">
-        <property name="icon">
-         <iconset resource="resources/widgetry_resources.qrc">
-          <normaloff>:/icons/action_edit.png</normaloff>:/icons/action_edit.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="deleteButton">
-        <property name="icon">
-         <iconset resource="resources/widgetry_resources.qrc">
-          <normaloff>:/icons/action_delete.png</normaloff>:/icons/action_delete.png</iconset>
-        </property>
-       </widget>
-      </item>
-     </layout>
+   <item row="2" column="4">
+    <widget class="QToolButton" name="nextPageButton">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="text">
+      <string notr="true">&gt;</string>
+     </property>
     </widget>
+   </item>
+   <item row="2" column="5">
+    <spacer name="horizontalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>238</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
    </item>
   </layout>
  </widget>
@@ -254,12 +283,12 @@
    <slot>stepDown()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>314</x>
-     <y>353</y>
+     <x>417</x>
+     <y>354</y>
     </hint>
     <hint type="destinationlabel">
-     <x>384</x>
-     <y>354</y>
+     <x>487</x>
+     <y>355</y>
     </hint>
    </hints>
   </connection>
@@ -270,12 +299,28 @@
    <slot>stepUp()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>413</x>
-     <y>353</y>
+     <x>516</x>
+     <y>354</y>
     </hint>
     <hint type="destinationlabel">
-     <x>384</x>
-     <y>354</y>
+     <x>487</x>
+     <y>355</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>toggleFiltersButtons</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>filterFrame</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>309</x>
+     <y>37</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>168</x>
+     <y>194</y>
     </hint>
    </hints>
   </connection>

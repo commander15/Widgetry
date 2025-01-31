@@ -4,6 +4,7 @@
 
 #include <Widgetry/operation.h>
 #include <Widgetry/abstractdatacontroller.h>
+#include <Widgetry/dataedit.h>
 
 #include <Jsoner/object.h>
 #include <Jsoner/tablemodel.h>
@@ -20,7 +21,6 @@ DataInterface::DataInterface(QWidget *parent, Qt::WindowFlags flags)
 
 DataInterface::DataInterface(const QByteArray &id, QWidget *parent, Qt::WindowFlags flags)
     : UserInterface(new DataInterfacePrivate(this, id), parent, flags)
-    , DataInterfaceBase(new Ui::DataInterface, static_cast<DataInterfacePrivate *>(d_ptr.data()))
 {
     ui->setupUi(this);
 
@@ -43,6 +43,12 @@ bool DataInterface::isOperationSupported(const QString &operation) const
 QStringList DataInterface::availableOperations() const
 {
     return UserInterface::availableOperations() + s_availableOperations;
+}
+
+DataInterfaceForge *DataInterface::forge() const
+{
+    WIDGETRY_D(DataInterface);
+    return d->forge;
 }
 
 AbstractDataController *DataInterface::dataController() const
@@ -98,12 +104,7 @@ void DataInterface::refresh()
     if (!d->dataController)
         return;
 
-    DataQuery query = generateQuery();
-    query.setQuery(ui->searchInput->text());
-    query.setPage(ui->pageInput->value());
-    // ToDo: handle filters
-
-    d->dataController->fetchObjects(query);
+    d->dataController->fetchObjects(generateQuery());
 }
 
 void DataInterface::showCurrentItem()
@@ -124,9 +125,8 @@ void DataInterface::addItem()
         return;
 
     Jsoner::Object object = addObject(Jsoner::Object());
-    if (!object.isEmpty()) {
+    if (!object.isEmpty())
         d->dataController->addObject(object);
-    }
 }
 
 void DataInterface::editCurrentItem()
@@ -136,10 +136,9 @@ void DataInterface::editCurrentItem()
     if (!d->dataController)
         return;
 
-    const Jsoner::Object object = currentObject();
-    if (!object.isEmpty()) {
-        d->dataController->editObject(object);
-    }
+    Jsoner::Object object = currentObject();
+    if (!object.isEmpty())
+        d->dataController->fetchObject(object, AbstractDataController::EditRequest);
 }
 
 void DataInterface::deleteSelectedItems()
@@ -158,6 +157,82 @@ void DataInterface::deleteSelectedItems()
         return;
 
     d->dataController->deleteObjects(objects);
+}
+
+Jsoner::Object DataInterface::currentObject() const
+{
+    WIDGETRY_D(const DataInterface);
+    const int index = ui->tableView->currentIndex().row();
+    return (index >= 0 ? d->tableModel->object(index) : Jsoner::Object());
+}
+
+Jsoner::Array DataInterface::selectedObjects() const
+{
+    WIDGETRY_D(const DataInterface);
+
+    QItemSelectionModel *model = ui->tableView->selectionModel();
+    const QModelIndexList indexes = (model ? model->selectedRows() : QModelIndexList());
+
+    Jsoner::Array objects;
+    for (const QModelIndex &index : indexes)
+        objects.append(d->tableModel->object(index.row()));
+    return objects;
+}
+
+void DataInterface::showObject(const Jsoner::Object &object)
+{
+    WIDGETRY_D(DataInterface);
+
+    if (!d->dataEdit)
+        return;
+
+    if (d->dataEditDialog) {
+        d->dataEditDialog->exec();
+        return;
+    }
+}
+
+Jsoner::Object DataInterface::addObject(const Jsoner::Object &object)
+{
+    WIDGETRY_D(DataInterface);
+
+    if (!d->dataEdit)
+        return Jsoner::Object();
+
+    d->dataEdit->add(object);
+
+    if (d->dataEditDialog && d->dataEditDialog->exec())
+        return d->dataEdit->object();
+
+    return (d->dataEdit->isComplete() ? d->dataEdit->object() : Jsoner::Object());
+}
+
+Jsoner::Object DataInterface::editObject(const Jsoner::Object &object)
+{
+    WIDGETRY_D(DataInterface);
+
+    if (!d->dataEdit)
+        return Jsoner::Object();
+
+    d->dataEdit->edit(object);
+
+    if (d->dataEditDialog && d->dataEditDialog->exec())
+        return d->dataEdit->object();
+
+    return (d->dataEdit->isComplete() ? d->dataEdit->object() : Jsoner::Object());
+}
+
+void DataInterface::showContextMenu(const Jsoner::Array &objects, const QPoint &pos)
+{
+    WIDGETRY_D(DataInterface);
+    if (prepareContextMenu(objects, d->contextMenu))
+        d->contextMenu->popup(ui->tableView->viewport()->mapToGlobal(pos));
+}
+
+bool DataInterface::prepareContextMenu(const Jsoner::Array &objects, QMenu *menu)
+{
+    WIDGETRY_D(DataInterface);
+    return d->forge->prepareContextMenu(objects, menu);
 }
 
 bool DataInterface::handleOperation(Operation *operation)
@@ -272,30 +347,40 @@ void DataInterface::handleOperationResult(const Operation &operation)
 
 DataQuery DataInterface::generateQuery() const
 {
-    return DataQuery();
+    DataQuery query;
+    query.setQuery(ui->searchInput->text());
+    query.setPage(ui->pageInput->value());
+    // ToDo: handle filters
+    return query;
 }
 
 Jsoner::TableModel *DataInterface::createModel(const QStringList &fields)
 {
+    WIDGETRY_D(DataInterface);
     Jsoner::TableModel *model = new Jsoner::TableModel(this);
-    setTableModel(model);
+    d->forge->setTableModel(model);
     return model;
 }
 
 QMenu *DataInterface::createContextMenu(bool addDefaultActions)
 {
+    WIDGETRY_D(DataInterface);
     QMenu *menu = new QMenu(this);
-    setContextMenu(menu, addDefaultActions);
+    d->forge->setContextMenu(menu, addDefaultActions);
     return menu;
 }
 
 void DataInterface::handleFetchedObjects(const Jsoner::Array &objects, const DataResponse &response)
 {
     WIDGETRY_D(DataInterface);
+
     ui->pageInput->setMaximum(response.pageCount());
     ui->pageInput->setValue(response.page());
+
+    ui->previousPageButton->setEnabled(response.page() > 1);
+    ui->nextPageButton->setEnabled(response.page() < response.pageCount());
+
     d->tableModel->setArray(objects);
-    Q_UNUSED(response);
 }
 
 void DataInterface::handleFetchedObject(const Jsoner::Object &object, const DataResponse &response, int targetRequestType)
@@ -306,12 +391,6 @@ void DataInterface::handleFetchedObject(const Jsoner::Object &object, const Data
     switch (targetRequestType) {
     case AbstractDataController::FetchRequest:
         showObject(object);
-        break;
-
-    case AbstractDataController::AddRequest:
-        newObject = addObject(object);
-        if (!newObject.isEmpty())
-            d->dataController->addObject(newObject);
         break;
 
     case AbstractDataController::EditRequest:
@@ -328,27 +407,21 @@ void DataInterface::handleFetchedObject(const Jsoner::Object &object, const Data
 
 void DataInterface::handleAddedObject(const Jsoner::Object &object, const DataResponse &response)
 {
-    WIDGETRY_D(DataInterface);
-    d->dataController->fetchObjects(generateQuery());
-
+    refresh();
     Q_UNUSED(object);
     Q_UNUSED(response);
 }
 
 void DataInterface::handleEditedObject(const Jsoner::Object &object, const DataResponse &response)
 {
-    WIDGETRY_D(DataInterface);
-    d->dataController->fetchObjects(generateQuery());
-
+    refresh();
     Q_UNUSED(object);
     Q_UNUSED(response);
 }
 
 void DataInterface::handleDeletedObjects(const Jsoner::Array &objects, const DataResponse &response)
 {
-    WIDGETRY_D(DataInterface);
-    d->dataController->fetchObjects(generateQuery());
-
+    refresh();
     Q_UNUSED(objects);
     Q_UNUSED(response);
 }
@@ -361,7 +434,6 @@ void DataInterface::handleError(int requestType, const Jsoner::Array &objects, c
     box.setWindowTitle(tr("Error"));
 
     QString text = error.text();
-
     if (text.isEmpty()) {
         switch (requestType) {
         case AbstractDataController::FetchRequest:
@@ -386,8 +458,13 @@ void DataInterface::handleError(int requestType, const Jsoner::Array &objects, c
         }
     }
 
+    QString informativeText = error.informativeText();
+    if (informativeText.isEmpty()) {
+        informativeText = tr("Unknown error occured.");
+    }
+
     box.setText("<b>" + text + "</b>");
-    box.setInformativeText(error.informativeText());
+    box.setInformativeText(informativeText);
     box.setDetailedText(error.detailedText());
     box.exec();
 }
@@ -396,7 +473,14 @@ QStringList DataInterface::s_availableOperations = { "search", "filter", "refres
 
 DataInterfacePrivate::DataInterfacePrivate(DataInterface *q, const QByteArray &id)
     : UserInterfacePrivate(q, id)
+    , forge(new DataInterfaceForge(q->ui, this))
+    , dataController(nullptr)
 {
+}
+
+DataInterfacePrivate::~DataInterfacePrivate()
+{
+    delete forge;
 }
 
 } // namespace Widgetry

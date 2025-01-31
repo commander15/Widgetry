@@ -3,10 +3,11 @@
 
 #include <Widgetry/global.h>
 #include <Widgetry/userinterface.h>
-#include <Widgetry/datainterfacebase.h>
 
 namespace Jsoner {
+class Object;
 class Array;
+class TableModel;
 }
 
 namespace Widgetry {
@@ -15,12 +16,13 @@ namespace Ui {
 class DataInterface;
 }
 
+class DataInterfaceForge;
 class AbstractDataController;
 class DataQuery;
 class DataResponse;
 
 class DataInterfacePrivate;
-class WIDGETRY_EXPORT DataInterface : public UserInterface, public DataInterfaceBase
+class WIDGETRY_EXPORT DataInterface : public UserInterface
 {
     Q_OBJECT
 
@@ -31,6 +33,8 @@ public:
 
     bool isOperationSupported(const QString &operation) const override;
     QStringList availableOperations() const override;
+
+    DataInterfaceForge *forge() const;
 
     virtual AbstractDataController *dataController() const;
     void setDataController(AbstractDataController *controller);
@@ -45,6 +49,16 @@ public slots:
     void deleteSelectedItems();
 
 protected:
+    Jsoner::Object currentObject() const;
+    Jsoner::Array selectedObjects() const;
+
+    virtual void showObject(const Jsoner::Object &object);
+    virtual Jsoner::Object addObject(const Jsoner::Object &object);
+    virtual Jsoner::Object editObject(const Jsoner::Object &object);
+
+    void showContextMenu(const Jsoner::Array &objects, const QPoint &pos);
+    virtual bool prepareContextMenu(const Jsoner::Array &objects, QMenu *menu);
+
     bool handleOperation(Operation *operation) override;
     bool handleSearch(const QVariantHash &parameters);
     bool handleFilter(const QVariantHash &parameters);
@@ -69,10 +83,14 @@ protected slots:
     virtual void handleDeletedObjects(const Jsoner::Array &objects, const DataResponse &response);
     virtual void handleError(int requestType, const Jsoner::Array &objects, const DataResponse &error);
 
-    friend class DataInterfaceBase;
+    friend class DataInterfaceForge;
 
 private:
+    Ui::DataInterface *ui;
+
     static QStringList s_availableOperations;
+
+    friend class DataInterfacePrivate;
 };
 
 } // namespace Widgetry
