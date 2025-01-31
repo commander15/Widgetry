@@ -36,6 +36,7 @@ public:
     void tableHeader(int index, const QString &label);
     void tableHeader(int index, const QString &label, QHeaderView::ResizeMode resizeMode);
     void tableHeader(int index, const QString &label, const QString &field, QHeaderView::ResizeMode resizeMode);
+    void tableHeader(const QString &label, const QString &field, QHeaderView::ResizeMode resizeMode);
 
 public:
     QWidget *topBar() const;

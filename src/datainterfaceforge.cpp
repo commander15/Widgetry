@@ -41,9 +41,19 @@ void DataInterfaceForge::tableHeader(int index, const QString &label, QHeaderVie
 void DataInterfaceForge::tableHeader(int index, const QString &label, const QString &field, QHeaderView::ResizeMode resizeMode)
 {
     QStringList fields = d_ptr->tableModel->fields();
-    fields.insert(index, field);
+    fields.replace(index, field);
     d_ptr->tableModel->setFields(fields << field);
 
+    tableHeader(index, label, resizeMode);
+}
+
+void DataInterfaceForge::tableHeader(const QString &label, const QString &field, QHeaderView::ResizeMode resizeMode)
+{
+    QStringList fields = d_ptr->tableModel->fields();
+    fields.append(field);
+    d_ptr->tableModel->setFields(fields);
+
+    const int index = fields.count() - 1;
     tableHeader(index, label, resizeMode);
 }
 
