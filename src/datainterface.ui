@@ -79,10 +79,10 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QToolButton" name="editButton">
+          <widget class="QToolButton" name="refreshButton">
            <property name="icon">
             <iconset resource="resources/widgetry_resources.qrc">
-             <normaloff>:/icons/action_edit.png</normaloff>:/icons/action_edit.png</iconset>
+             <normaloff>:/icons/action_refresh.png</normaloff>:/icons/action_refresh.png</iconset>
            </property>
           </widget>
          </item>
@@ -95,18 +95,18 @@
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="deleteButton">
+          <widget class="QToolButton" name="editButton">
            <property name="icon">
             <iconset resource="resources/widgetry_resources.qrc">
-             <normaloff>:/icons/action_delete.png</normaloff>:/icons/action_delete.png</iconset>
+             <normaloff>:/icons/action_edit.png</normaloff>:/icons/action_edit.png</iconset>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QToolButton" name="refreshButton">
+          <widget class="QToolButton" name="deleteButton">
            <property name="icon">
             <iconset resource="resources/widgetry_resources.qrc">
-             <normaloff>:/icons/action_refresh.png</normaloff>:/icons/action_refresh.png</iconset>
+             <normaloff>:/icons/action_delete.png</normaloff>:/icons/action_delete.png</iconset>
            </property>
           </widget>
          </item>
