@@ -23,6 +23,11 @@ DataInterface::DataInterface(const QByteArray &id, QWidget *parent, Qt::WindowFl
     , DataInterfaceBase(new Ui::DataInterface, static_cast<DataInterfacePrivate *>(d_ptr.data()))
 {
     ui->setupUi(this);
+
+    connect(ui->refreshButton, &QAbstractButton::clicked, this, &DataInterface::refresh);
+    connect(ui->addButton, &QAbstractButton::clicked, this, &DataInterface::addItem);
+    connect(ui->editButton, &QAbstractButton::clicked, this, &DataInterface::editCurrentItem);
+    connect(ui->deleteButton, &QAbstractButton::clicked, this, &DataInterface::deleteSelectedItems);
 }
 
 DataInterface::~DataInterface()
@@ -38,6 +43,12 @@ bool DataInterface::isOperationSupported(const QString &operation) const
 QStringList DataInterface::availableOperations() const
 {
     return UserInterface::availableOperations() + s_availableOperations;
+}
+
+AbstractDataController *DataInterface::dataController() const
+{
+    WIDGETRY_D(const DataInterface);
+    return d->dataController;
 }
 
 void DataInterface::setDataController(AbstractDataController *controller)

@@ -44,8 +44,6 @@ public slots:
     void editCurrentItem();
     void deleteSelectedItems();
 
-    void sync() override;
-
 protected:
     bool handleOperation(Operation *operation) override;
     bool handleSearch(const QVariantHash &parameters);
