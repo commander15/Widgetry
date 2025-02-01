@@ -25,38 +25,6 @@ DataInterfaceForge::~DataInterfaceForge()
 {
 }
 
-void DataInterfaceForge::tableHeader(int index, const QString &label)
-{
-    d_ptr->tableModel->setHeaderData(index, Qt::Horizontal, label);
-}
-
-void DataInterfaceForge::tableHeader(int index, const QString &label, QHeaderView::ResizeMode resizeMode)
-{
-    QHeaderView *view = ui->tableView->horizontalHeader();
-    view->setSectionResizeMode(index, resizeMode);
-
-    tableHeader(index, label);
-}
-
-void DataInterfaceForge::tableHeader(int index, const QString &label, const QString &field, QHeaderView::ResizeMode resizeMode)
-{
-    QStringList fields = d_ptr->tableModel->fields();
-    fields.replace(index, field);
-    d_ptr->tableModel->setFields(fields << field);
-
-    tableHeader(index, label, resizeMode);
-}
-
-void DataInterfaceForge::tableHeader(const QString &label, const QString &field, QHeaderView::ResizeMode resizeMode)
-{
-    QStringList fields = d_ptr->tableModel->fields();
-    fields.append(field);
-    d_ptr->tableModel->setFields(fields);
-
-    const int index = fields.count() - 1;
-    tableHeader(index, label, resizeMode);
-}
-
 QWidget *DataInterfaceForge::topBar() const
 {
     return ui->topBar;
@@ -242,6 +210,16 @@ bool DataInterfaceForge::prepareContextMenu(const Jsoner::Array &objects, QMenu 
 void DataInterfaceForge::init()
 {
     ui = d_ptr->forgeInterface()->ui;
+}
+
+bool DataInterfaceForge::isBluePrinted() const
+{
+    return d_ptr->bluePrinted;
+}
+
+void DataInterfaceForge::setBluePrinted(bool printed)
+{
+    d_ptr->bluePrinted = printed;
 }
 
 } // namespace Widgetry

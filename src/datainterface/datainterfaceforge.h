@@ -4,7 +4,6 @@
 #include <Widgetry/global.h>
 
 #include <QtWidgets/qwidget.h>
-#include <QtWidgets/qheaderview.h>
 
 class QLineEdit;
 class QAbstractButton;
@@ -32,11 +31,6 @@ class WIDGETRY_EXPORT DataInterfaceForge
 public:
     DataInterfaceForge(DataInterfaceForgePrivate *d);
     ~DataInterfaceForge();
-
-    void tableHeader(int index, const QString &label);
-    void tableHeader(int index, const QString &label, QHeaderView::ResizeMode resizeMode);
-    void tableHeader(int index, const QString &label, const QString &field, QHeaderView::ResizeMode resizeMode);
-    void tableHeader(const QString &label, const QString &field, QHeaderView::ResizeMode resizeMode);
 
 public:
     QWidget *topBar() const;
@@ -79,10 +73,14 @@ protected:
 private:
     void init();
 
+    bool isBluePrinted() const;
+    void setBluePrinted(bool printed = true);
+
     Ui::DataInterface *ui;
     DataInterfaceForgePrivate *d_ptr;
 
     friend class DataInterface;
+    friend class DataInterfaceBlueprint;
 };
 
 } // namespace Widgetry

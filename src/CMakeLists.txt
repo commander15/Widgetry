@@ -6,28 +6,23 @@ target_headers(Widgetry
     PUBLIC
         global.h config.h
         userinterface.h
-        dataedit.h formdataedit.h
         interfaceholder.h
-        interfaceserver.h operation.h
-        datainterface.h datainterfaceforge.h
         abstractdatacontroller.h
     PRIVATE
         userinterface_p.h
-        dataedit_p.h formdataedit_p.h
-        interfaceserver_p.h operation_p.h
-        datainterfaceforge_p.h datainterface_p.h
 )
 
 target_sources(Widgetry
     PRIVATE
         userinterface.cpp
-        dataedit.cpp formdataedit.cpp
         interfaceholder.cpp
-        interfaceserver.cpp operation.cpp
-        datainterfaceforge.cpp datainterface.cpp datainterface.ui
         abstractdatacontroller.cpp
         resources/widgetry_resources.qrc
 )
+
+add_subdirectory(communication)
+add_subdirectory(datainterface)
+add_subdirectory(input)
 
 if (BUILD_SHARED_LIBS)
     set(TYPE SHARED)

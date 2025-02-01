@@ -23,6 +23,8 @@ public:
 
     DataEdit *dataEdit = nullptr;
     QDialog *dataEditDialog = nullptr;
+
+    bool bluePrinted = false;
 };
 
 }
