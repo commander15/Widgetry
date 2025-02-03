@@ -130,6 +130,11 @@ void DataInterfaceBlueprint::dataController(AbstractDataController *controller)
     d_ptr->dataController = controller;
 }
 
+DataInterface *DataInterfaceBlueprint::interface() const
+{
+    return d_ptr->interface;
+}
+
 bool DataInterfaceBlueprint::isInit() const
 {
     return !d_ptr->forge->isBluePrinted();
