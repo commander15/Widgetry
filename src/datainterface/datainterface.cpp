@@ -4,6 +4,8 @@
 
 #include <Widgetry/operation.h>
 #include <Widgetry/abstractdatacontroller.h>
+#include <Widgetry/dataquery.h>
+#include <Widgetry/dataresponse.h>
 #include <Widgetry/dataedit.h>
 
 #include <Jsoner/object.h>
@@ -64,28 +66,6 @@ AbstractDataController *DataInterface::dataController() const
 void DataInterface::setDataController(AbstractDataController *controller)
 {
     WIDGETRY_D(DataInterface);
-
-    AbstractDataController *oldController = d->dataController;
-    AbstractDataController *newController = controller;
-
-    if (oldController) {
-        disconnect(oldController, &AbstractDataController::objectsFetched, this, &DataInterface::handleFetchedObjects);
-        disconnect(oldController, &AbstractDataController::objectFetched, this, &DataInterface::handleFetchedObject);
-        disconnect(oldController, &AbstractDataController::objectAdded, this, &DataInterface::handleAddedObject);
-        disconnect(oldController, &AbstractDataController::objectEdited, this, &DataInterface::handleEditedObject);
-        disconnect(oldController, &AbstractDataController::objectsDeleted, this, &DataInterface::handleDeletedObjects);
-        disconnect(oldController, &AbstractDataController::errorOccured, this, &DataInterface::handleError);
-    }
-
-    if (newController) {
-        connect(newController, &AbstractDataController::objectsFetched, this, &DataInterface::handleFetchedObjects);
-        connect(newController, &AbstractDataController::objectFetched, this, &DataInterface::handleFetchedObject);
-        connect(newController, &AbstractDataController::objectAdded, this, &DataInterface::handleAddedObject);
-        connect(newController, &AbstractDataController::objectEdited, this, &DataInterface::handleEditedObject);
-        connect(newController, &AbstractDataController::objectsDeleted, this, &DataInterface::handleDeletedObjects);
-        connect(newController, &AbstractDataController::errorOccured, this, &DataInterface::handleError);
-    }
-
     d->dataController = controller;
 }
 
@@ -108,7 +88,20 @@ void DataInterface::refresh()
     if (!d->dataController)
         return;
 
-    d->dataController->fetchObjects(generateQuery());
+    executeDataRequest(&AbstractDataController::fetchObjects, generateQuery(), [this, d](const DataResponse &response) {
+        if (!response.isSuccess()) {
+            showResponseMessage(tr("Error during data download !"), response);
+            return;
+        }
+
+        d->tableModel->setArray(response.objects());
+
+        ui->pageInput->setMaximum(response.pageCount());
+        ui->pageInput->setValue(response.page());
+
+        ui->previousPageButton->setEnabled(response.page() > 1);
+        ui->nextPageButton->setEnabled(response.page() < response.pageCount());
+    });
 }
 
 void DataInterface::showCurrentItem()
@@ -118,7 +111,15 @@ void DataInterface::showCurrentItem()
     if (!d->dataController)
         return;
 
-    d->dataController->fetchObject(currentObject(), AbstractDataController::FetchRequest);
+    Jsoner::Object object = currentObject();
+    if (!object.isEmpty()) {
+        executeDataRequest(&AbstractDataController::fetchObject, object, [this](const DataResponse &response) {
+            if (response.isSuccess())
+                showObject(response.object());
+            else
+                showResponseMessage(tr("Error during data download !"), response);
+        });
+    }
 }
 
 void DataInterface::addItem()
@@ -128,9 +129,21 @@ void DataInterface::addItem()
     if (!d->dataController)
         return;
 
+    auto process = [this](const DataResponse &response) {
+        if (response.isSuccess()) {
+            refresh();
+            return;
+        }
+
+        showResponseMessage(tr("Error during data download !"), response);
+        return;
+        int answer = QMessageBox::question(nullptr, tr("Operation failed"), tr("Do you want to retry ?"));
+    };
+
     Jsoner::Object object = addObject(Jsoner::Object());
     if (!object.isEmpty())
-        d->dataController->addObject(object);
+        executeDataRequest(&AbstractDataController::addObject, object, process);
+
 }
 
 void DataInterface::editCurrentItem()
@@ -141,8 +154,26 @@ void DataInterface::editCurrentItem()
         return;
 
     Jsoner::Object object = currentObject();
-    if (!object.isEmpty())
-        d->dataController->fetchObject(object, AbstractDataController::EditRequest);
+    if (!object.isEmpty()) {
+        executeDataRequest(&AbstractDataController::fetchObject, object, [this](const DataResponse &response) {
+            if (!response.isSuccess()) {
+                showResponseMessage(tr("Error during data download !"), response);
+                return;
+            }
+
+            const Jsoner::Object object = editObject(response.object());
+                if (!object.isEmpty()) {
+                    executeDataRequest(&AbstractDataController::editObject, object, [this](const DataResponse &response) {
+                        if (response.isSuccess()) {
+                            refresh();
+                            return;
+                        }
+
+                        showResponseMessage(tr("Error during data saving"), response);
+                    });
+                }
+        });
+    }
 }
 
 void DataInterface::deleteSelectedItems()
@@ -160,7 +191,14 @@ void DataInterface::deleteSelectedItems()
     if (response == QMessageBox::No)
         return;
 
-    d->dataController->deleteObjects(objects);
+    executeDataRequest(&AbstractDataController::deleteObjects, objects, [this](const DataResponse &response) {
+        if (response.isSuccess()) {
+            refresh();
+            return;
+        }
+
+        showResponseMessage(tr("Error during deletion !"), response);
+    });
 }
 
 Jsoner::Object DataInterface::currentObject() const
@@ -239,6 +277,18 @@ bool DataInterface::prepareContextMenu(const Jsoner::Array &objects, QMenu *menu
     return d->forge->prepareContextMenu(objects, menu);
 }
 
+void DataInterface::beginRequest()
+{
+}
+
+void DataInterface::monitorRequest(int, int)
+{
+}
+
+void DataInterface::endRequest()
+{
+}
+
 bool DataInterface::handleOperation(Operation *operation)
 {
     const QString name = operation->name();
@@ -296,12 +346,15 @@ bool DataInterface::handleRefresh(const QVariantHash &parameters)
 bool DataInterface::handleShowItem(const QVariantHash &parameters)
 {
     WIDGETRY_D(DataInterface);
-    const Jsoner::Object item = parameters.value("item").value<Jsoner::Object>();
+    const Jsoner::Object object = parameters.value("item").value<Jsoner::Object>();
 
     if (!d->dataController)
         return false;
 
-    d->dataController->fetchObject(item, AbstractDataController::FetchRequest);
+    executeDataRequest(&AbstractDataController::fetchObject, object, [this](const DataResponse &response) {
+        if (response.isSuccess())
+            showObject(response.object());
+    });
     return true;
 }
 
@@ -316,7 +369,7 @@ bool DataInterface::handleAddItem(const QVariantHash &parameters)
     if (!d->dataController)
         return false;
 
-    d->dataController->addObject(object);
+    executeDataRequest(&AbstractDataController::addObject, object);
     return true;
 }
 
@@ -328,7 +381,7 @@ bool DataInterface::handleEditItem(const QVariantHash &parameters)
     if (!d->dataController)
         return false;
 
-    d->dataController->editObject(object);
+    executeDataRequest(&AbstractDataController::editObject, object);
     return true;
 }
 
@@ -340,7 +393,7 @@ bool DataInterface::handleDeleteItems(const QVariantHash &parameters)
     if (objects.isEmpty() || !d->dataController)
         return false;
 
-    d->dataController->deleteObjects(objects);
+    executeDataRequest(&AbstractDataController::deleteObjects, objects);
     return true;
 }
 
@@ -374,103 +427,44 @@ QMenu *DataInterface::createContextMenu(bool addDefaultActions)
     return menu;
 }
 
-void DataInterface::handleFetchedObjects(const Jsoner::Array &objects, const DataResponse &response)
+void DataInterface::showResponseMessage(const QString &title, const DataResponse &response)
 {
-    WIDGETRY_D(DataInterface);
-
-    ui->pageInput->setMaximum(response.pageCount());
-    ui->pageInput->setValue(response.page());
-
-    ui->previousPageButton->setEnabled(response.page() > 1);
-    ui->nextPageButton->setEnabled(response.page() < response.pageCount());
-
-    d->tableModel->setArray(objects);
-}
-
-void DataInterface::handleFetchedObject(const Jsoner::Object &object, const DataResponse &response, int targetRequestType)
-{
-    WIDGETRY_D(DataInterface);
-
-    Jsoner::Object newObject;
-    switch (targetRequestType) {
-    case AbstractDataController::FetchRequest:
-        showObject(object);
-        break;
-
-    case AbstractDataController::EditRequest:
-        newObject = editObject(object);
-        if (!newObject.isEmpty())
-            d->dataController->addObject(newObject);
-        break;
-
-    default:
-        break;
-    }
-    Q_UNUSED(response);
-}
-
-void DataInterface::handleAddedObject(const Jsoner::Object &object, const DataResponse &response)
-{
-    refresh();
-    Q_UNUSED(object);
-    Q_UNUSED(response);
-}
-
-void DataInterface::handleEditedObject(const Jsoner::Object &object, const DataResponse &response)
-{
-    refresh();
-    Q_UNUSED(object);
-    Q_UNUSED(response);
-}
-
-void DataInterface::handleDeletedObjects(const Jsoner::Array &objects, const DataResponse &response)
-{
-    refresh();
-    Q_UNUSED(objects);
-    Q_UNUSED(response);
-}
-
-void DataInterface::handleError(int requestType, const Jsoner::Array &objects, const DataResponse &error)
-{
-    Q_UNUSED(objects);
-
     QMessageBox box;
-    box.setWindowTitle(tr("Error"));
+    box.setWindowTitle(!title.isEmpty() ? title : (response.isSuccess() ? tr("Message") : tr("Error")));
+    box.setIcon(response.isSuccess() ? QMessageBox::Information : QMessageBox::Warning);
 
-    QString text = error.text();
-    if (text.isEmpty()) {
-        switch (requestType) {
-        case AbstractDataController::FetchRequest:
-            text = tr("Unable to retrieve data");
-            break;
-
-        case AbstractDataController::AddRequest:
-            text = tr("Unable to add data");
-            break;
-
-        case AbstractDataController::EditRequest:
-            text = tr("Unable to edit data");
-            break;
-
-        case AbstractDataController::DeleteRequest:
-            text = tr("Unable to delete data");
-            break;
-
-        default:
-            text = tr("Unknown error occurred");
-            break;
-        }
-    }
-
-    QString informativeText = error.informativeText();
-    if (informativeText.isEmpty()) {
-        informativeText = tr("Unknown error occured.");
-    }
-
-    box.setText("<b>" + text + "</b>");
-    box.setInformativeText(informativeText);
-    box.setDetailedText(error.detailedText());
+    box.setText("<b>" + response.text() + "</b>");
+    box.setInformativeText(response.informativeText());
+    box.setDetailedText(response.detailedText());
     box.exec();
+}
+
+void DataInterface::executeDataRequest(DataControllerRawMethod method, const DataQuery &query)
+{
+    executeDataRequest(method, query, [this](const DataResponse &response) {
+        if (!response.text().isEmpty() || !response.informativeText().isEmpty())
+            showResponseMessage(QString(), response);
+    });
+}
+
+void DataInterface::executeDataRequest(DataControllerRawMethod method, const DataQuery &query, const DataQueryResponseCallback &callback)
+{
+    AbstractDataController *controller = dataController();
+    if (!controller)
+        return;
+
+    beginRequest();
+
+    auto onProgress = [this](int processed, int total) {
+        monitorRequest(processed, total);
+    };
+
+    auto onResponse = [this, callback](const DataResponse &response) {
+        endRequest();
+        callback(response);
+    };
+
+    (controller->*method)(query, onProgress, onResponse);
 }
 
 QStringList DataInterface::s_availableOperations = { "search", "filter", "refresh", "showItem", "addItem", "deleteItem" };

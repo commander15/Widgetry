@@ -3,6 +3,8 @@
 
 #include <Widgetry/global.h>
 #include <Widgetry/userinterface.h>
+#include <Widgetry/abstractdatacontroller.h>
+#include <functional>
 
 namespace Jsoner {
 class Object;
@@ -20,6 +22,8 @@ class DataInterfaceForge;
 class AbstractDataController;
 class DataQuery;
 class DataResponse;
+
+typedef void(AbstractDataController::*DataControllerRawMethod)(const DataQuery &, const DataQueryProgressCallback &, const DataQueryResponseCallback &);
 
 class DataInterfacePrivate;
 class WIDGETRY_EXPORT DataInterface : public UserInterface
@@ -59,6 +63,10 @@ protected:
     void showContextMenu(const Jsoner::Array &objects, const QPoint &pos);
     virtual bool prepareContextMenu(const Jsoner::Array &objects, QMenu *menu);
 
+    virtual void beginRequest();
+    virtual void monitorRequest(int processed, int total);
+    virtual void endRequest();
+
     bool handleOperation(Operation *operation) override;
     bool handleSearch(const QVariantHash &parameters);
     bool handleFilter(const QVariantHash &parameters);
@@ -75,13 +83,10 @@ protected:
     Jsoner::TableModel *createModel(const QStringList &fields);
     QMenu *createContextMenu(bool addDefaultActions = true);
 
-protected slots:
-    virtual void handleFetchedObjects(const Jsoner::Array &objects, const DataResponse &response);
-    virtual void handleFetchedObject(const Jsoner::Object &object, const DataResponse &response, int targetRequestType);
-    virtual void handleAddedObject(const Jsoner::Object &object, const DataResponse &response);
-    virtual void handleEditedObject(const Jsoner::Object &object, const DataResponse &response);
-    virtual void handleDeletedObjects(const Jsoner::Array &objects, const DataResponse &response);
-    virtual void handleError(int requestType, const Jsoner::Array &objects, const DataResponse &error);
+protected:
+    void showResponseMessage(const QString &title, const DataResponse &response);
+    void executeDataRequest(DataControllerRawMethod method, const DataQuery &query);
+    void executeDataRequest(DataControllerRawMethod method, const DataQuery &query, const DataQueryResponseCallback &callback);
 
     friend class DataInterfaceForge;
 
