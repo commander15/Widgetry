@@ -1,16 +1,34 @@
 #include "abstractdatacontroller.h"
 
+#include <Widgetry/datainterface.h>
+
 namespace Widgetry {
 
 class DataQueryData : public QSharedData {
 public:
     QString query;
     QVariantHash filters;
-    QVariantHash parameters;
     int page = 1;
+    Jsoner::Array objects;
+    QVariantHash parameters;
 };
 
-DataQuery::DataQuery() : d_ptr(new DataQueryData) {}
+DataQuery::DataQuery()
+    : d_ptr(new DataQueryData)
+{
+}
+
+DataQuery::DataQuery(const Jsoner::Object &object)
+    : d_ptr(new DataQueryData)
+{
+    d_ptr->objects.append(object);
+}
+
+DataQuery::DataQuery(const Jsoner::Array &objects)
+    : d_ptr(new DataQueryData)
+{
+    d_ptr->objects = objects;
+}
 
 DataQuery::DataQuery(const DataQuery &other) = default;
 
@@ -50,6 +68,26 @@ void DataQuery::setPage(int page) {
     d_ptr->page = page;
 }
 
+Jsoner::Object DataQuery::object() const
+{
+    return (!d_ptr->objects.isEmpty ? d_ptr->objects.first() : Jsoner::Object());
+}
+
+void DataQuery::setObject(const Jsoner::Object &object)
+{
+    d_ptr->objects = { objects };
+}
+
+Jsoner::Array DataQuery::objects() const
+{
+    return d_ptr->objects;
+}
+
+void DataQuery::setObjects(const Jsoner::Array &objects)
+{
+    d_ptr->objects = objects;
+}
+
 class DataResponseData : public QSharedData
 {
 public:
@@ -59,6 +97,7 @@ public:
     int page = 1;
     int pageCount = 1;
     QVariantHash dataHash;
+    bool success = false;
 };
 
 DataResponse::DataResponse()
@@ -131,6 +170,11 @@ void DataResponse::setPageCount(int count)
     d_ptr->pageCount = count;
 }
 
+bool DataResponse::hasData(const QString &name) const
+{
+    return d_ptr->dataHash.contains(name);
+}
+
 QVariant DataResponse::data(const QString &name) const
 {
     return d_ptr->dataHash.value(name);
@@ -146,8 +190,69 @@ QStringList DataResponse::dataNames() const
     return d_ptr->dataHash.keys();
 }
 
-AbstractDataController::AbstractDataController(QObject *parent)
-    : QObject{parent}
-{}
+void AbstractDataController::fetchObjects(const DataQuery &query, const DataQueryResponseCallback &onResponse)
+{
+    fetchObjects(query, [](int, int) {}, onResponse);  // Pass a no-op progress callback
+}
+
+void AbstractDataController::fetchObjects(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
+{
+    if (onResponse)
+    {
+        fetchManyObjects(query, onProgress, onResponse);  // Call the virtual method with the given callbacks
+    }
+}
+
+void AbstractDataController::fetchObject(const DataQuery &query, int targetRequestType, const DataQueryResponseCallback &onResponse)
+{
+    fetchObject(query, [](int, int) {}, onResponse);  // Pass a no-op progress callback
+}
+
+void AbstractDataController::fetchObject(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
+{
+    if (onResponse)
+    {
+        fetchOneObject(query, onProgress, onResponse);  // Call the virtual method with the given callbacks
+    }
+}
+
+void AbstractDataController::addObject(const DataQuery &query, const DataQueryResponseCallback &onResponse)
+{
+    addObject(query, [](int, int) {}, onResponse);  // Pass a no-op progress callback
+}
+
+void AbstractDataController::addObject(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
+{
+    if (onResponse)
+    {
+        addOneObject(query, onProgress, onResponse);  // Call the virtual method with the given callbacks
+    }
+}
+
+void AbstractDataController::editObject(const DataQuery &query, const DataQueryResponseCallback &onResponse)
+{
+    editObject(query, [](int, int) {}, onResponse);  // Pass a no-op progress callback
+}
+
+void AbstractDataController::editObject(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
+{
+    if (onResponse)
+    {
+        editOneObject(query, onProgress, onResponse);  // Call the virtual method with the given callbacks
+    }
+}
+
+void AbstractDataController::deleteObjects(const DataQuery &query, const DataQueryResponseCallback &onResponse)
+{
+    deleteObjects(query, [](int, int) {}, onResponse);  // Pass a no-op progress callback
+}
+
+void AbstractDataController::deleteObjects(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
+{
+    if (onResponse)
+    {
+        deleteManyObjects(query, onProgress, onResponse);  // Call the virtual method with the given callbacks
+    }
+}
 
 } // namespace Widgetry

@@ -9,14 +9,14 @@
 
 namespace Widgetry {
 
-#include <QString>
-#include <QVariantHash>
-#include <QSharedData>
+class DataInterface;
 
 class DataQueryData;
 class WIDGETRY_EXPORT DataQuery {
 public:
     DataQuery();
+    DataQuery(const Jsoner::Object &object);
+    DataQuery(const Jsoner::Array &objects);
     DataQuery(const DataQuery &other);
     ~DataQuery();
 
@@ -28,11 +28,17 @@ public:
     QVariantHash filters() const;
     void setFilters(const QVariantHash &filters);
 
-    QVariantHash parameters() const;
-    void setParameters(const QVariantHash &parameters);
-
     int page() const;
     void setPage(int page);
+
+    Jsoner::Object object() const;
+    void setObject(const Jsoner::Object &object);
+
+    Jsoner::Array objects() const;
+    void setObjects(const Jsoner::Array &objects);
+
+    QVariantHash parameters() const;
+    void setParameters(const QVariantHash &parameters);
 
 private:
     QSharedDataPointer<DataQueryData> d_ptr;
@@ -63,45 +69,50 @@ public:
     int pageCount() const;
     void setPageCount(int count);
 
+    bool hasData(const QString &name) const;
     QVariant data(const QString &name) const;
     void setData(const QString &name, const QVariant &value);
     QStringList dataNames() const;
+
+    bool isSuccess() const;
+    void setSuccess(bool success);
 
 private:
     QSharedPointer<DataResponseData> d_ptr;
 };
 
-class WIDGETRY_EXPORT AbstractDataController : public QObject
+class DataQuery;
+class DataResponse;
+
+typedef std::function<void(int, int)> DataQueryProgressCallback;
+typedef std::function<void(const DataResponse &response)> DataQueryResponseCallback;
+
+class WIDGETRY_EXPORT AbstractDataController
 {
-    Q_OBJECT
-
 public:
-    enum RequestType {
-        UnknownRequest,
-        FetchRequest,
-        AddRequest,
-        EditRequest,
-        DeleteRequest
-    };
-
-    explicit AbstractDataController(QObject *parent = nullptr);
+    explicit AbstractDataController() = default;
     virtual ~AbstractDataController() = default;
 
-public slots:
-    virtual void fetchObjects(const DataQuery &query) = 0;
-    virtual void fetchObject(const Jsoner::Object &object, int targetRequestType) = 0;
-    virtual void addObject(const Jsoner::Object &object) = 0;
-    virtual void editObject(const Jsoner::Object &object) = 0;
-    virtual void deleteObjects(const Jsoner::Array &objects) = 0;
+    void fetchObjects(const DataQuery &query, const DataQueryResponseCallback &onResponse);
+    void fetchObjects(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse);
 
-signals:
-    void objectsFetched(const Jsoner::Array &objects, const DataResponse &response);
-    void objectFetched(const Jsoner::Object &object, const DataResponse &response, int targetRequestType);
-    void objectAdded(const Jsoner::Object &object, const DataResponse &response);
-    void objectEdited(const Jsoner::Object &object, const DataResponse &response);
-    void objectsDeleted(const Jsoner::Array &objects, const DataResponse &response);
+    void fetchObject(const DataQuery &query, int targetRequestType, const DataQueryResponseCallback &onResponse);
+    void fetchObject(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse);
 
-    void errorOccured(int requestType, const Jsoner::Array &objects, const DataResponse &error);
+    void addObject(const DataQuery &query, const DataQueryResponseCallback &onResponse);
+    void addObject(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse);
+
+    void editObject(const DataQuery &query, const DataQueryResponseCallback &onResponse);
+    void editObject(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse);
+
+    void deleteObjects(const DataQuery &query, const DataQueryResponseCallback &onResponse);
+    void deleteObjects(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse);
+
+    virtual void fetchManyObjects(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse) = 0;
+    virtual void fetchOneObject(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse) = 0;
+    virtual void addOneObject(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse) = 0;
+    virtual void editOneObject(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse) = 0;
+    virtual void deleteManyObjects(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse) = 0;
 };
 
 } // namespace Widgetry
