@@ -3,13 +3,9 @@
 
 #include <Widgetry/global.h>
 
-#include <Jsoner/object.h>
-
-#include <QtCore/qobject.h>
+#include <functional>
 
 namespace Widgetry {
-
-class DataInterface;
 
 class DataQuery;
 class DataResponse;

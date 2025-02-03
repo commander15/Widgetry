@@ -1,7 +1,5 @@
 #include "abstractdatacontroller.h"
 
-#include <Widgetry/datainterface.h>
-
 namespace Widgetry {
 
 void AbstractDataController::fetchObjects(const DataQuery &query, const DataQueryResponseCallback &onResponse)
