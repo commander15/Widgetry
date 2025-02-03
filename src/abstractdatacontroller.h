@@ -11,39 +11,6 @@ namespace Widgetry {
 
 class DataInterface;
 
-class DataQueryData;
-class WIDGETRY_EXPORT DataQuery {
-public:
-    DataQuery();
-    DataQuery(const Jsoner::Object &object);
-    DataQuery(const Jsoner::Array &objects);
-    DataQuery(const DataQuery &other);
-    ~DataQuery();
-
-    DataQuery &operator=(const DataQuery &other);
-
-    QString query() const;
-    void setQuery(const QString &query);
-
-    QVariantHash filters() const;
-    void setFilters(const QVariantHash &filters);
-
-    int page() const;
-    void setPage(int page);
-
-    Jsoner::Object object() const;
-    void setObject(const Jsoner::Object &object);
-
-    Jsoner::Array objects() const;
-    void setObjects(const Jsoner::Array &objects);
-
-    QVariantHash parameters() const;
-    void setParameters(const QVariantHash &parameters);
-
-private:
-    QSharedDataPointer<DataQueryData> d_ptr;
-};
-
 class DataResponseData;
 class WIDGETRY_EXPORT DataResponse
 {
