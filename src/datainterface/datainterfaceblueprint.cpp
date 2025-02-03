@@ -172,7 +172,7 @@ void DataInterfaceBlueprintPrivate::buildTable(bool init)
 
     Jsoner::TableModel *model;
     if (init) {
-        model = (model ? model : new Jsoner::TableModel(interface));
+        model = (this->model ? this->model : new Jsoner::TableModel(interface));
         model->setFields(fields);
         forge->setTableModel(model);
     } else {
