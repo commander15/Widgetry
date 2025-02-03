@@ -23,6 +23,7 @@ target_sources(Widgetry
 add_subdirectory(communication)
 add_subdirectory(datainterface)
 add_subdirectory(input)
+add_subdirectory(data)
 
 if (BUILD_SHARED_LIBS)
     set(TYPE SHARED)
