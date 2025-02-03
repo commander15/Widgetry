@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QDialog>
 
+#include "userinterface.h"
 #include "useredit.h"
 
 void monitor(QDialog *d);
@@ -8,6 +9,9 @@ void monitor(QDialog *d);
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+
+    UserInterface ui;
+    ui.show();
 
     UserEdit *e1 = new UserEdit;
     e1->setObject(Jsoner::Object(), Widgetry::DataEdit::AddOperation);
