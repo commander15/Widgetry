@@ -7,7 +7,6 @@ target_headers(Widgetry
         global.h config.h
         userinterface.h
         interfaceholder.h
-        abstractdatacontroller.h
     PRIVATE
         userinterface_p.h
 )
@@ -16,7 +15,6 @@ target_sources(Widgetry
     PRIVATE
         userinterface.cpp
         interfaceholder.cpp
-        abstractdatacontroller.cpp
         resources/widgetry_resources.qrc
 )
 
