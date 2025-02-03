@@ -7,5 +7,5 @@ target_headers(Widgetry
 target_sources(Widgetry
     PRIVATE
         abstractdatacontroller.cpp
-        dataquery.h dataresponse.cpp
+        dataquery.cpp dataresponse.cpp
 )

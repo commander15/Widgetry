@@ -75,12 +75,12 @@ void DataQuery::setPage(int page) {
 
 Jsoner::Object DataQuery::object() const
 {
-    return (!d_ptr->objects.isEmpty ? d_ptr->objects.first() : Jsoner::Object());
+    return (!d_ptr->objects.isEmpty() ? Jsoner::Object(d_ptr->objects.first()) : Jsoner::Object());
 }
 
 void DataQuery::setObject(const Jsoner::Object &object)
 {
-    d_ptr->objects = { objects };
+    d_ptr->objects = Jsoner::Array({object});
 }
 
 Jsoner::Array DataQuery::objects() const

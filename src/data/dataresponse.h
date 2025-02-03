@@ -5,6 +5,11 @@
 
 #include <QtCore/qshareddata.h>
 
+namespace Jsoner {
+class Object;
+class Array;
+}
+
 namespace Widgetry {
 
 class DataResponseData;
@@ -25,6 +30,12 @@ public:
 
     QString detailedText() const;
     void setDetailedText(const QString &text);
+
+    Jsoner::Object object() const;
+    void setObject(const Jsoner::Object &object);
+
+    Jsoner::Array objects() const;
+    void setObjects(const Jsoner::Array &objects);
 
     int page() const;
     void setPage(int page);

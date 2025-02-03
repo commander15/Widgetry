@@ -1,5 +1,8 @@
 #include "dataresponse.h"
 
+#include <Jsoner/object.h>
+#include <Jsoner/array.h>
+
 #include <QtCore/qstring.h>
 #include <QtCore/qvarianthash.h>
 
@@ -11,6 +14,7 @@ public:
     QString text;
     QString informativeText;
     QString detailedText;
+    Jsoner::Array objects;
     int page = 1;
     int pageCount = 1;
     QVariantHash dataHash;
@@ -65,6 +69,26 @@ QString DataResponse::detailedText() const
 void DataResponse::setDetailedText(const QString &text)
 {
     d_ptr->detailedText = text;
+}
+
+Jsoner::Object DataResponse::object() const
+{
+    return (!d_ptr->objects.isEmpty() ? Jsoner::Object(d_ptr->objects.first()) : Jsoner::Object());
+}
+
+void DataResponse::setObject(const Jsoner::Object &object)
+{
+    d_ptr->objects = Jsoner::Array({object});
+}
+
+Jsoner::Array DataResponse::objects() const
+{
+    return (d_ptr->objects);
+}
+
+void DataResponse::setObjects(const Jsoner::Array &objects)
+{
+    d_ptr->objects = objects;
 }
 
 int DataResponse::page() const
