@@ -4,7 +4,6 @@
 #include <Widgetry/global.h>
 #include <Widgetry/userinterface.h>
 #include <Widgetry/abstractdatacontroller.h>
-#include <functional>
 
 namespace Jsoner {
 class Object;
@@ -91,6 +90,8 @@ protected:
     friend class DataInterfaceForge;
 
 private:
+    Q_DISABLE_COPY(DataInterface)
+
     Ui::DataInterface *ui;
 
     static QStringList s_availableOperations;

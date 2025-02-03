@@ -10,6 +10,7 @@ class UserInterfacePrivate
 public:
     UserInterfacePrivate(UserInterface *q);
     UserInterfacePrivate(UserInterface *q, const QByteArray &id);
+    virtual ~UserInterfacePrivate() = default;
 
     UserInterface *q_ptr;
 

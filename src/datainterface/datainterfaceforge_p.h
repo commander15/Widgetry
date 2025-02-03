@@ -10,6 +10,8 @@ class DataInterface;
 class DataInterfaceForgePrivate
 {
 public:
+    virtual ~DataInterfaceForgePrivate() = default;
+
     virtual DataInterface *forgeInterface() const = 0;
 
     QWidget *filterWidget = nullptr;

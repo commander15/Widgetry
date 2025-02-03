@@ -118,8 +118,6 @@ void UserInterface::setAction(QAction *action)
         // Disconnect old action signals
         disconnect(this, &QWidget::windowTitleChanged, d_ptr->action, &QAction::setText);
         disconnect(this, &QWidget::windowIconChanged, d_ptr->action, &QAction::setIcon);
-
-        d_ptr->action->deleteLater();
     }
 
     action->setText(windowTitle());

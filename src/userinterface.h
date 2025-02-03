@@ -57,6 +57,9 @@ protected:
 
     QScopedPointer<UserInterfacePrivate> d_ptr;
 
+private:
+    Q_DISABLE_COPY(UserInterface)
+
     friend class InterfaceServer;
 };
 
