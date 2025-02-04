@@ -39,7 +39,7 @@ public:
     bool contextMenuAddDefaultActions = false;
     QList<Action> contextMenuActions;
 
-    DataEdit *edit = nullptr;
+    AbstractDataEdit *edit = nullptr;
     bool editInDialog = false;
 
     AbstractDataController *dataController = nullptr;

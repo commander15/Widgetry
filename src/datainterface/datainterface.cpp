@@ -129,20 +129,18 @@ void DataInterface::addItem()
     if (!d->dataController)
         return;
 
-    auto process = [this](const DataResponse &response) {
-        if (response.isSuccess()) {
-            refresh();
-            return;
-        }
-
-        showResponseMessage(tr("Error during data download !"), response);
-        return;
-        int answer = QMessageBox::question(nullptr, tr("Operation failed"), tr("Do you want to retry ?"));
-    };
-
     Jsoner::Object object = addObject(Jsoner::Object());
     if (!object.isEmpty())
-        executeDataRequest(&AbstractDataController::addObject, object, process);
+        executeDataRequest(&AbstractDataController::addObject, object, [this](const DataResponse &response) {
+            if (response.isSuccess()) {
+                refresh();
+                return;
+            }
+
+            showResponseMessage(tr("Error during data download !"), response);
+            return;
+            int answer = QMessageBox::question(nullptr, tr("Operation failed"), tr("Do you want to retry ?"));
+        });
 
 }
 

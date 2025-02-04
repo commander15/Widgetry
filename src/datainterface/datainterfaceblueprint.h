@@ -15,7 +15,7 @@ class TableModel;
 namespace Widgetry {
 
 class DataInterface;
-class DataEdit;
+class AbstractDataEdit;
 class AbstractDataController;
 
 class DataInterfaceBlueprintPrivate;
@@ -48,8 +48,11 @@ public:
 
     QAction *contextMenuSeparator();
 
-    template<typename T> T *edit(bool putOnDialog = true, QWidget *parent = nullptr);
-    void edit(DataEdit *edit, bool putOnDialog = true);
+    template<typename T> T *edit();
+    template<typename T> T *edit(QWidget *parent);
+    template<typename T> T *edit(bool putOnDialog, QWidget *parent = nullptr);
+    void edit(AbstractDataEdit *edit);
+    void edit(AbstractDataEdit *edit, bool putOnDialog);
 
     template<typename T> T *dataController();
     void dataController(AbstractDataController *controller);
@@ -79,7 +82,7 @@ inline T *DataInterfaceBlueprint::tableModel(QObject *parent)
 }
 
 template<typename T>
-inline T *DataInterfaceBlueprint::edit(bool putOnDialog, QWidget *parent)
+T *DataInterfaceBlueprint::edit()
 {
     T *edit = new T(interface());
     this->edit(edit);
@@ -87,10 +90,27 @@ inline T *DataInterfaceBlueprint::edit(bool putOnDialog, QWidget *parent)
 }
 
 template<typename T>
+T *DataInterfaceBlueprint::edit(QWidget *parent)
+{
+    T *edit = new T(parent);
+    this->edit(edit);
+    return edit;
+}
+
+template<typename T>
+inline T *DataInterfaceBlueprint::edit(bool putOnDialog, QWidget *parent)
+{
+    T *edit = new T(parent ? parent : (putOnDialog ? nullptr : interface()));
+    this->edit(edit, putOnDialog);
+    return edit;
+}
+
+template<typename T>
 inline T *DataInterfaceBlueprint::dataController()
 {
-    T *controller = new T(interface());
+    T *controller = new T();
     dataController(controller);
+    return controller;
 }
 
 } // namespace Widgetry

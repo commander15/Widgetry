@@ -116,7 +116,7 @@ QMenu *DataInterfaceForge::contextMenu() const
     return d_ptr->contextMenu;
 }
 
-DataEdit *DataInterfaceForge::dataEdit() const
+AbstractDataEdit *DataInterfaceForge::dataEdit() const
 {
     return d_ptr->dataEdit;
 }
@@ -142,16 +142,16 @@ void DataInterfaceForge::setTableModel(Jsoner::TableModel *model)
     d_ptr->tableModel = model;
 }
 
-void DataInterfaceForge::setDataEdit(DataEdit *edit)
+void DataInterfaceForge::setDataEdit(AbstractDataEdit *edit)
 {
     d_ptr->dataEdit = edit;
 }
 
-void DataInterfaceForge::setDataEdit(DataEdit *edit, QWidget *dialogParent)
+void DataInterfaceForge::setDataEdit(AbstractDataEdit *edit, QWidget *dialogParent)
 {
     d_ptr->dataEdit = edit;
     if (dialogParent)
-        d_ptr->dataEditDialog = DataEdit::dialogFromEdit(edit, dialogParent);
+        d_ptr->dataEditDialog = AbstractDataEdit::dialogFromEdit(edit, dialogParent);
 }
 
 void DataInterfaceForge::setContextMenu(QMenu *menu, bool addDefaultActions)
@@ -210,6 +210,9 @@ bool DataInterfaceForge::prepareContextMenu(const Jsoner::Array &objects, QMenu 
 void DataInterfaceForge::init()
 {
     ui = d_ptr->forgeInterface()->ui;
+
+    ui->toggleFiltersButtons->hide();
+    ui->filterFrame->hide();
 }
 
 bool DataInterfaceForge::isBluePrinted() const

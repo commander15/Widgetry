@@ -23,7 +23,7 @@ namespace Ui {
 class DataInterface;
 }
 
-class DataEdit;
+class AbstractDataEdit;
 
 class DataInterfaceForgePrivate;
 class WIDGETRY_EXPORT DataInterfaceForge
@@ -58,13 +58,13 @@ public:
     QAbstractButton *nextPageButton() const;
 
     QMenu *contextMenu() const;
-    DataEdit *dataEdit() const;
+    AbstractDataEdit *dataEdit() const;
 
 public:
     void setFilterWidget(QWidget *widget);
     void setTableModel(Jsoner::TableModel *model);
-    void setDataEdit(DataEdit *edit);
-    void setDataEdit(DataEdit *edit, QWidget *dialogParent);
+    void setDataEdit(AbstractDataEdit *edit);
+    void setDataEdit(AbstractDataEdit *edit, QWidget *dialogParent);
     void setContextMenu(QMenu *menu, bool addDefaultActions = true);
 
 protected:

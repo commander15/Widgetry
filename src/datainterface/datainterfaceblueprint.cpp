@@ -3,6 +3,7 @@
 
 #include <Widgetry/datainterface.h>
 #include <Widgetry/datainterfaceforge.h>
+#include <Widgetry/abstractdataedit.h>
 
 #include <Jsoner/tablemodel.h>
 
@@ -119,7 +120,12 @@ QAction *DataInterfaceBlueprint::contextMenuSeparator()
     return actionPrint.action;
 }
 
-void DataInterfaceBlueprint::edit(DataEdit *edit, bool putOnDialog)
+void DataInterfaceBlueprint::edit(AbstractDataEdit *edit)
+{
+    this->edit(edit, edit->editType() != AbstractDataEdit::WindowEdit);
+}
+
+void DataInterfaceBlueprint::edit(AbstractDataEdit *edit, bool putOnDialog)
 {
     d_ptr->edit = edit;
     d_ptr->editInDialog = putOnDialog;
