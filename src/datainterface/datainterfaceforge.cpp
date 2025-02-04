@@ -76,9 +76,9 @@ void DataInterfaceForge::removeButton(QAbstractButton *button)
     ui->topBarLayout->removeWidget(button);
 }
 
-QWidget *DataInterfaceForge::filterWidget() const
+AbstractDataEdit *DataInterfaceForge::filterWidget() const
 {
-    return ui->filterContainer;
+    return d_ptr->filterWidget;
 }
 
 QAbstractButton *DataInterfaceForge::filterButton() const
@@ -121,9 +121,10 @@ AbstractDataEdit *DataInterfaceForge::dataEdit() const
     return d_ptr->dataEdit;
 }
 
-void DataInterfaceForge::setFilterWidget(QWidget *widget)
+void DataInterfaceForge::setFilterWidget(AbstractDataEdit *widget)
 {
-    ui->filterContainerLayout->addWidget(widget);
+    ui->filterContainerLayout->addWidget(widget->editWidget());
+    ui->toggleFiltersButtons->setVisible(widget);
     d_ptr->filterWidget = widget;
 }
 
@@ -131,13 +132,23 @@ void DataInterfaceForge::setTableModel(Jsoner::TableModel *model)
 {
     ui->tableView->setModel(model);
 
-    QItemSelectionModel *selectionModel = ui->tableView->selectionModel();
-    QObject::connect(selectionModel, &QItemSelectionModel::selectionChanged, selectionModel, [this](const QItemSelection &current, const QItemSelection &) {
-        const bool single = current.count() == 1;
-        const bool multiple = current.count() > 1;
+    auto updateButtons = [this](int selectedRows) {
+        const bool single = selectedRows == 1;
+        const bool multiple = selectedRows > 1;
         ui->editButton->setEnabled(single);
-        ui->deleteButton->setEnabled(single && multiple);
+        ui->deleteButton->setEnabled(single || multiple);
+    };
+
+    QObject::connect(model, &QAbstractItemModel::modelReset, model, [updateButtons] {
+        updateButtons(0);
     });
+
+    QItemSelectionModel *selectionModel = ui->tableView->selectionModel();
+    QObject::connect(selectionModel, &QItemSelectionModel::selectionChanged, selectionModel, [updateButtons, selectionModel](const QItemSelection &, const QItemSelection &) {
+        updateButtons(selectionModel->selectedRows().count());
+    });
+
+    ui->refreshButton->setEnabled(model);
 
     d_ptr->tableModel = model;
 }
@@ -145,11 +156,16 @@ void DataInterfaceForge::setTableModel(Jsoner::TableModel *model)
 void DataInterfaceForge::setDataEdit(AbstractDataEdit *edit)
 {
     d_ptr->dataEdit = edit;
+
+    ui->addButton->setEnabled(edit);
+    ui->editButton->setEnabled(edit);
+    ui->deleteButton->setEnabled(edit);
 }
 
 void DataInterfaceForge::setDataEdit(AbstractDataEdit *edit, QWidget *dialogParent)
 {
-    d_ptr->dataEdit = edit;
+    setDataEdit(edit);
+
     if (dialogParent)
         d_ptr->dataEditDialog = AbstractDataEdit::dialogFromEdit(edit, dialogParent);
 }
@@ -202,7 +218,7 @@ bool DataInterfaceForge::prepareContextMenu(const Jsoner::Array &objects, QMenu 
         d_ptr->editAction->setVisible(single);
 
     if (d_ptr->deleteAction)
-        d_ptr->deleteAction->setVisible(single && multiple);
+        d_ptr->deleteAction->setVisible(single || multiple);
 
     return true;
 }
@@ -211,8 +227,26 @@ void DataInterfaceForge::init()
 {
     ui = d_ptr->forgeInterface()->ui;
 
+    ui->searchInput->setEnabled(false);
+
+    QObject::connect(ui->toggleFiltersButtons, &QAbstractButton::toggled, ui->toggleFiltersButtons, [this](bool toggled) {
+        ui->interfaceLayout->setHorizontalSpacing(toggled ? 6 : 0);
+    });
+    ui->toggleFiltersButtons->toggle();
     ui->toggleFiltersButtons->hide();
-    ui->filterFrame->hide();
+
+    ui->refreshButton->setEnabled(false);
+    ui->addButton->setEnabled(false);
+    ui->editButton->setEnabled(false);
+    ui->editButton->setEnabled(false);
+    ui->deleteButton->setEnabled(false);
+
+    QObject::connect(ui->pageInput, &QSpinBox::valueChanged, ui->pageInput, [this](int value) {
+        if (value < 1)
+            return;
+
+        d_ptr->forgeInterface()->refresh();
+    });
 }
 
 bool DataInterfaceForge::isBluePrinted() const

@@ -4,6 +4,8 @@
 #include <Widgetry/operation.h>
 #include <Widgetry/interfaceserver.h>
 
+#include <QtCore/qcoreevent.h>
+
 namespace Widgetry {
 
 UserInterface::UserInterface(QWidget *parent, Qt::WindowFlags flags)
@@ -138,6 +140,20 @@ void UserInterface::sync()
         emit operationSupportChanged(operation, isOperationSupported(operation));
 }
 
+void UserInterface::prepareUi()
+{
+    translateUi(false);
+}
+
+void UserInterface::cleanupUi()
+{
+}
+
+void UserInterface::translateUi(bool full)
+{
+    Q_UNUSED(full);
+}
+
 bool UserInterface::handleOperation(Operation *operation)
 {
     // No-op
@@ -164,6 +180,25 @@ void UserInterface::requestOperation(const Operation &operation)
     Operation op(operation);
     op.setSenderId(id());
     emit operationRequested(op);
+}
+
+void UserInterface::showEvent(QShowEvent *event)
+{
+    prepareUi();
+    QWidget::showEvent(event);
+}
+
+void UserInterface::hideEvent(QHideEvent *event)
+{
+    cleanupUi();
+    QWidget::hideEvent(event);
+}
+
+void UserInterface::changeEvent(QEvent *event)
+{
+    if (event->type() == QEvent::LanguageChange)
+        translateUi();
+    QWidget::changeEvent(event);
 }
 
 UserInterfacePrivate::UserInterfacePrivate(UserInterface *q)

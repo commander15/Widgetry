@@ -49,11 +49,19 @@ signals:
 protected:
     UserInterface(UserInterfacePrivate *d, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
 
+    virtual void prepareUi();
+    virtual void cleanupUi();
+    virtual void translateUi(bool full = true);
+
     virtual bool handleOperation(Operation *operation);
     virtual void handleOperationResult(const Operation &operation);
 
     void requestServerOperation(const Operation &operation);
     void requestOperation(const Operation &operation);
+
+    void showEvent(QShowEvent *event) override;
+    void hideEvent(QHideEvent *event) override;
+    void changeEvent(QEvent *event) override;
 
     QScopedPointer<UserInterfacePrivate> d_ptr;
 

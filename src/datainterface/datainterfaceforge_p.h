@@ -14,7 +14,7 @@ public:
 
     virtual DataInterface *forgeInterface() const = 0;
 
-    QWidget *filterWidget = nullptr;
+    AbstractDataEdit *filterWidget = nullptr;
 
     Jsoner::TableModel *tableModel = nullptr;
 

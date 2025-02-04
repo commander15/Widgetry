@@ -52,6 +52,9 @@ public slots:
     void deleteSelectedItems();
 
 protected:
+    void prepareUi() override;
+    void translateUi(bool full = true) override;
+
     Jsoner::Object currentObject() const;
     Jsoner::Array selectedObjects() const;
 

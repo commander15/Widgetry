@@ -4,7 +4,7 @@ configure_file(config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/config.h @ONLY)
 
 target_headers(Widgetry
     PUBLIC
-        global.h config.h
+        widgetry.h global.h config.h
         userinterface.h
         interfaceholder.h
     PRIVATE
@@ -13,6 +13,7 @@ target_headers(Widgetry
 
 target_sources(Widgetry
     PRIVATE
+        global.cpp
         userinterface.cpp
         interfaceholder.cpp
         resources/widgetry_resources.qrc

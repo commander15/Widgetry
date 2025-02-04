@@ -77,7 +77,18 @@ void DataInterface::search(const QString &query)
 
 void DataInterface::filter(const QVariantHash &filters)
 {
-    // ToDo: handle filters
+    WIDGETRY_D(DataInterface);
+
+    if (d->filterWidget) {
+        Jsoner::Object object;
+
+        const QStringList names = filters.keys();
+        for (const QString &name : names)
+            object.insert(name, QJsonValue::fromVariant(filters.value(name)));
+
+        d->filterWidget->setObject(object, AbstractDataEdit::EditOperation);
+    }
+
     refresh();
 }
 
@@ -98,6 +109,7 @@ void DataInterface::refresh()
 
         ui->pageInput->setMaximum(response.pageCount());
         ui->pageInput->setValue(response.page());
+        ui->pageInput->setSuffix(" / " + QString::number(response.pageCount()));
 
         ui->previousPageButton->setEnabled(response.page() > 1);
         ui->nextPageButton->setEnabled(response.page() < response.pageCount());
@@ -197,6 +209,34 @@ void DataInterface::deleteSelectedItems()
 
         showResponseMessage(tr("Error during deletion !"), response);
     });
+}
+
+void DataInterface::prepareUi()
+{
+    WIDGETRY_D(DataInterface);
+    if (d->tableModel && d->tableModel->rowCount() == 0)
+        refresh();
+
+    UserInterface::prepareUi();
+}
+
+void DataInterface::translateUi(bool full)
+{
+    WIDGETRY_D(DataInterface);
+
+    if (full)
+        ui->retranslateUi(this);
+
+    if (d->showAction)
+        d->showAction->setText(tr("Show"));
+
+    if (d->editAction)
+        d->editAction->setText(tr("Edit"));
+
+    if (d->deleteAction)
+        d->deleteAction->setText(tr("Delete"));
+
+    UserInterface::translateUi();
 }
 
 Jsoner::Object DataInterface::currentObject() const
@@ -402,10 +442,13 @@ void DataInterface::handleOperationResult(const Operation &operation)
 
 DataQuery DataInterface::generateQuery() const
 {
+    WIDGETRY_D(DataInterface);
+
     DataQuery query;
     query.setQuery(ui->searchInput->text());
+    if (d->filterWidget)
+        query.setFilters(d->filterWidget->object().toVariantHash());
     query.setPage(ui->pageInput->value());
-    // ToDo: handle filters
     return query;
 }
 

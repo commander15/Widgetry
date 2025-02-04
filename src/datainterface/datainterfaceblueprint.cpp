@@ -9,6 +9,7 @@
 
 #include <QtWidgets/qtableview.h>
 #include <QtWidgets/qmenu.h>
+#include <QtWidgets/qlineedit.h>
 
 namespace Widgetry {
 
@@ -24,7 +25,57 @@ DataInterfaceBlueprint::~DataInterfaceBlueprint()
             d_ptr->forge->setBluePrinted();
 }
 
-void DataInterfaceBlueprint::filter(QWidget *filter)
+QIcon DataInterfaceBlueprint::icon(const QString &fileName)
+{
+    d_ptr->interfaceIcon = QIcon(fileName);
+    return d_ptr->interfaceIcon;
+}
+
+void DataInterfaceBlueprint::icon(const QIcon &icon)
+{
+    d_ptr->interfaceIcon = icon;
+}
+
+void DataInterfaceBlueprint::title(const QString &title)
+{
+    d_ptr->interfaceTitle = title;
+}
+
+QAction *DataInterfaceBlueprint::action(const QIcon &icon)
+{
+    d_ptr->interfaceAction = new QAction(icon, QString(), d_ptr->interface);
+    return d_ptr->interfaceAction;
+}
+
+QAction *DataInterfaceBlueprint::action(const QString &text)
+{
+    d_ptr->interfaceAction = new QAction(QIcon(), text, d_ptr->interface);
+    return d_ptr->interfaceAction;
+}
+
+QAction *DataInterfaceBlueprint::action(const QIcon &icon, const QString &text)
+{
+    d_ptr->interfaceAction = new QAction(icon, text, d_ptr->interface);
+    return d_ptr->interfaceAction;
+}
+
+void DataInterfaceBlueprint::action(QAction *action)
+{
+    d_ptr->interfaceAction = action;
+}
+
+void DataInterfaceBlueprint::search(bool allowed)
+{
+    d_ptr->searchAllowed = allowed;
+    d_ptr->seachChanged = true;
+}
+
+void DataInterfaceBlueprint::button(QAbstractButton *button)
+{
+    d_ptr->buttons.append(button);
+}
+
+void DataInterfaceBlueprint::filter(AbstractDataEdit *filter)
 {
     d_ptr->filter = filter;
 }
@@ -68,37 +119,6 @@ void DataInterfaceBlueprint::contextMenu(QMenu *menu, bool addDefaultActions)
 {
     d_ptr->contextMenu = menu;
     d_ptr->contextMenuAddDefaultActions = addDefaultActions;
-}
-
-QAction *DataInterfaceBlueprint::contextMenuAction(const QIcon &icon)
-{
-    DataInterfaceBlueprintPrivate::Action actionPrint;
-    actionPrint.icon = icon;
-    if (isInit())
-        actionPrint.action = (new QAction(icon, QString(), d_ptr->interface));
-    d_ptr->contextMenuActions.append(actionPrint);
-    return actionPrint.action;
-}
-
-QAction *DataInterfaceBlueprint::contextMenuAction(const QString &text)
-{
-    DataInterfaceBlueprintPrivate::Action actionPrint;
-    actionPrint.text = text;
-    if (isInit())
-        actionPrint.action = (new QAction(text, d_ptr->interface));
-    d_ptr->contextMenuActions.append(actionPrint);
-    return actionPrint.action;
-}
-
-QAction *DataInterfaceBlueprint::contextMenuAction(const QIcon &icon, const QString &text)
-{
-    DataInterfaceBlueprintPrivate::Action actionPrint;
-    actionPrint.icon = icon;
-    actionPrint.text = text;
-    if (isInit())
-        actionPrint.action = (new QAction(icon, text, d_ptr->interface));
-    d_ptr->contextMenuActions.append(actionPrint);
-    return actionPrint.action;
 }
 
 void DataInterfaceBlueprint::contextMenuAction(QAction *action)
@@ -155,18 +175,41 @@ DataInterfaceBlueprintPrivate::DataInterfaceBlueprintPrivate(DataInterface *inte
 bool DataInterfaceBlueprintPrivate::build(bool init)
 {
     if (commit) {
+        buildInterface(init);
+        buildTable(init);
+        buildContextMenu(init);
+
         if (init) {
-            buildTable(init);
-            buildContextMenu(init);
+            buildEdit();
+            buildFilter();
+            buildDataController();
         }
 
-        buildEdit();
-        buildDataController();
         return true;
     } else {
         cleanup();
         return false;
     }
+}
+
+void DataInterfaceBlueprintPrivate::buildInterface(bool init)
+{
+    Q_UNUSED(init);
+
+    if (!interfaceIcon.isNull())
+        interface->setIcon(interfaceIcon);
+
+    if (!interfaceTitle.isEmpty())
+        interface->setTitle(interfaceTitle);
+
+    if (interfaceAction)
+        interface->setAction(interfaceAction);
+
+    if (seachChanged)
+        forge->searchBar()->setEnabled(searchAllowed);
+
+    for (QAbstractButton *button : std::as_const(buttons))
+        forge->addButton(button);
 }
 
 void DataInterfaceBlueprintPrivate::buildTable(bool init)
@@ -243,6 +286,14 @@ void DataInterfaceBlueprintPrivate::buildEdit()
         forge->setDataEdit(edit, interface->window());
     else
         forge->setDataEdit(edit);
+}
+
+void DataInterfaceBlueprintPrivate::buildFilter()
+{
+    if (!filter)
+        return;
+
+    forge->setFilterWidget(filter);
 }
 
 void DataInterfaceBlueprintPrivate::buildDataController()

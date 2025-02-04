@@ -20,14 +20,25 @@ public:
     DataInterfaceBlueprintPrivate(DataInterface *interface);
 
     bool build(bool init);
+    void buildInterface(bool init);
     void buildTable(bool init);
     void buildContextMenu(bool init);
     void buildEdit();
+    void buildFilter();
     void buildDataController();
 
     void cleanup();
 
-    QWidget *filter = nullptr;
+    QIcon interfaceIcon;
+    QString interfaceTitle;
+    QAction *interfaceAction = nullptr;
+
+    bool searchAllowed = false;
+    bool seachChanged = false;
+
+    QList<QAbstractButton *> buttons;
+
+    AbstractDataEdit *filter = nullptr;
 
     QStringList labels;
     QStringList fields;

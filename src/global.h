@@ -17,4 +17,10 @@
 #define WIDGETRY_D(ClassName) \
     ClassName##Private *d = static_cast<ClassName##Private *>(qGetPtrHelper(d_ptr))
 
+class QApplication;
+
+namespace Widgetry {
+WIDGETRY_EXPORT void init(QApplication &app);
+}
+
 #endif // WIDGETRY_GLOBAL_H

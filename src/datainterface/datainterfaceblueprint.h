@@ -5,6 +5,7 @@
 #include <Widgetry/datainterface.h>
 
 #include <QtWidgets/qheaderview.h>
+#include <QtWidgets/qtoolbutton.h>
 
 #include <QtCore/qscopedpointer.h>
 
@@ -25,8 +26,25 @@ public:
     DataInterfaceBlueprint(DataInterface *interface);
     ~DataInterfaceBlueprint();
 
+    QIcon icon(const QString &fileName);
+    void icon(const QIcon &icon);
+
+    void title(const QString &title);
+
+    QAction *action(const QIcon &icon);
+    QAction *action(const QString &text);
+    QAction *action(const QIcon &icon, const QString &text);
+    void action(QAction *action);
+
+    void search(bool allowed = true);
+
+    template<typename Functor> QAbstractButton *button(const QIcon &icon, QObject *context, Functor &&functor);
+    template<typename Functor> QAbstractButton *button(const QString &text, QObject *context, Functor &&functor);
+    template<typename Functor> QAbstractButton *button(const QIcon &icon, const QString &text, QObject *context, Functor &&functor);
+    void button(QAbstractButton *button);
+
     template<typename T> T *filter();
-    void filter(QWidget *filter);
+    void filter(AbstractDataEdit *filter);
 
     int tableHeader(const QString &label);
     int tableHeader(const QString &label, const QString &field, QHeaderView::ResizeMode resizeMode);
@@ -41,9 +59,9 @@ public:
     QMenu *contextMenu(bool addDefaultActions = true);
     void contextMenu(QMenu *menu, bool addDefaultActions = true);
 
-    QAction *contextMenuAction(const QIcon &icon);
-    QAction *contextMenuAction(const QString &text);
-    QAction *contextMenuAction(const QIcon &icon, const QString &text);
+    template<typename Functor> QAction *contextMenuAction(const QIcon &icon, QObject *context, Functor &&functor);
+    template<typename Functor> QAction *contextMenuAction(const QString &text, QObject *context, Functor &&functor);
+    template<typename Functor> QAction *contextMenuAction(const QIcon &icon, const QString &text, QObject *context, Functor &&functor);
     void contextMenuAction(QAction *action);
 
     QAction *contextMenuSeparator();
@@ -65,6 +83,45 @@ private:
     QScopedPointer<DataInterfaceBlueprintPrivate> d_ptr;
 };
 
+template<typename Functor>
+QAbstractButton *DataInterfaceBlueprint::button(const QIcon &icon, QObject *context, Functor &&functor)
+{
+    auto *btn = new QToolButton(interface());
+    btn->setIcon(icon);
+    QObject::connect(btn, &QAbstractButton::clicked, context, functor);
+    button(btn);
+    return btn;
+}
+
+template<typename Functor>
+QAbstractButton *DataInterfaceBlueprint::button(const QString &text, QObject *context, Functor &&functor)
+{
+    auto *btn = new QToolButton(interface());
+    btn->setText(text);
+    QObject::connect(btn, &QAbstractButton::clicked, context, functor);
+    button(btn);
+    return btn;
+}
+
+template<typename Functor>
+QAbstractButton *DataInterfaceBlueprint::button(const QIcon &icon, const QString &text, QObject *context, Functor &&functor)
+{
+    auto *btn = new QToolButton(interface());
+    btn->setIcon(icon);
+    btn->setText(text);
+    QObject::connect(btn, &QAbstractButton::clicked, context, functor);
+    button(btn);
+    return btn;
+}
+
+template<typename T>
+T *DataInterfaceBlueprint::filter()
+{
+    T *filter = new T(interface());
+    this->filter(filter);
+    return filter;
+}
+
 template<typename T>
 inline T *DataInterfaceBlueprint::tableDelegate(QObject *parent)
 {
@@ -79,6 +136,33 @@ inline T *DataInterfaceBlueprint::tableModel(QObject *parent)
     T *model = new T(parent ? parent : interface());
     tableModel(model);
     return model;
+}
+
+template<typename Functor>
+QAction *DataInterfaceBlueprint::contextMenuAction(const QIcon &icon, QObject *context, Functor &&functor)
+{
+    auto *action = new QAction(icon, QString(), interface());
+    QObject::connect(action, &QAction::triggered, context, functor);
+    contextMenuAction(action);
+    return action;
+}
+
+template<typename Functor>
+QAction *DataInterfaceBlueprint::contextMenuAction(const QString &text, QObject *context, Functor &&functor)
+{
+    auto *action = new QAction(text, interface());
+    QObject::connect(action, &QAction::triggered, context, functor);
+    contextMenuAction(action);
+    return action;
+}
+
+template<typename Functor>
+QAction *DataInterfaceBlueprint::contextMenuAction(const QIcon &icon, const QString &text, QObject *context, Functor &&functor)
+{
+    auto *action = new QAction(icon, text, interface());
+    QObject::connect(action, &QAction::triggered, context, functor);
+    contextMenuAction(action);
+    return action;
 }
 
 template<typename T>

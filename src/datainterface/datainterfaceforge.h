@@ -47,7 +47,7 @@ public:
     void insertButton(QAbstractButton *before, QAbstractButton *button);
     void removeButton(QAbstractButton *button);
 
-    QWidget *filterWidget() const;
+    AbstractDataEdit *filterWidget() const;
     QAbstractButton *filterButton() const;
 
     QTableView *tableView() const;
@@ -61,7 +61,7 @@ public:
     AbstractDataEdit *dataEdit() const;
 
 public:
-    void setFilterWidget(QWidget *widget);
+    void setFilterWidget(AbstractDataEdit *widget);
     void setTableModel(Jsoner::TableModel *model);
     void setDataEdit(AbstractDataEdit *edit);
     void setDataEdit(AbstractDataEdit *edit, QWidget *dialogParent);
