@@ -2,6 +2,7 @@
 #define WIDGETRY_DATAEDIT_H
 
 #include <Widgetry/global.h>
+#include <Widgetry/abstractdataedit.h>
 
 #include <QtWidgets/qwidget.h>
 
@@ -10,38 +11,24 @@
 namespace Widgetry {
 
 class DataEditPrivate;
-class WIDGETRY_EXPORT DataEdit : public QWidget
+class WIDGETRY_EXPORT DataEdit : public QWidget, public AbstractDataEdit
 {
     Q_OBJECT
 
 public:
-    enum Operation {
-        ShowOperation,
-        AddOperation,
-        EditOperation
-    };
-
     DataEdit(QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
     virtual ~DataEdit();
 
-    Jsoner::Object object() const;
-    Operation operation() const;
-    void setObject(const Jsoner::Object &object, Operation operation);
-
-    bool isComplete() const;
-    QString completionError() const;
-
-    bool isReadOnly() const;
-    void setReadOnly(bool r = true);
+    QWidget *editWidget() const override;
+    EditType editType() const override;
 
     static QDialog *dialogFromEdit(DataEdit *edit, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
 
 public slots:
-    void show(const Jsoner::Object &object);
-    void add(const Jsoner::Object &object);
-    void edit(const Jsoner::Object &object);
-
-    virtual void clear();
+    void show(const Jsoner::Object &object) { AbstractDataEdit::show(object); }
+    void add(const Jsoner::Object &object) { AbstractDataEdit::add(object); }
+    void edit(const Jsoner::Object &object) { AbstractDataEdit::edit(object); }
+    void clear() override;
 
 signals:
     void complete();
@@ -55,19 +42,13 @@ protected:
 
     DataEdit(DataEditPrivate *d, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
 
-    virtual void render(const Jsoner::Object &object, Operation operation) = 0;
-    virtual void extract(Jsoner::Object &object, Operation operation) const = 0;
-    virtual bool validateInput();
-    virtual void makeWriteable(bool writeable) = 0;
-
-    void setCompletionError(const QString &str);
-    void clearCompletionError();
+    bool validateInput() override;
 
     bool registerField(QWidget *field);
     bool registerField(QWidget *field, const char *member);
     bool registerField(QWidget *field, const char *member, FieldMemberType type);
 
-    QScopedPointer<DataEditPrivate> d_ptr;
+    using AbstractDataEdit::d_ptr;
 
 private slots:
     void handleFieldChange();
@@ -75,6 +56,9 @@ private slots:
     void handleFieldChange(int);
     void handleFieldChange(double);
     void handleFieldChange(const QString &);
+    void handleFieldChange(const QDate &);
+    void handleFieldChange(const QTime &);
+    void handleFieldChange(const QDateTime &);
 
     friend class DataEditDialogHelper;
 };

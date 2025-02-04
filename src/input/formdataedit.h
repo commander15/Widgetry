@@ -14,7 +14,7 @@ class WIDGETRY_EXPORT FormDataEdit : public DataEdit
 
 public:
     FormDataEdit(QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
-    ~FormDataEdit();
+    virtual ~FormDataEdit();
 
     bool isRowVisible(int row) const;
     void showRow(int row);
@@ -48,6 +48,8 @@ protected:
     void render(const Jsoner::Object &object, Operation operation) override;
     void extract(Jsoner::Object &object, Operation operation) const override;
     void makeWriteable(bool writeable) override;
+
+    static QString fieldName(QWidget *widget);
 };
 
 } // namespace Widgetry

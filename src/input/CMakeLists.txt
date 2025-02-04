@@ -1,14 +1,19 @@
 target_headers(Widgetry
   PUBLIC
+      abstractdataedit.h
       dataedit.h
       formdataedit.h
   PRIVATE
+      abstractdataedit_p.h
+      dataeditdialog_p.h
       dataedit_p.h
       formdataedit_p.h
 )
 
 target_sources(Widgetry
   PRIVATE
+    abstractdataedit.cpp
+    dataeditdialog.cpp
     dataedit.cpp
     formdataedit.cpp
 )

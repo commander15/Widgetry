@@ -3,20 +3,15 @@
 
 #include "dataedit.h"
 
+#include <Widgetry/private/abstractdataedit_p.h>
+
 namespace Widgetry {
 
-class DataEditPrivate
+class DataEditPrivate : public AbstractDataEditPrivate
 {
 public:
-    DataEditPrivate(DataEdit *q);
-
-    DataEdit *q_ptr;
-
-    Jsoner::Object object;
-    DataEdit::Operation operation;
-    bool readOnly;
-
-    QString completionErrorString;
+    explicit DataEditPrivate(DataEdit *q);
+    virtual ~DataEditPrivate() = default;
 };
 
 } // namespace Widgetry

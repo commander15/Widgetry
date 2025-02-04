@@ -1,103 +1,11 @@
 #include "dataedit.h"
 #include "dataedit_p.h"
 
-#include <QtWidgets/qdialog.h>
-#include <QtWidgets/qboxlayout.h>
-#include <QtWidgets/qlabel.h>
-#include <QtWidgets/qdialogbuttonbox.h>
-
 #include <QtCore/qmetaobject.h>
 
+#include "QDateEdit"
+
 namespace Widgetry {
-
-class DataEditDialogHelper : public QDialog
-{
-    Q_OBJECT
-
-public:
-    DataEditDialogHelper(QWidget *parent, Qt::WindowFlags flags)
-        : QDialog(parent, flags) {}
-
-    void init(DataEdit *edit) {
-        QDialog *dialog = this;
-
-        // Create the main layout for the dialog
-        QVBoxLayout *layout = new QVBoxLayout(dialog);
-
-        // Add the DataEdit widget (the form to edit the object)
-        layout->addWidget(edit);
-
-        m_errorOutput = new QLabel(this);
-        m_errorOutput->setWordWrap(true);
-        m_errorOutput->setStyleSheet("color: red");
-        layout->addWidget(m_errorOutput);
-
-        // Create a button box (Save and Cancel buttons)
-        m_buttonBox = new QDialogButtonBox();
-        QDialogButtonBox::StandardButtons boxButtons = QDialogButtonBox::Save | QDialogButtonBox::Cancel;
-        m_buttonBox->setStandardButtons(boxButtons);
-        layout->addWidget(m_buttonBox);
-
-        // Connect edit signals to the appropriate functions
-        connect(edit, &DataEdit::complete, this, &DataEditDialogHelper::updateError);
-        connect(edit, &DataEdit::complete, this, &DataEditDialogHelper::updateButtons);
-
-        // Connect button signals to the appropriate slots
-        connect(m_buttonBox, &QDialogButtonBox::accepted, this, [&] {
-            if (m_edit->isComplete())
-                accept();
-            else
-                updateErrorState(true);
-        });
-        connect(m_buttonBox, &QDialogButtonBox::rejected, dialog, &QDialog::reject);
-
-        // Set the dialog layout
-        dialog->setLayout(layout);
-
-        m_edit = edit;
-    }
-
-    void setVisible(bool v) override {
-        if (v) {
-            updateErrorState(false);
-            updateButtonStates(true);
-        }
-        QDialog::setVisible(v);
-    }
-
-    void updateErrorState(bool show) {
-        if (show && !m_edit->isComplete()) {
-            m_errorOutput->setText(m_edit->completionError());
-            m_edit->clearCompletionError();
-        } else {
-            m_errorOutput->clear();
-        }
-    }
-
-    void updateButtonStates(bool saveable) {
-        if (m_edit->operation() == DataEdit::ShowOperation) {
-            m_buttonBox->setStandardButtons(QDialogButtonBox::Close);
-        } else {
-            QDialogButtonBox::StandardButtons buttons(QDialogButtonBox::Cancel);
-            buttons.setFlag(QDialogButtonBox::Save, saveable || m_edit->isComplete());
-            m_buttonBox->setStandardButtons(buttons);
-        }
-    }
-
-public slots:
-    void updateError() {
-        updateErrorState(true);
-    }
-
-    void updateButtons() {
-        updateButtonStates(false);
-    }
-
-private:
-    DataEdit *m_edit;
-    QLabel *m_errorOutput;
-    QDialogButtonBox *m_buttonBox;
-};
 
 DataEdit::DataEdit(QWidget *parent, Qt::WindowFlags flags)
     : DataEdit(new DataEditPrivate(this), parent, flags)
@@ -106,7 +14,7 @@ DataEdit::DataEdit(QWidget *parent, Qt::WindowFlags flags)
 
 DataEdit::DataEdit(DataEditPrivate *d, QWidget *parent, Qt::WindowFlags flags)
     : QWidget(parent, flags)
-    , d_ptr(d)
+    , AbstractDataEdit(d)
 {
 }
 
@@ -114,92 +22,29 @@ DataEdit::~DataEdit()
 {
 }
 
-Jsoner::Object DataEdit::object() const
+QWidget *DataEdit::editWidget() const
 {
-    extract(d_ptr->object, d_ptr->operation);
-    return d_ptr->object;
+    return const_cast<DataEdit *>(this);
 }
 
-DataEdit::Operation DataEdit::operation() const
+AbstractDataEdit::EditType DataEdit::editType() const
 {
-    return d_ptr->operation;
-}
-
-void DataEdit::setObject(const Jsoner::Object &object, Operation operation)
-{
-    render(object, operation);
-    d_ptr->operation = operation;
-    d_ptr->object = object;
-}
-
-bool DataEdit::isComplete() const
-{
-    return d_ptr->q_ptr->validateInput();
-}
-
-QString DataEdit::completionError() const
-{
-    return d_ptr->completionErrorString;
-}
-
-bool DataEdit::isReadOnly() const
-{
-    return d_ptr->readOnly;
-}
-
-void DataEdit::setReadOnly(bool r)
-{
-    if (d_ptr->readOnly == r)
-        return;
-
-    makeWriteable(!r);
-    d_ptr->readOnly = r;
+    return WidgetEdit;
 }
 
 QDialog *DataEdit::dialogFromEdit(DataEdit *edit, QWidget *parent, Qt::WindowFlags flags)
 {
-    // Create the dialog
-    DataEditDialogHelper *helper = new DataEditDialogHelper(parent, flags);
-    helper->init(edit);
-    return helper;
-}
-
-void DataEdit::show(const Jsoner::Object &object)
-{
-    setObject(object, ShowOperation);
-    QWidget::show();
-}
-
-void DataEdit::add(const Jsoner::Object &object)
-{
-    setObject(object, AddOperation);
-    QWidget::show();
-}
-
-void DataEdit::edit(const Jsoner::Object &object)
-{
-    setObject(object, EditOperation);
-    QWidget::show();
+    return AbstractDataEdit::dialogFromEdit(edit, parent, flags);
 }
 
 void DataEdit::clear()
 {
-    setObject(Jsoner::Object(), d_ptr->operation);
+    AbstractDataEdit::clear();
 }
 
 bool DataEdit::validateInput()
 {
     return true;
-}
-
-void DataEdit::setCompletionError(const QString &str)
-{
-    d_ptr->completionErrorString = str;
-}
-
-void DataEdit::clearCompletionError()
-{
-    d_ptr->completionErrorString.clear();
 }
 
 bool DataEdit::registerField(QWidget *field)
@@ -304,14 +149,25 @@ void DataEdit::handleFieldChange(const QString &)
     emit complete();
 }
 
+void DataEdit::handleFieldChange(const QDate &)
+{
+    emit complete();
+}
+
+void DataEdit::handleFieldChange(const QTime &)
+{
+    emit complete();
+}
+
+void DataEdit::handleFieldChange(const QDateTime &)
+{
+    emit complete();
+}
+
 DataEditPrivate::DataEditPrivate(DataEdit *q)
-    : q_ptr(q)
-    , operation(DataEdit::ShowOperation)
-    , readOnly(false)
+    : AbstractDataEditPrivate(q)
 {
 }
 
 
 } // namespace Widgetry
-
-#include "dataedit.moc"
