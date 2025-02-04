@@ -25,9 +25,9 @@ public:
     static QDialog *dialogFromEdit(DataEdit *edit, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
 
 public slots:
-    void show(const Jsoner::Object &object) { AbstractDataEdit::show(object); }
-    void add(const Jsoner::Object &object) { AbstractDataEdit::add(object); }
-    void edit(const Jsoner::Object &object) { AbstractDataEdit::edit(object); }
+    void show(const Jsoner::Object &object);
+    void add(const Jsoner::Object &object);
+    void edit(const Jsoner::Object &object);
     void clear() override;
 
 signals:

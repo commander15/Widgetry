@@ -37,6 +37,24 @@ QDialog *DataEdit::dialogFromEdit(DataEdit *edit, QWidget *parent, Qt::WindowFla
     return AbstractDataEdit::dialogFromEdit(edit, parent, flags);
 }
 
+void DataEdit::show(const Jsoner::Object &object)
+{
+    setObject(object, ShowOperation);
+    QWidget::show();
+}
+
+void DataEdit::add(const Jsoner::Object &object)
+{
+    setObject(object, AddOperation);
+    QWidget::show();
+}
+
+void DataEdit::edit(const Jsoner::Object &object)
+{
+    setObject(object, EditOperation);
+    QWidget::show();
+}
+
 void DataEdit::clear()
 {
     AbstractDataEdit::clear();
