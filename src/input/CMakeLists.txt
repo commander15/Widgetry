@@ -3,11 +3,13 @@ target_headers(Widgetry
       abstractdataedit.h
       dataedit.h
       formdataedit.h
+      datawindow.h
   PRIVATE
       abstractdataedit_p.h
       dataeditdialog_p.h
       dataedit_p.h
       formdataedit_p.h
+      datawindow_p.h
 )
 
 target_sources(Widgetry
@@ -16,4 +18,5 @@ target_sources(Widgetry
     dataeditdialog.cpp
     dataedit.cpp
     formdataedit.cpp
+    datawindow.cpp
 )
