@@ -116,19 +116,24 @@ void UserInterface::setTitle(const QString &title)
 
 void UserInterface::setAction(QAction *action)
 {
-    if (d_ptr->action) {
+    QAction *newAction = action;
+    QAction *oldAction = d_ptr->action;
+
+    if (oldAction) {
         // Disconnect old action signals
-        disconnect(this, &QWidget::windowTitleChanged, d_ptr->action, &QAction::setText);
-        disconnect(this, &QWidget::windowIconChanged, d_ptr->action, &QAction::setIcon);
+        disconnect(this, &UserInterface::iconChanged, oldAction, &QAction::setIcon);
+        disconnect(this, &UserInterface::titleChanged, oldAction, &QAction::setText);
     }
 
-    action->setText(windowTitle());
-    action->setIcon(windowIcon());
-    action->setParent(this);
+    if (newAction) {
+        action->setText(title());
+        action->setIcon(icon());
+        action->setParent(this);
 
-    // Connect action to this widget
-    connect(this, &QWidget::windowTitleChanged, action, &QAction::setText);
-    connect(this, &QWidget::windowIconChanged, action, &QAction::setIcon);
+        // Connect action to this widget
+        connect(this, &UserInterface::iconChanged, newAction, &QAction::setIcon);
+        connect(this, &UserInterface::titleChanged, newAction, &QAction::setText);
+    }
 
     d_ptr->action = action;
 }
