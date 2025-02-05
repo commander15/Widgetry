@@ -20,7 +20,7 @@ UserInterface::UserInterface(QWidget *parent)
     ui.tableHeader(tr("Score"), "score", QHeaderView::ResizeToContents);
 
     ui.search();
-    ui.edit<UserEdit>()->registerFields();
+    ui.edit<UserEdit>()->mainField("id")->maxCount(1);
     ui.filter<UserEdit>();
 
     ui.contextMenu();
