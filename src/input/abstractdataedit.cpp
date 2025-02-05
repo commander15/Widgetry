@@ -31,8 +31,10 @@ AbstractDataEdit::Operation AbstractDataEdit::operation() const
 void AbstractDataEdit::setObject(const Jsoner::Object &object, Operation operation)
 {
     render(object, operation);
-    d_ptr->operation = operation;
     d_ptr->object = object;
+    d_ptr->operation = operation;
+
+    setReadOnly(operation == ShowOperation);
 }
 
 bool AbstractDataEdit::isComplete() const
@@ -66,6 +68,22 @@ QDialog *AbstractDataEdit::dialogFromEdit(AbstractDataEdit *edit, QWidget *paren
     DataEditDialogHelper *dialog = new DataEditDialogHelper(parent, flags);
     dialog->init(edit);
     return dialog;
+}
+
+AbstractDataEdit *AbstractDataEdit::editFromDialog(QDialog *dialog)
+{
+    return qobject_cast<DataEditDialogHelper *>(dialog);
+}
+
+void AbstractDataEdit::show()
+{
+    editWidget()->show();
+
+    QWidget *widget = editWidget();
+    if (!widget->isVisible())
+        widget->show();
+
+    widget->setWindowState(widget->windowState() | Qt::WindowActive);
 }
 
 void AbstractDataEdit::show(const Jsoner::Object &object)

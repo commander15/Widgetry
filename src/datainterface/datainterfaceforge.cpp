@@ -10,6 +10,8 @@
 
 #include <QtWidgets/qmenu.h>
 #include <QtWidgets/qdialog.h>
+#include <QtWidgets/qscrollbar.h>
+#include <QtWidgets/qabstractitemview.h>
 
 #include <QtCore/qitemselectionmodel.h>
 
@@ -116,9 +118,9 @@ QMenu *DataInterfaceForge::contextMenu() const
     return d_ptr->contextMenu;
 }
 
-AbstractDataEdit *DataInterfaceForge::dataEdit() const
+AbstractDataEditFactory *DataInterfaceForge::dataEditFactory() const
 {
-    return d_ptr->dataEdit;
+    return d_ptr->dataEditFactory;
 }
 
 void DataInterfaceForge::setFilterWidget(AbstractDataEdit *widget)
@@ -139,8 +141,11 @@ void DataInterfaceForge::setTableModel(Jsoner::TableModel *model)
         ui->deleteButton->setEnabled(single || multiple);
     };
 
-    QObject::connect(model, &QAbstractItemModel::modelReset, model, [updateButtons] {
+    QObject::connect(model, &QAbstractItemModel::modelReset, model, [updateButtons, this] {
         updateButtons(0);
+
+        QScrollBar *bar = ui->tableView->verticalScrollBar();
+        bar->setValue(bar->minimum());
     });
 
     QItemSelectionModel *selectionModel = ui->tableView->selectionModel();
@@ -153,21 +158,13 @@ void DataInterfaceForge::setTableModel(Jsoner::TableModel *model)
     d_ptr->tableModel = model;
 }
 
-void DataInterfaceForge::setDataEdit(AbstractDataEdit *edit)
+void DataInterfaceForge::setDataEdit(AbstractDataEditFactory *factory)
 {
-    d_ptr->dataEdit = edit;
+    d_ptr->dataEditFactory = factory;
 
-    ui->addButton->setEnabled(edit);
-    ui->editButton->setEnabled(edit);
-    ui->deleteButton->setEnabled(edit);
-}
-
-void DataInterfaceForge::setDataEdit(AbstractDataEdit *edit, QWidget *dialogParent)
-{
-    setDataEdit(edit);
-
-    if (dialogParent)
-        d_ptr->dataEditDialog = AbstractDataEdit::dialogFromEdit(edit, dialogParent);
+    ui->addButton->setEnabled(factory);
+    ui->editButton->setEnabled(factory);
+    ui->deleteButton->setEnabled(factory);
 }
 
 void DataInterfaceForge::setContextMenu(QMenu *menu, bool addDefaultActions)
@@ -241,10 +238,14 @@ void DataInterfaceForge::init()
     ui->editButton->setEnabled(false);
     ui->deleteButton->setEnabled(false);
 
-    QObject::connect(ui->pageInput, &QSpinBox::valueChanged, ui->pageInput, [this](int value) {
-        if (value < 1)
+    QObject::connect(ui->tableView, &QAbstractItemView::activated, ui->tableView, [this](const QModelIndex &index) {
+        if (!d_ptr->tableModel)
             return;
 
+        d_ptr->forgeInterface()->showCurrentItem();
+    });
+
+    QObject::connect(ui->pageInput, &QSpinBox::valueChanged, ui->pageInput, [this](int value) {
         d_ptr->forgeInterface()->refresh();
     });
 }

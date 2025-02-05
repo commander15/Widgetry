@@ -9,7 +9,7 @@
 
 namespace Widgetry {
 
-class DataEditDialogHelper : public QDialog
+class DataEditDialogHelper : public QDialog, public AbstractDataEdit
 {
     Q_OBJECT
 
@@ -21,11 +21,24 @@ public:
     void updateErrorState(bool show);
     void updateButtonStates(bool saveable);
 
+    void exec(const DataEditFinishedCallback &onFinished) override;
+
+    QWidget *editWidget() const override;
+    EditType editType() const override;
+
 public slots:
     void updateError() { updateErrorState(true); }
     void updateButtons() { updateButtonStates(false); }
 
     void setVisible(bool v) override;
+
+    void clear() override;
+
+protected:
+    void render(const Jsoner::Object &object, Operation operation) override;
+    void extract(Jsoner::Object &object, Operation operation) const override;
+    bool validateInput() override;
+    void makeWriteable(bool writeable) override;
 
 private:
     AbstractDataEdit *m_edit;

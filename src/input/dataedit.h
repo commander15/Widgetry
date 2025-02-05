@@ -19,6 +19,8 @@ public:
     DataEdit(QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
     virtual ~DataEdit();
 
+    void exec(const DataEditFinishedCallback &onFinished) override;
+
     QWidget *editWidget() const override;
     EditType editType() const override;
 

@@ -3,6 +3,7 @@
 
 #include <Widgetry/global.h>
 #include <Widgetry/datainterface.h>
+#include <Widgetry/abstractdataedit.h>
 
 #include <QtWidgets/qheaderview.h>
 #include <QtWidgets/qtoolbutton.h>
@@ -17,6 +18,7 @@ namespace Widgetry {
 
 class DataInterface;
 class AbstractDataEdit;
+class AbstractDataEditFactory;
 class AbstractDataController;
 
 class DataInterfaceBlueprintPrivate;
@@ -66,11 +68,8 @@ public:
 
     QAction *contextMenuSeparator();
 
-    template<typename T> T *edit();
-    template<typename T> T *edit(QWidget *parent);
-    template<typename T> T *edit(bool putOnDialog, QWidget *parent = nullptr);
-    void edit(AbstractDataEdit *edit);
-    void edit(AbstractDataEdit *edit, bool putOnDialog);
+    template<typename T> DataEditFactory<T> *edit();
+    void edit(AbstractDataEditFactory *factory);
 
     template<typename T> T *dataController();
     void dataController(AbstractDataController *controller);
@@ -166,27 +165,11 @@ QAction *DataInterfaceBlueprint::contextMenuAction(const QIcon &icon, const QStr
 }
 
 template<typename T>
-T *DataInterfaceBlueprint::edit()
+DataEditFactory<T> *DataInterfaceBlueprint::edit()
 {
-    T *edit = new T(interface());
-    this->edit(edit);
-    return edit;
-}
-
-template<typename T>
-T *DataInterfaceBlueprint::edit(QWidget *parent)
-{
-    T *edit = new T(parent);
-    this->edit(edit);
-    return edit;
-}
-
-template<typename T>
-inline T *DataInterfaceBlueprint::edit(bool putOnDialog, QWidget *parent)
-{
-    T *edit = new T(parent ? parent : (putOnDialog ? nullptr : interface()));
-    this->edit(edit, putOnDialog);
-    return edit;
+    DataEditFactory<T> *factory = new DataEditFactory<T>();
+    this->edit(factory);
+    return factory;
 }
 
 template<typename T>

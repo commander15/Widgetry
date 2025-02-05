@@ -3,6 +3,7 @@
 
 #include <Widgetry/global.h>
 #include <Widgetry/userinterface.h>
+#include <Widgetry/abstractdataedit.h>
 #include <Widgetry/abstractdatacontroller.h>
 
 namespace Jsoner {
@@ -59,8 +60,8 @@ protected:
     Jsoner::Array selectedObjects() const;
 
     virtual void showObject(const Jsoner::Object &object);
-    virtual Jsoner::Object addObject(const Jsoner::Object &object);
-    virtual Jsoner::Object editObject(const Jsoner::Object &object);
+    virtual void addObject(const Jsoner::Object &object, const DataEditFinishedCallback &callback);
+    virtual void editObject(const Jsoner::Object &object, const DataEditFinishedCallback &callback);
 
     void showContextMenu(const Jsoner::Array &objects, const QPoint &pos);
     virtual bool prepareContextMenu(const Jsoner::Array &objects, QMenu *menu);
@@ -87,6 +88,7 @@ protected:
 
 protected:
     void showResponseMessage(const QString &title, const DataResponse &response);
+    void preFetch(const DataQuery &query, const std::function<void(const Jsoner::Object &object)> &callback);
     void executeDataRequest(DataControllerRawMethod method, const DataQuery &query);
     void executeDataRequest(DataControllerRawMethod method, const DataQuery &query, const DataQueryResponseCallback &callback);
 

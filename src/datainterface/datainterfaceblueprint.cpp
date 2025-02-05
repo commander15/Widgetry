@@ -140,15 +140,9 @@ QAction *DataInterfaceBlueprint::contextMenuSeparator()
     return actionPrint.action;
 }
 
-void DataInterfaceBlueprint::edit(AbstractDataEdit *edit)
+void DataInterfaceBlueprint::edit(AbstractDataEditFactory *factory)
 {
-    this->edit(edit, edit->editType() != AbstractDataEdit::WindowEdit);
-}
-
-void DataInterfaceBlueprint::edit(AbstractDataEdit *edit, bool putOnDialog)
-{
-    d_ptr->edit = edit;
-    d_ptr->editInDialog = putOnDialog;
+    d_ptr->editFactory = factory;
 }
 
 void DataInterfaceBlueprint::dataController(AbstractDataController *controller)
@@ -279,13 +273,10 @@ void DataInterfaceBlueprintPrivate::buildContextMenu(bool init)
 
 void DataInterfaceBlueprintPrivate::buildEdit()
 {
-    if (!edit)
+    if (!editFactory)
         return;
 
-    if (editInDialog)
-        forge->setDataEdit(edit, interface->window());
-    else
-        forge->setDataEdit(edit);
+    forge->setDataEdit(editFactory);
 }
 
 void DataInterfaceBlueprintPrivate::buildFilter()

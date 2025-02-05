@@ -23,8 +23,7 @@ public:
     QAction *editAction = nullptr;
     QAction *deleteAction = nullptr;
 
-    AbstractDataEdit *dataEdit = nullptr;
-    QDialog *dataEditDialog = nullptr;
+    AbstractDataEditFactory *dataEditFactory = nullptr;
 
     bool bluePrinted = false;
 };

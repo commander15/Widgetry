@@ -66,13 +66,32 @@ void DataEditDialogHelper::updateErrorState(bool show)
 
 void DataEditDialogHelper::updateButtonStates(bool saveable)
 {
-    if (m_edit->operation() == AbstractDataEdit::ShowOperation) {
+    if (operation() == AbstractDataEdit::ShowOperation) {
         m_buttonBox->setStandardButtons(QDialogButtonBox::Close);
     } else {
         QDialogButtonBox::StandardButtons buttons(QDialogButtonBox::Cancel);
         buttons.setFlag(QDialogButtonBox::Save, saveable || m_edit->isComplete());
         m_buttonBox->setStandardButtons(buttons);
     }
+}
+
+void DataEditDialogHelper::exec(const DataEditFinishedCallback &onFinished)
+{
+    connect(this, &QDialog::finished, this, [onFinished, this](int result) {
+        onFinished(object(), result);
+    }, Qt::SingleShotConnection);
+
+    open();
+}
+
+QWidget *DataEditDialogHelper::editWidget() const
+{
+    return const_cast<DataEditDialogHelper *>(this);
+}
+
+AbstractDataEdit::EditType DataEditDialogHelper::editType() const
+{
+    return m_edit->editType();
 }
 
 void DataEditDialogHelper::setVisible(bool v)
@@ -82,6 +101,32 @@ void DataEditDialogHelper::setVisible(bool v)
         updateButtonStates(true);
     }
     QDialog::setVisible(v);
+}
+
+void DataEditDialogHelper::clear()
+{
+    m_edit->clear();
+}
+
+void DataEditDialogHelper::render(const Jsoner::Object &object, Operation operation)
+{
+    m_edit->render(object, operation);
+}
+
+void DataEditDialogHelper::extract(Jsoner::Object &object, Operation operation) const
+{
+    m_edit->extract(object, operation);
+}
+
+bool DataEditDialogHelper::validateInput()
+{
+    return m_edit->validateInput();
+}
+
+void DataEditDialogHelper::makeWriteable(bool writeable)
+{
+    m_edit->makeWriteable(writeable);
+    updateButtonStates(writeable);
 }
 
 } // namespace Widgetry

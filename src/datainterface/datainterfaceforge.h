@@ -24,6 +24,7 @@ class DataInterface;
 }
 
 class AbstractDataEdit;
+class AbstractDataEditFactory;
 
 class DataInterfaceForgePrivate;
 class WIDGETRY_EXPORT DataInterfaceForge
@@ -58,13 +59,12 @@ public:
     QAbstractButton *nextPageButton() const;
 
     QMenu *contextMenu() const;
-    AbstractDataEdit *dataEdit() const;
+    AbstractDataEditFactory *dataEditFactory() const;
 
 public:
     void setFilterWidget(AbstractDataEdit *widget);
     void setTableModel(Jsoner::TableModel *model);
-    void setDataEdit(AbstractDataEdit *edit);
-    void setDataEdit(AbstractDataEdit *edit, QWidget *dialogParent);
+    void setDataEdit(AbstractDataEditFactory *factory);
     void setContextMenu(QMenu *menu, bool addDefaultActions = true);
 
 protected:

@@ -22,6 +22,11 @@ DataEdit::~DataEdit()
 {
 }
 
+void DataEdit::exec(const DataEditFinishedCallback &onFinished)
+{
+    Q_UNUSED(onFinished);
+}
+
 QWidget *DataEdit::editWidget() const
 {
     return const_cast<DataEdit *>(this);

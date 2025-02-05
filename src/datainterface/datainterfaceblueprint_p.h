@@ -6,6 +6,7 @@
 namespace Widgetry {
 
 class DataInterfaceForge;
+class AbstractDataEditFactory;
 
 class DataInterfaceBlueprintPrivate
 {
@@ -50,8 +51,7 @@ public:
     bool contextMenuAddDefaultActions = false;
     QList<Action> contextMenuActions;
 
-    AbstractDataEdit *edit = nullptr;
-    bool editInDialog = false;
+    AbstractDataEditFactory *editFactory = nullptr;
 
     AbstractDataController *dataController = nullptr;
 
