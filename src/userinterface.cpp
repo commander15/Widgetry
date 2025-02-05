@@ -147,7 +147,6 @@ void UserInterface::sync()
 
 void UserInterface::prepareUi()
 {
-    translateUi(false);
 }
 
 void UserInterface::cleanupUi()
@@ -190,6 +189,7 @@ void UserInterface::requestOperation(const Operation &operation)
 void UserInterface::showEvent(QShowEvent *event)
 {
     prepareUi();
+    translateUi(false);
     QWidget::showEvent(event);
 }
 
