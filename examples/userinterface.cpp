@@ -1,5 +1,6 @@
 #include "userinterface.h"
 
+#include "userwindow.h"
 #include "useredit.h"
 
 #include "datacontroller.h"
@@ -20,7 +21,7 @@ UserInterface::UserInterface(QWidget *parent)
     ui.tableHeader(tr("Score"), "score", QHeaderView::ResizeToContents);
 
     ui.search();
-    ui.edit<UserEdit>()->mainField("id")->maxCount(1);
+    ui.edit<UserWindow>()->mainField("id")->maxCount(2);
     ui.filter<UserEdit>();
 
     ui.contextMenu();

@@ -9,29 +9,59 @@
 
 DataController::DataController()
 {
+    Jsoner::Array objects;
     QRandomGenerator *gen = QRandomGenerator::global();
-    for (int i(0); i < pageCount; ++i) {
-        Jsoner::Array objects;
 
-        for (int j(0); j < itemsPerPage; ++j) {
-            Jsoner::Object object;
-            object.insert("id", (i * itemsPerPage) + j + 1);
-            object.insert("name", "John Doe " + QString::number(gen->bounded(1500, 2025)));
-            object.insert("score", gen->bounded(0, pageCount * itemsPerPage));
-            objects.append(object);
-        }
-
-        m_objects.append(objects);
+    for (int i(0); i < pageCount * itemsPerPage; ++i) {
+        Jsoner::Object object;
+        object.insert("id", (i * itemsPerPage) + 1);
+        object.insert("name", "John Doe " + QString::number(gen->bounded(1500, 2025)));
+        object.insert("score", gen->bounded(0, pageCount * itemsPerPage));
+        m_objects.append(object);
     }
 }
 
 void DataController::fetchManyObjects(const Widgetry::DataQuery &query, const Widgetry::DataQueryProgressCallback &onProgress, const Widgetry::DataQueryResponseCallback &onResponse)
 {
+    Jsoner::Array objects;
+    for (const QJsonValue &value : m_objects) {
+        const Jsoner::Object object = value.toObject();
+
+        const QString q = query.query();
+        if (!q.isEmpty() && !object.string("name").contains(q)) {
+            objects.append(object);
+            continue;
+        }
+
+        const QVariantHash filters = query.filters();
+        if (!filters.isEmpty()) {
+            bool byPass = false;
+
+            const QStringList names = filters.keys();
+            for (const QString &name : names) {
+                const QString value = filters.value(name).toString();
+                if (object.string(name).contains(value)) {
+                    objects.append(object);
+                    byPass = true;
+                    continue;
+                }
+            }
+
+            if (byPass)
+                continue;
+        }
+    }
+
+    const int offset = query.page() * itemsPerPage;
+    const int pageCount = qCeil<double>(objects.size() / itemsPerPage);
+    while (objects.size() > offset)
+        objects.removeLast();
+
     Widgetry::DataResponse response;
     if (query.page() > 0 && query.page() <= m_objects.size()) {
-        response.setObjects(m_objects.at(query.page() - 1));
+        response.setObjects(objects);
         response.setPage(query.page());
-        response.setPageCount(m_objects.size());
+        response.setPageCount(pageCount);
         response.setSuccess(true);
     }
     onResponse(response);
@@ -42,8 +72,8 @@ void DataController::fetchOneObject(const Widgetry::DataQuery &query, const Widg
     const int id = query.object().integer("id");
 
     Widgetry::DataResponse response;
-    if (id <= m_objects.at(0).size()) {
-        response.setObject(m_objects.at(0).at(id - 1));
+    if (id <= m_objects.size()) {
+        response.setObject(m_objects.at(id - 1));
         response.setSuccess(true);
     }
     onResponse(response);
@@ -51,7 +81,14 @@ void DataController::fetchOneObject(const Widgetry::DataQuery &query, const Widg
 
 void DataController::addOneObject(const Widgetry::DataQuery &query, const Widgetry::DataQueryProgressCallback &onProgress, const Widgetry::DataQueryResponseCallback &onResponse)
 {
-    onResponse(Widgetry::DataResponse());
+    Jsoner::Object object = query.object();
+    object.put("id", m_objects.size());
+    m_objects.append(object);
+
+    Widgetry::DataResponse response;
+    response.setObject(object);
+    response.setSuccess(true);
+    onResponse(response);
 }
 
 void DataController::editOneObject(const Widgetry::DataQuery &query, const Widgetry::DataQueryProgressCallback &onProgress, const Widgetry::DataQueryResponseCallback &onResponse)
@@ -60,7 +97,7 @@ void DataController::editOneObject(const Widgetry::DataQuery &query, const Widge
 
     Widgetry::DataResponse response;
     if (id <= m_objects.size()) {
-        m_objects[0].replace(id - 1, query.object());
+        m_objects.replace(id - 1, query.object());
         response.setObject(query.object());
         response.setSuccess(true);
     }

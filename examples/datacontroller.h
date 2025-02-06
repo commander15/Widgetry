@@ -17,7 +17,7 @@ public:
     void deleteManyObjects(const Widgetry::DataQuery &query, const Widgetry::DataQueryProgressCallback &onProgress, const Widgetry::DataQueryResponseCallback &onResponse) override;
 
 private:
-    QList<Jsoner::Array> m_objects;
+    Jsoner::Array m_objects;
 
     int pageCount = 5;
     int itemsPerPage = 20;
