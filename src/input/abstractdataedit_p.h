@@ -22,6 +22,8 @@ public:
     bool readOnly;
 
     QString completionErrorString;
+
+    DataEditFinishedCallback finishCallback;
 };
 
 } // namespace Widgetry

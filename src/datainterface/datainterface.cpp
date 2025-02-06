@@ -138,7 +138,7 @@ void DataInterface::addItem()
         return;
 
     addObject(Jsoner::Object(), [this](const Jsoner::Object &object, int result) {
-        if (object.isEmpty() || result != QDialog::Accepted)
+        if (object.isEmpty() || result != AbstractDataEdit::Accepted)
             return;
 
         executeDataRequest(&AbstractDataController::addObject, object, [this](const DataResponse &response) {
@@ -168,7 +168,7 @@ void DataInterface::editCurrentItem()
 
     preFetch(object, [this](const Jsoner::Object &object) {
         editObject(object, [this](const Jsoner::Object &object, int result) {
-            if (object.isEmpty() || result != QDialog::Accepted)
+            if (object.isEmpty() || result != AbstractDataEdit::Accepted)
                 return;
 
             executeDataRequest(&AbstractDataController::editObject, object, [this](const DataResponse &response) {

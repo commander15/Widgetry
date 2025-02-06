@@ -2,6 +2,8 @@
 
 #include <Widgetry/dataedit.h>
 
+#include <Widgetry/private/abstractdataedit_p.h>
+
 #include <QtWidgets/qboxlayout.h>
 
 namespace Widgetry {
@@ -9,6 +11,7 @@ namespace Widgetry {
 DataEditDialogHelper::DataEditDialogHelper(QWidget *parent, Qt::WindowFlags flags)
     : QDialog(parent, flags)
 {
+    initEditing(this, &QDialog::finished);
 }
 
 void DataEditDialogHelper::init(AbstractDataEdit *edit)
@@ -77,10 +80,7 @@ void DataEditDialogHelper::updateButtonStates(bool saveable)
 
 void DataEditDialogHelper::exec(const DataEditFinishedCallback &onFinished)
 {
-    connect(this, &QDialog::finished, this, [onFinished, this](int result) {
-        onFinished(object(), result);
-    }, Qt::SingleShotConnection);
-
+    d_ptr->finishCallback = onFinished;
     open();
 }
 

@@ -40,6 +40,8 @@ protected:
     bool validateInput() override;
     void makeWriteable(bool writeable) override;
 
+    using AbstractDataEdit::d_ptr;
+
 private:
     AbstractDataEdit *m_edit;
     QLabel *m_errorOutput;

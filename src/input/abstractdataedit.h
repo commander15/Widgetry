@@ -31,6 +31,11 @@ public:
         CustomEdit
     };
 
+    enum EditCode {
+        Accepted = 1,
+        Rejected = 0
+    };
+
     explicit AbstractDataEdit();
     virtual ~AbstractDataEdit();
 
@@ -44,7 +49,7 @@ public:
     bool isReadOnly() const;
     void setReadOnly(bool r = true);
 
-    virtual QWidget *editWidget() const = 0;
+    virtual QWidget *editWidget() const;
     virtual EditType editType() const;
 
     static QDialog *dialogFromEdit(AbstractDataEdit *edit, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
@@ -57,7 +62,7 @@ public:
     void edit(const Jsoner::Object &object);
     virtual void clear();
 
-    virtual void exec(const DataEditFinishedCallback &onFinished) = 0;
+    virtual void exec(const DataEditFinishedCallback &onFinished);
 
 protected:
     enum FieldMemberType {
@@ -68,6 +73,9 @@ protected:
 
     AbstractDataEdit(AbstractDataEditPrivate *d);
 
+    template<typename Edit, typename Signal> void initEditing(Edit *edit, Signal &&signal)
+    { QObject::connect(edit, signal, edit, [this](int result) { finishEditing(result); }); }
+
     virtual void render(const Jsoner::Object &object, Operation operation) = 0;
     virtual void extract(Jsoner::Object &object, Operation operation) const = 0;
     virtual bool validateInput() = 0;
@@ -76,9 +84,12 @@ protected:
     void setCompletionError(const QString &str);
     void clearCompletionError();
 
+    void finishEditing(int result = Accepted);
+
     QScopedPointer<AbstractDataEditPrivate> d_ptr;
 
     friend class DataEditDialogHelper;
+    friend class DataWindow;
 };
 
 class WIDGETRY_EXPORT AbstractDataEditFactory
@@ -117,7 +128,9 @@ public:
 
         QVariant key = object.variant(m_field);
         if (m_edits.contains(key)) {
-            return m_edits.value(key);
+            edit = m_edits.value(key);
+            edit->setObject(object, operation);
+            return edit;
         }
 
         if (m_edits.size() >= m_maxCount) {

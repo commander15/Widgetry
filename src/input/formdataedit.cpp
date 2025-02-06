@@ -176,16 +176,8 @@ void FormDataEdit::clear()
     WIDGETRY_D(FormDataEdit);
     for (int i(0); d->layout->count(); ++i) {
         QWidget *field = d->layout->itemAt(i)->widget();
-        if (!field)
-            continue;
-
-        const QMetaObject *meta = field->metaObject();
-
-        int index = meta->indexOfMethod("clear");
-        if (index < 0)
-            continue;
-
-        meta->method(index).invoke(field);
+        if (field)
+            clearFieldValue(field);
     }
 }
 
@@ -194,16 +186,8 @@ void FormDataEdit::render(const Jsoner::Object &object, Operation operation)
     WIDGETRY_D(FormDataEdit);
     for (int i(0); d->layout->count(); ++i) {
         QWidget *field = d->layout->itemAt(i)->widget();
-        if (!field)
-            continue;
-
-        const QMetaObject *meta = field->metaObject();
-
-        const QMetaProperty prop = meta->userProperty();
-        if (!prop.isValid() || !prop.isWritable())
-            continue;
-
-        prop.write(field, object.variant(fieldName(field)));
+        if (field)
+            setFieldValue(field, fieldName(field));
     }
 }
 
@@ -212,16 +196,8 @@ void FormDataEdit::extract(Jsoner::Object &object, Operation operation) const
     WIDGETRY_D(FormDataEdit);
     for (int i(0); d->layout->count(); ++i) {
         QWidget *field = d->layout->itemAt(i)->widget();
-        if (!field)
-            continue;
-
-        const QMetaObject *meta = field->metaObject();
-
-        const QMetaProperty prop = meta->userProperty();
-        if (!prop.isValid() || !prop.isWritable())
-            continue;
-
-        object.insert(fieldName(field), QJsonValue::fromVariant(prop.read(field)));
+        if (field)
+            object.put(fieldName(field), fieldValue(field));
     }
 }
 
@@ -230,22 +206,95 @@ void FormDataEdit::makeWriteable(bool writeable)
     WIDGETRY_D(FormDataEdit);
     for (int i(0); d->layout->count(); ++i) {
         QWidget *field = d->layout->itemAt(i)->widget();
-        if (!field)
-            continue;
-
-        const QMetaObject *meta = field->metaObject();
-
-        int index = meta->indexOfMethod("setReadOnly");
-        if (index >= 0)
-            meta->method(index).invoke(field, !writeable);
-        else
-            field->setEnabled(writeable);
+        if (field)
+            makeFieldWriteable(field, writeable);
     }
 }
 
 QString FormDataEdit::fieldName(QWidget *widget)
 {
-    return widget->objectName();
+    QString name = widget->property("fieldName").toString();
+    if (!name.isEmpty())
+        return name;
+    else
+        return widget->objectName();
+}
+
+void FormDataEdit::setFieldName(QWidget *widget, const QString &name)
+{
+    widget->setProperty("fieldName", name);
+}
+
+QVariant FormDataEdit::fieldValue(QWidget *widget)
+{
+    const QMetaObject *meta = widget->metaObject();
+    QMetaProperty user = meta->userProperty();
+
+    if (!user.isValid() || !user.isReadable())
+        return QVariant();
+
+    return user.read(widget);
+}
+
+bool FormDataEdit::setFieldValue(QWidget *widget, const QVariant &value)
+{
+    const QMetaObject *meta = widget->metaObject();
+    QMetaProperty user = meta->userProperty();
+
+    if (!user.isValid() || !user.isWritable())
+        return false;
+
+    return user.write(widget, value);
+}
+
+bool FormDataEdit::clearFieldValue(QWidget *widget)
+{
+    const QMetaObject *meta = widget->metaObject();
+
+    // First, we try to find a clear method
+    int methodIndex = meta->indexOfMethod("clear");
+    if (methodIndex >= 0) {
+        QMetaMethod method = meta->method(methodIndex);
+        return method.invoke(widget);
+    }
+
+    // No clear method, going from the user property
+    QMetaProperty user = meta->userProperty();
+
+    if (!user.isValid())
+        return false;
+
+    if (user.isResettable())
+        return user.reset(widget);
+
+    if (user.isWritable())
+        return user.write(widget, QVariant(user.metaType()));
+
+    return false;
+}
+
+bool FormDataEdit::makeFieldWriteable(QWidget *widget, bool writeable)
+{
+    const QMetaObject *meta = widget->metaObject();
+
+    // First, we try to find a 'readOnly' property
+    int readOnlyIndex = meta->indexOfProperty("readOnly");
+    if (readOnlyIndex >= 0) {
+        QMetaProperty readOnly = meta->property(readOnlyIndex);
+        if (readOnly.isWritable())
+            return readOnly.write(widget, writeable);
+    }
+
+    // Next, we try to find a 'setReadOnly' method
+    int methodIndex = meta->indexOfMethod("setReadOnly");
+    if (methodIndex >= 0) {
+        QMetaMethod method = meta->method(methodIndex);
+        return method.invoke(widget, writeable);
+    }
+
+    // As last ressort, we just use enabled state of the widget
+    widget->setEnabled(writeable);
+    return true;
 }
 
 FormDataEditPrivate::FormDataEditPrivate(FormDataEdit *edit)

@@ -50,6 +50,11 @@ protected:
     void makeWriteable(bool writeable) override;
 
     static QString fieldName(QWidget *widget);
+    static void setFieldName(QWidget *widget, const QString &name);
+    static QVariant fieldValue(QWidget *widget);
+    static bool setFieldValue(QWidget *widget, const QVariant &value);
+    static bool clearFieldValue(QWidget *widget);
+    static bool makeFieldWriteable(QWidget *widget, bool writeable = true);
 };
 
 } // namespace Widgetry

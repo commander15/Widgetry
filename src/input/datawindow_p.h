@@ -11,7 +11,14 @@ namespace Widgetry {
 class DataWindowPrivate : public UserInterfacePrivate
 {
 public:
+    struct Edit {
+        QString fieldName;
+        AbstractDataEdit *edit = nullptr;
+    };
+
     DataWindowPrivate(DataWindow *q, const QByteArray &id);
+
+    QVector<Edit> edits;
 };
 
 } // namespace Widgetry

@@ -19,14 +19,11 @@ public:
     DataEdit(QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
     virtual ~DataEdit();
 
-    void exec(const DataEditFinishedCallback &onFinished) override;
-
     QWidget *editWidget() const override;
     EditType editType() const override;
 
-    static QDialog *dialogFromEdit(DataEdit *edit, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
-
 public slots:
+    void show();
     void show(const Jsoner::Object &object);
     void add(const Jsoner::Object &object);
     void edit(const Jsoner::Object &object);
@@ -34,6 +31,7 @@ public slots:
 
 signals:
     void complete();
+    void editingFinished(int result = Accepted);
 
 protected:
     enum FieldMemberType {
@@ -43,8 +41,6 @@ protected:
     };
 
     DataEdit(DataEditPrivate *d, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
-
-    bool validateInput() override;
 
     bool registerField(QWidget *field);
     bool registerField(QWidget *field, const char *member);

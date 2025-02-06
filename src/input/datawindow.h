@@ -25,8 +25,17 @@ public slots:
     void edit(const Jsoner::Object &object);
     void clear() override;
 
+signals:
+    void editingFinished(int result = Accepted);
+
 protected:
+    void render(const Jsoner::Object &object, Operation operation) override;
+    void extract(Jsoner::Object &object, Operation operation) const override;
     bool validateInput() override;
+    void makeWriteable(bool writeable) override;
+
+    void registerEdit(AbstractDataEdit *edit);
+    void registerEdit(const QString &field, AbstractDataEdit *edit);
 
 private:
     using UserInterface::d_ptr;

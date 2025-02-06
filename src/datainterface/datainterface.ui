@@ -336,5 +336,21 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>searchInput</sender>
+   <signal>returnPressed()</signal>
+   <receiver>refreshButton</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>280</x>
+     <y>22</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>620</x>
+     <y>22</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
 </ui>

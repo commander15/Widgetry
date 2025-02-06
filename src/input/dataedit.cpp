@@ -16,15 +16,11 @@ DataEdit::DataEdit(DataEditPrivate *d, QWidget *parent, Qt::WindowFlags flags)
     : QWidget(parent, flags)
     , AbstractDataEdit(d)
 {
+    initEditing(this, &DataEdit::editingFinished);
 }
 
 DataEdit::~DataEdit()
 {
-}
-
-void DataEdit::exec(const DataEditFinishedCallback &onFinished)
-{
-    Q_UNUSED(onFinished);
 }
 
 QWidget *DataEdit::editWidget() const
@@ -37,9 +33,9 @@ AbstractDataEdit::EditType DataEdit::editType() const
     return WidgetEdit;
 }
 
-QDialog *DataEdit::dialogFromEdit(DataEdit *edit, QWidget *parent, Qt::WindowFlags flags)
+void DataEdit::show()
 {
-    return AbstractDataEdit::dialogFromEdit(edit, parent, flags);
+    QWidget::show();
 }
 
 void DataEdit::show(const Jsoner::Object &object)
@@ -62,12 +58,7 @@ void DataEdit::edit(const Jsoner::Object &object)
 
 void DataEdit::clear()
 {
-    AbstractDataEdit::clear();
-}
-
-bool DataEdit::validateInput()
-{
-    return true;
+    setObject(Jsoner::Object(), d_ptr->operation);
 }
 
 bool DataEdit::registerField(QWidget *field)

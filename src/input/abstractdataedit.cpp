@@ -63,6 +63,12 @@ void AbstractDataEdit::setReadOnly(bool r)
     d_ptr->readOnly = r;
 }
 
+QWidget *AbstractDataEdit::editWidget() const
+{
+    AbstractDataEdit *edit = const_cast<AbstractDataEdit *>(this);
+    return reinterpret_cast<QWidget *>(edit);
+}
+
 QDialog *AbstractDataEdit::dialogFromEdit(AbstractDataEdit *edit, QWidget *parent, Qt::WindowFlags flags)
 {
     DataEditDialogHelper *dialog = new DataEditDialogHelper(parent, flags);
@@ -78,12 +84,6 @@ AbstractDataEdit *AbstractDataEdit::editFromDialog(QDialog *dialog)
 void AbstractDataEdit::show()
 {
     editWidget()->show();
-
-    QWidget *widget = editWidget();
-    if (!widget->isVisible())
-        widget->show();
-
-    widget->setWindowState(widget->windowState() | Qt::WindowActive);
 }
 
 void AbstractDataEdit::show(const Jsoner::Object &object)
@@ -109,6 +109,12 @@ void AbstractDataEdit::clear()
     setObject(Jsoner::Object(), d_ptr->operation);
 }
 
+void AbstractDataEdit::exec(const DataEditFinishedCallback &onFinished)
+{
+    d_ptr->finishCallback = onFinished;
+    editWidget()->show();
+}
+
 AbstractDataEdit::EditType AbstractDataEdit::editType() const
 {
     return CustomEdit;
@@ -124,10 +130,21 @@ void AbstractDataEdit::clearCompletionError()
     d_ptr->completionErrorString.clear();
 }
 
+void AbstractDataEdit::finishEditing(int result)
+{
+    if (d_ptr->finishCallback) {
+        d_ptr->finishCallback(object(), result);
+
+        if (d_ptr->operation != EditOperation)
+            d_ptr->finishCallback = nullptr;
+    }
+}
+
 AbstractDataEditPrivate::AbstractDataEditPrivate(AbstractDataEdit *q)
     : q_ptr(q)
     , operation(AbstractDataEdit::ShowOperation)
     , readOnly(false)
+    , finishCallback(nullptr)
 {
 }
 
