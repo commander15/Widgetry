@@ -18,7 +18,11 @@ public:
 
     DataWindowPrivate(DataWindow *q, const QByteArray &id);
 
+    AbstractDataEditPrivate *edit;
     QVector<Edit> edits;
+
+    DataEditFinishedCallback addCallback;
+    DataEditFinishedCallback editCallback;
 };
 
 } // namespace Widgetry

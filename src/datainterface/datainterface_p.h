@@ -17,6 +17,9 @@ public:
     inline DataInterface *forgeInterface() const override
     { WIDGETRY_Q(DataInterface); return q; }
 
+    DataEditFinishedCallback addCallback;
+    DataEditFinishedCallback editCallback;
+
     DataInterfaceForge *forge;
     AbstractDataController *dataController;
 };

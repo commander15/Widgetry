@@ -12,11 +12,14 @@ class WIDGETRY_EXPORT DataWindow : public UserInterface, public AbstractDataEdit
     Q_OBJECT
 
 public:
+    DataWindow(QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
     DataWindow(const QByteArray &id, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
     virtual ~DataWindow();
 
-    QWidget *editWidget() const override;
-    EditType editType() const override;
+    void registerAdd(const DataEditFinishedCallback &callback);
+    void registerEdit(const DataEditFinishedCallback &callback);
+
+    EditType editType() const override final;
 
 public slots:
     void show();
@@ -33,6 +36,8 @@ protected:
     void extract(Jsoner::Object &object, Operation operation) const override;
     bool validateInput() override;
     void makeWriteable(bool writeable) override;
+
+    void finishEditing(int result = Accepted) override;
 
     void registerEdit(AbstractDataEdit *edit);
     void registerEdit(const QString &field, AbstractDataEdit *edit);

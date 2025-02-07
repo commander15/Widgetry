@@ -1,6 +1,9 @@
 #include "abstractdataedit.h"
 #include "abstractdataedit_p.h"
 
+#include <Widgetry/datainterface.h>
+#include <Widgetry/datawindow.h>
+
 #include <Widgetry/private/dataeditdialog_p.h>
 
 namespace Widgetry {
@@ -138,6 +141,21 @@ void AbstractDataEdit::finishEditing(int result)
         if (d_ptr->operation != EditOperation)
             d_ptr->finishCallback = nullptr;
     }
+}
+
+AbstractDataEdit *AbstractDataEditFactory::create(const Jsoner::Object &object, AbstractDataEdit::Operation operation, QWidget *parent)
+{
+    AbstractDataEdit *edit = createEdit(parent);
+    edit->setObject(object, operation);
+
+    if (edit->editType() == AbstractDataEdit::WindowEdit && parent && parent->inherits("Widgetry::DataInterface")) {
+        DataInterface *interface = static_cast<DataInterface *>(parent);
+        DataWindow *window = static_cast<DataWindow *>(edit);
+        window->registerAdd(interface->editCallback(AbstractDataEdit::AddOperation));
+        window->registerEdit(interface->editCallback(AbstractDataEdit::EditOperation));
+    }
+
+    return edit;
 }
 
 AbstractDataEditPrivate::AbstractDataEditPrivate(AbstractDataEdit *q)

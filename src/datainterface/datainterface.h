@@ -47,10 +47,18 @@ public slots:
     void search(const QString &query);
     void filter(const QVariantHash &filters);
     void refresh();
+
     void showCurrentItem();
-    void addItem();
+    void showItem(const Jsoner::Object &object);
+
+    void addNewItem();
+    void addItem(const Jsoner::Object &object);
+
     void editCurrentItem();
+    void editItem(const Jsoner::Object &object);
+
     void deleteSelectedItems();
+    void deleteItems(const Jsoner::Array &objects);
 
 protected:
     void prepareUi() override;
@@ -83,11 +91,12 @@ protected:
 
     virtual DataQuery generateQuery() const;
 
-    Jsoner::TableModel *createModel(const QStringList &fields);
-    QMenu *createContextMenu(bool addDefaultActions = true);
+    DataEditFinishedCallback editCallback(AbstractDataEdit::Operation operation) const;
 
 protected:
     void showResponseMessage(const QString &title, const DataResponse &response);
+    void showResponseMessage(const QString &title, const QString &text, const DataResponse &response);
+
     void preFetch(const DataQuery &query, const std::function<void(const Jsoner::Object &object)> &callback);
     void executeDataRequest(DataControllerRawMethod method, const DataQuery &query);
     void executeDataRequest(DataControllerRawMethod method, const DataQuery &query, const DataQueryResponseCallback &callback);
@@ -102,6 +111,7 @@ private:
     static QStringList s_availableOperations;
 
     friend class DataInterfacePrivate;
+    friend class AbstractDataEditFactory;
 };
 
 } // namespace Widgetry

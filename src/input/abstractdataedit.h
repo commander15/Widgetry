@@ -13,6 +13,7 @@ class QDialog;
 
 namespace Widgetry {
 
+class DataInterface;
 typedef std::function<void(const Jsoner::Object &, int)> DataEditFinishedCallback;
 
 class AbstractDataEditPrivate;
@@ -84,7 +85,7 @@ protected:
     void setCompletionError(const QString &str);
     void clearCompletionError();
 
-    void finishEditing(int result = Accepted);
+    virtual void finishEditing(int result = Accepted);
 
     QScopedPointer<AbstractDataEditPrivate> d_ptr;
 
@@ -97,7 +98,10 @@ class WIDGETRY_EXPORT AbstractDataEditFactory
 public:
     virtual ~AbstractDataEditFactory() = default;
 
-    virtual AbstractDataEdit *create(const Jsoner::Object &object, AbstractDataEdit::Operation operation, QWidget *parent = nullptr) = 0;
+    virtual AbstractDataEdit *create(const Jsoner::Object &object, AbstractDataEdit::Operation operation, QWidget *parent = nullptr);
+
+protected:
+    virtual AbstractDataEdit *createEdit(QWidget *parent = nullptr) = 0;
 };
 
 template<typename Edit>
@@ -110,7 +114,7 @@ public:
     DataEditFactory<Edit> *mainField(const QString &field) { m_field = field; return this; }
     DataEditFactory<Edit> *maxCount(int count) { m_maxCount = count; return this; }
 
-    AbstractDataEdit *create(const Jsoner::Object &object, AbstractDataEdit::Operation operation, QWidget *parent) override
+    AbstractDataEdit *create(const Jsoner::Object &object, AbstractDataEdit::Operation operation, QWidget *parent = nullptr) override
     {
         AbstractDataEdit *edit = nullptr;
 
@@ -126,7 +130,7 @@ public:
             return edit;
         }
 
-        QVariant key = object.variant(m_field);
+        const QVariant key = object.variant(m_field);
         if (m_edits.contains(key)) {
             edit = m_edits.value(key);
             edit->setObject(object, operation);
@@ -147,12 +151,12 @@ public:
     }
 
 private:
-    AbstractDataEdit *createEdit(QWidget *parent) const
+    AbstractDataEdit *createEdit(QWidget *parent) override
     {
-        AbstractDataEdit *edit = new Edit(parent);
-        if (edit->editType() == AbstractDataEdit::WindowEdit)
+        Edit *edit = new Edit(parent);
+        if (edit->editType() == AbstractDataEdit::WindowEdit) {
             return edit;
-        else {
+        } else {
             QDialog *dialog = AbstractDataEdit::dialogFromEdit(edit, parent);
             return AbstractDataEdit::editFromDialog(dialog);
         }

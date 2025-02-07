@@ -3,8 +3,14 @@
 
 namespace Widgetry {
 
+DataWindow::DataWindow(QWidget *parent, Qt::WindowFlags flags)
+    : DataWindow(QByteArray(), parent, flags)
+{
+}
+
 DataWindow::DataWindow(const QByteArray &id, QWidget *parent, Qt::WindowFlags flags)
     : UserInterface(new DataWindowPrivate(this, id), parent, Qt::Window | flags)
+    , AbstractDataEdit(static_cast<DataWindowPrivate *>(d_ptr.get())->edit)
 {
     initEditing(this, &DataWindow::editingFinished);
 }
@@ -13,9 +19,21 @@ DataWindow::~DataWindow()
 {
 }
 
-QWidget *DataWindow::editWidget() const
+void DataWindow::registerAdd(const DataEditFinishedCallback &callback)
 {
-    return const_cast<DataWindow *>(this);
+    WIDGETRY_D(DataWindow);
+    d->addCallback = callback;
+}
+
+void DataWindow::registerEdit(const DataEditFinishedCallback &callback)
+{
+    WIDGETRY_D(DataWindow);
+    d->editCallback = callback;
+}
+
+Widgetry::AbstractDataEdit::EditType DataWindow::editType() const
+{
+    return WindowEdit;
 }
 
 void DataWindow::show()
@@ -72,7 +90,7 @@ void DataWindow::extract(Jsoner::Object &object, Operation operation) const
         else {
             Jsoner::Object subObject = object.object(edit.fieldName);
             edit.edit->extract(subObject, operation);
-            object.insert(edit.fieldName, subObject);
+            object.put(edit.fieldName, subObject);
         }
     });
 }
@@ -100,9 +118,30 @@ void DataWindow::makeWriteable(bool writeable)
     });
 }
 
-Widgetry::AbstractDataEdit::EditType DataWindow::editType() const
+void DataWindow::finishEditing(int result)
 {
-    return WindowEdit;
+    WIDGETRY_D(DataWindow);
+
+    if (d->edit->finishCallback) {
+        d->edit->finishCallback(object(), result);
+        d->edit->finishCallback = nullptr;
+        return;
+    }
+
+    switch (d->edit->operation) {
+    case AddOperation:
+        if (d->addCallback)
+            d->addCallback(object(), result);
+        break;
+
+    case EditOperation:
+        if (d->editCallback)
+            d->editCallback(object(), result);
+        break;
+
+    default:
+        break;
+    }
 }
 
 void DataWindow::registerEdit(AbstractDataEdit *edit)
@@ -129,6 +168,7 @@ void DataWindow::registerEdit(const QString &field, AbstractDataEdit *edit)
 
 DataWindowPrivate::DataWindowPrivate(DataWindow *q, const QByteArray &id)
     : UserInterfacePrivate(q, id)
+    , edit(new AbstractDataEditPrivate(q))
 {
 }
 
