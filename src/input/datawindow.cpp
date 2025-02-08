@@ -31,6 +31,11 @@ void DataWindow::registerEdit(const DataEditFinishedCallback &callback)
     d->editCallback = callback;
 }
 
+QWidget *DataWindow::editWidget() const
+{
+    return const_cast<DataWindow *>(this);
+}
+
 Widgetry::AbstractDataEdit::EditType DataWindow::editType() const
 {
     return WindowEdit;

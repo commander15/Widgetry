@@ -13,7 +13,6 @@ class QDialog;
 
 namespace Widgetry {
 
-class DataInterface;
 typedef std::function<void(const Jsoner::Object &, int)> DataEditFinishedCallback;
 
 class AbstractDataEditPrivate;
@@ -91,95 +90,6 @@ protected:
 
     friend class DataEditDialogHelper;
     friend class DataWindow;
-};
-
-class WIDGETRY_EXPORT AbstractDataEditFactory
-{
-public:
-    virtual ~AbstractDataEditFactory() = default;
-
-    virtual AbstractDataEdit *create(const Jsoner::Object &object, AbstractDataEdit::Operation operation, QWidget *parent = nullptr);
-
-protected:
-    virtual AbstractDataEdit *createEdit(QWidget *parent = nullptr) = 0;
-};
-
-template<typename Edit>
-class WIDGETRY_EXPORT DataEditFactory : public AbstractDataEditFactory
-{
-public:
-    virtual ~DataEditFactory()
-    { cleanupOldInvisibleEdits(); }
-
-    DataEditFactory<Edit> *mainField(const QString &field) { m_field = field; return this; }
-    DataEditFactory<Edit> *maxCount(int count) { m_maxCount = count; return this; }
-
-    AbstractDataEdit *create(const Jsoner::Object &object, AbstractDataEdit::Operation operation, QWidget *parent = nullptr) override
-    {
-        AbstractDataEdit *edit = nullptr;
-
-        if (m_maxCount == 1) {
-            if (!m_edits.isEmpty()) {
-                edit = m_edits.values().first();
-            } else {
-                edit = createEdit(parent);
-                m_edits.insert(QVariant(), edit);
-            }
-
-            edit->setObject(object, operation);
-            return edit;
-        }
-
-        const QVariant key = object.variant(m_field);
-        if (m_edits.contains(key)) {
-            edit = m_edits.value(key);
-            edit->setObject(object, operation);
-            return edit;
-        }
-
-        if (m_edits.size() >= m_maxCount) {
-            cleanupOldInvisibleEdits(false);
-            if (m_edits.size() >= m_maxCount) {
-                return nullptr; // Still full after cleanup
-            }
-        }
-
-        edit = createEdit(parent);
-        edit->setObject(object, operation);
-        m_edits.insert(key, edit);
-        return edit;
-    }
-
-private:
-    AbstractDataEdit *createEdit(QWidget *parent) override
-    {
-        Edit *edit = new Edit(parent);
-        if (edit->editType() == AbstractDataEdit::WindowEdit) {
-            return edit;
-        } else {
-            QDialog *dialog = AbstractDataEdit::dialogFromEdit(edit, parent);
-            return AbstractDataEdit::editFromDialog(dialog);
-        }
-    }
-
-    void cleanupOldInvisibleEdits(bool all = true)
-    {
-        for (auto it = m_edits.begin(); it != m_edits.end();) {
-            if (!it.value()->editWidget()->isVisible()) {
-                delete it.value();
-                it = m_edits.erase(it);
-
-                if (!all)
-                    return; // Delete only one per call
-            } else {
-                ++it;
-            }
-        }
-    }
-
-    QString m_field{"id"}; // Default id
-    int m_maxCount{1}; // Default limit
-    QHash<QVariant, AbstractDataEdit *> m_edits;
 };
 
 } // namespace Widgetry

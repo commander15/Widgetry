@@ -19,6 +19,7 @@ public:
     void registerAdd(const DataEditFinishedCallback &callback);
     void registerEdit(const DataEditFinishedCallback &callback);
 
+    QWidget *editWidget() const override final;
     EditType editType() const override final;
 
 public slots:

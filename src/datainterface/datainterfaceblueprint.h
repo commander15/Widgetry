@@ -4,6 +4,7 @@
 #include <Widgetry/global.h>
 #include <Widgetry/datainterface.h>
 #include <Widgetry/abstractdataedit.h>
+#include <Widgetry/dataeditfactory.h>
 
 #include <QtWidgets/qheaderview.h>
 #include <QtWidgets/qtoolbutton.h>

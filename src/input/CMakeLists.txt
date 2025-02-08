@@ -1,11 +1,11 @@
 target_headers(Widgetry
   PUBLIC
-      abstractdataedit.h
+      abstractdataedit.h abstractdataeditfactory.h dataeditfactory.h
       dataedit.h
       formdataedit.h
       datawindow.h
   PRIVATE
-      abstractdataedit_p.h
+      abstractdataedit_p.h abstractdataeditfactory_p.h
       dataeditdialog_p.h
       dataedit_p.h
       formdataedit_p.h
@@ -14,7 +14,7 @@ target_headers(Widgetry
 
 target_sources(Widgetry
   PRIVATE
-    abstractdataedit.cpp
+    abstractdataedit.cpp abstractdataeditfactory.cpp
     dataeditdialog.cpp
     dataedit.cpp
     formdataedit.cpp

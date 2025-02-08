@@ -7,6 +7,7 @@
 #include <Widgetry/dataquery.h>
 #include <Widgetry/dataresponse.h>
 #include <Widgetry/dataedit.h>
+#include <Widgetry/abstractdataeditfactory.h>
 
 #include <Jsoner/object.h>
 #include <Jsoner/tablemodel.h>
