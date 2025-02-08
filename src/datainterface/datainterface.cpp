@@ -349,26 +349,18 @@ bool DataInterface::handleOperation(Operation *operation)
 }
 bool DataInterface::handleSearch(const QVariantHash &parameters)
 {
-    WIDGETRY_D(DataInterface);
-    const QString query = parameters.value("query").toString();
-
-    search(query);
+    search(parameters.value("query").toString());
     return true;
 }
 
 bool DataInterface::handleFilter(const QVariantHash &parameters)
 {
-    WIDGETRY_D(DataInterface);
-    const QVariantHash filters = parameters.value("filters").toHash();
-
-    filter(filters);
+    filter(parameters.value("filters").toHash());
     return true;
 }
 
 bool DataInterface::handleRefresh(const QVariantHash &parameters)
 {
-    WIDGETRY_D(DataInterface);
-
     refresh();
     return true;
 }
