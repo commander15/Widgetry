@@ -13,6 +13,7 @@ class QDialog;
 
 namespace Widgetry {
 
+class DataResponse;
 typedef std::function<void(const Jsoner::Object &, int)> DataEditFinishedCallback;
 
 class AbstractDataEditPrivate;
@@ -85,6 +86,7 @@ protected:
     void clearCompletionError();
 
     virtual void finishEditing(int result = Accepted);
+    virtual void handleResponse(const DataResponse &response);
 
     QScopedPointer<AbstractDataEditPrivate> d_ptr;
 

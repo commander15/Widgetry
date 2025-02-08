@@ -140,6 +140,11 @@ void AbstractDataEdit::finishEditing(int result)
     }
 }
 
+void AbstractDataEdit::handleResponse(const DataResponse &response)
+{
+    Q_UNUSED(response);
+}
+
 AbstractDataEditPrivate::AbstractDataEditPrivate(AbstractDataEdit *q)
     : q_ptr(q)
     , operation(AbstractDataEdit::ShowOperation)
