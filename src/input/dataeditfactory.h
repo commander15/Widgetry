@@ -26,7 +26,7 @@ public:
                 edit = m_edits.values().first();
             } else {
                 edit = AbstractDataEditFactory::create(object, operation, parent);
-                m_edits.insert(QVariant(), edit);
+                m_edits.insert(object.variant(m_field), edit);
             }
 
             return edit;
