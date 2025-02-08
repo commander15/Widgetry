@@ -20,21 +20,22 @@ public:
     AbstractDataEdit *create(const Jsoner::Object &object, AbstractDataEdit::Operation operation, QWidget *parent = nullptr) override
     {
         AbstractDataEdit *edit = nullptr;
+        const QVariant key = object.variant(m_field);
 
         if (m_maxCount == 1) {
             if (!m_edits.isEmpty()) {
                 edit = m_edits.values().first();
             } else {
                 edit = AbstractDataEditFactory::create(object, operation, parent);
-                m_edits.insert(object.variant(m_field), edit);
+                m_edits.insert(key, edit);
             }
 
             return edit;
         }
 
-        const QVariant key = object.variant(m_field);
         if (m_edits.contains(key)) {
             edit = m_edits.value(key);
+            edit->setObject(object, operation);
             return edit;
         }
 
