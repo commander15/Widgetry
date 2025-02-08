@@ -89,7 +89,7 @@ protected:
 
     void handleOperationResult(const Operation &operation) override;
 
-    virtual DataQuery generateQuery() const;
+    virtual DataQuery prepareQuery(const DataQuery &query) const;
 
     DataEditFinishedCallback editCallback(AbstractDataEdit::Operation operation) const;
 

@@ -123,7 +123,15 @@ void DataInterface::refresh()
     if (!d->dataController)
         return;
 
-    executeDataRequest(&AbstractDataController::fetchObjects, generateQuery(), [this, d](const DataResponse &response) {
+    DataQuery query;
+    query.setQuery(ui->searchInput->text());
+    if (d->filterWidget)
+        query.setFilters(d->filterWidget->object().toVariantHash());
+    if (!d->tableModel->sortField().isEmpty())
+        query.setSort(d->tableModel->sortField(), d->tableModel->sortOrder());
+    query.setPage(ui->pageInput->value() > 0 ? ui->pageInput->value() : 1);
+
+    executeDataRequest(&AbstractDataController::fetchObjects, query, [this, d](const DataResponse &response) {
         if (!response.isSuccess()) {
             showResponseMessage(tr("Error during data download !"), response);
             return;
@@ -394,17 +402,8 @@ void DataInterface::handleOperationResult(const Operation &operation)
     Q_UNUSED(operation);
 }
 
-DataQuery DataInterface::generateQuery() const
+DataQuery DataInterface::prepareQuery(const DataQuery &query) const
 {
-    WIDGETRY_D(DataInterface);
-
-    DataQuery query;
-    query.setQuery(ui->searchInput->text());
-    if (d->filterWidget)
-        query.setFilters(d->filterWidget->object().toVariantHash());
-    if (!d->tableModel->sortField().isEmpty())
-        query.setSort(d->tableModel->sortField(), d->tableModel->sortOrder());
-    query.setPage(ui->pageInput->value() > 0 ? ui->pageInput->value() : 1);
     return query;
 }
 
@@ -476,7 +475,7 @@ void DataInterface::executeDataRequest(DataControllerRawMethod method, const Dat
         callback(response);
     };
 
-    (controller->*method)(query, onProgress, onResponse);
+    (controller->*method)(prepareQuery(query), onProgress, onResponse);
 }
 
 QStringList DataInterface::s_availableOperations = { "search", "filter", "refresh", "showItem", "addItem", "editItem", "deleteItem" };
