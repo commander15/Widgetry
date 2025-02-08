@@ -35,7 +35,7 @@ AbstractDataEdit *AbstractDataEditFactory::create(const Jsoner::Object &object, 
         DataWindow *window = static_cast<DataWindow *>(edit);
         window->registerAdd(interface->editCallback(AbstractDataEdit::AddOperation));
         window->registerEdit(interface->editCallback(AbstractDataEdit::EditOperation));
-        return edit;
+        return window;
     }
 
     if (d_ptr->allowDialogCreation) {
