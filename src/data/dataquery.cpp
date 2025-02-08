@@ -111,4 +111,9 @@ void DataQuery::setObjects(const Jsoner::Array &objects)
     d_ptr->objects = objects;
 }
 
+QVariant DataQuery::parameter(const QString &name) const
+{
+    return d_ptr->parameters.value(name);
+}
+
 } // namespace Widgetry

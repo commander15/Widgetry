@@ -42,6 +42,7 @@ public:
     Jsoner::Array objects() const;
     void setObjects(const Jsoner::Array &objects);
 
+    QVariant parameter(const QString &name) const;
     QVariantHash parameters() const;
     void setParameters(const QVariantHash &parameters);
 
