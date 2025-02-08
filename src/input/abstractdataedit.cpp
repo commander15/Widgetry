@@ -104,6 +104,11 @@ void AbstractDataEdit::edit(const Jsoner::Object &object)
     editWidget()->show();
 }
 
+void AbstractDataEdit::reset()
+{
+    render(d_ptr->object, d_ptr->operation);
+}
+
 void AbstractDataEdit::clear()
 {
     setObject(Jsoner::Object(), d_ptr->operation);

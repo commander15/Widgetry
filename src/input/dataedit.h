@@ -27,6 +27,8 @@ public slots:
     void show(const Jsoner::Object &object);
     void add(const Jsoner::Object &object);
     void edit(const Jsoner::Object &object);
+
+    void reset() override;
     void clear() override;
 
 signals:

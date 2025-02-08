@@ -61,6 +61,8 @@ public:
     void show(const Jsoner::Object &object);
     void add(const Jsoner::Object &object);
     void edit(const Jsoner::Object &object);
+
+    virtual void reset();
     virtual void clear();
 
     virtual void exec(const DataEditFinishedCallback &onFinished);

@@ -64,6 +64,11 @@ void DataWindow::edit(const Jsoner::Object &object)
     QWidget::show();
 }
 
+void DataWindow::reset()
+{
+    AbstractDataEdit::reset();
+}
+
 void DataWindow::clear()
 {
     WIDGETRY_D(DataWindow);
@@ -71,7 +76,6 @@ void DataWindow::clear()
         edit.edit->clear();
     });
 
-    AbstractDataEdit::clear();
     UserInterface::cleanupUi();
 }
 

@@ -56,9 +56,14 @@ void DataEdit::edit(const Jsoner::Object &object)
     QWidget::show();
 }
 
+void DataEdit::reset()
+{
+    AbstractDataEdit::reset();
+}
+
 void DataEdit::clear()
 {
-    setObject(Jsoner::Object(), d_ptr->operation);
+    AbstractDataEdit::clear();
 }
 
 bool DataEdit::registerField(QWidget *field)
