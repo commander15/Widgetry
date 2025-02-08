@@ -5,8 +5,7 @@
 
 #include <Widgetry/datainterface.h>
 #include <Widgetry/dataedit.h>
-
-#include <Jsoner/tablemodel.h>
+#include <Widgetry/datatablemodel.h>
 
 #include <QtWidgets/qmenu.h>
 #include <QtWidgets/qdialog.h>
@@ -93,9 +92,9 @@ QTableView *DataInterfaceForge::tableView() const
     return ui->tableView;
 }
 
-Jsoner::TableModel *DataInterfaceForge::tableModel() const
+DataTableModel *DataInterfaceForge::tableModel() const
 {
-    return static_cast<Jsoner::TableModel *>(ui->tableView->model());
+    return d_ptr->tableModel;
 }
 
 QSpinBox *DataInterfaceForge::pageInput() const
@@ -130,7 +129,7 @@ void DataInterfaceForge::setFilterWidget(AbstractDataEdit *widget)
     d_ptr->filterWidget = widget;
 }
 
-void DataInterfaceForge::setTableModel(Jsoner::TableModel *model)
+void DataInterfaceForge::setTableModel(DataTableModel *model)
 {
     ui->tableView->setModel(model);
 
@@ -140,6 +139,8 @@ void DataInterfaceForge::setTableModel(Jsoner::TableModel *model)
         ui->editButton->setEnabled(single);
         ui->deleteButton->setEnabled(single || multiple);
     };
+
+    QObject::connect(model, &DataTableModel::fetchRequested, d_ptr->forgeInterface(), &DataInterface::refresh);
 
     QObject::connect(model, &QAbstractItemModel::modelReset, model, [updateButtons, this] {
         updateButtons(0);

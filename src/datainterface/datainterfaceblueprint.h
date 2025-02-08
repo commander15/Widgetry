@@ -11,15 +11,12 @@
 
 #include <QtCore/qscopedpointer.h>
 
-namespace Jsoner {
-class TableModel;
-}
-
 namespace Widgetry {
 
 class DataInterface;
 class AbstractDataEdit;
 class AbstractDataEditFactory;
+class DataTableModel;
 class AbstractDataController;
 
 class DataInterfaceBlueprintPrivate;
@@ -57,7 +54,7 @@ public:
     void tableDelegate(QAbstractItemDelegate *delegate);
 
     template<typename T> T *tableModel(QObject *parent = nullptr);
-    void tableModel(Jsoner::TableModel *model);
+    void tableModel(DataTableModel *model);
 
     QMenu *contextMenu(bool addDefaultActions = true);
     void contextMenu(QMenu *menu, bool addDefaultActions = true);

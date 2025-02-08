@@ -45,7 +45,7 @@ public:
     QStringList fields;
     QList<QHeaderView::ResizeMode> resizeModes;
     QAbstractItemDelegate *delegate = nullptr;
-    Jsoner::TableModel *model = nullptr;
+    DataTableModel *model = nullptr;
 
     QMenu *contextMenu = nullptr;
     bool contextMenuAddDefaultActions = false;

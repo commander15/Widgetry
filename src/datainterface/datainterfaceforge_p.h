@@ -16,7 +16,7 @@ public:
 
     AbstractDataEdit *filterWidget = nullptr;
 
-    Jsoner::TableModel *tableModel = nullptr;
+    DataTableModel *tableModel = nullptr;
 
     QMenu *contextMenu = nullptr;
     QAction *showAction = nullptr;

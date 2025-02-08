@@ -4,8 +4,7 @@
 #include <Widgetry/datainterface.h>
 #include <Widgetry/datainterfaceforge.h>
 #include <Widgetry/abstractdataedit.h>
-
-#include <Jsoner/tablemodel.h>
+#include <Widgetry/datatablemodel.h>
 
 #include <QtWidgets/qtableview.h>
 #include <QtWidgets/qmenu.h>
@@ -103,7 +102,7 @@ void DataInterfaceBlueprint::tableDelegate(QAbstractItemDelegate *delegate)
     d_ptr->delegate = delegate;
 }
 
-void DataInterfaceBlueprint::tableModel(Jsoner::TableModel *model)
+void DataInterfaceBlueprint::tableModel(DataTableModel *model)
 {
     d_ptr->model = model;
 }
@@ -213,9 +212,9 @@ void DataInterfaceBlueprintPrivate::buildTable(bool init)
     if (delegate)
         forge->tableView()->setItemDelegate(delegate);
 
-    Jsoner::TableModel *model;
+    DataTableModel *model;
     if (init) {
-        model = (this->model ? this->model : new Jsoner::TableModel(interface));
+        model = (this->model ? this->model : new DataTableModel(interface));
         model->setFields(fields);
         forge->setTableModel(model);
     } else {
