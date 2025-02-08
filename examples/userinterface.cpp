@@ -25,7 +25,7 @@ UserInterface::UserInterface(QWidget *parent)
     ui.filter<UserEdit>();
 
     ui.contextMenu();
-    ui.contextMenuAction("Hello", this, &UserInterface::addItem);
+    ui.contextMenuAction("Hello", this, &UserInterface::addNewItem);
 
     ui.dataController<DataController>();
 }

@@ -6,7 +6,8 @@ project(Widgetry
     LANGUAGES   CXX C
 )
 
-option(WIDGETRY_BUILD_TESTS "Build tests" OFF)
+option(WIDGETRY_BUILD_TESTS    "Build tests"    OFF)
+option(WIDGETRY_BUILD_EXAMPLES "Build examples" OFF)
 
 option(BUILD_SHARED_LIBS "" OFF)
 
@@ -26,6 +27,6 @@ if (WIDGETRY_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
-if (TRUE)
+if (WIDGETRY_BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
