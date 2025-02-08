@@ -13,6 +13,8 @@ class DataQueryData : public QSharedData
 public:
     QString query;
     QVariantHash filters;
+    QString sortField;
+    Qt::SortOrder sortOrder = Qt::DescendingOrder;
     int page = 1;
     Jsoner::Array objects;
     QVariantHash parameters;
@@ -55,6 +57,22 @@ QVariantHash DataQuery::filters() const {
 
 void DataQuery::setFilters(const QVariantHash &filters) {
     d_ptr->filters = filters;
+}
+
+QString DataQuery::sortField() const
+{
+    return d_ptr->sortField;
+}
+
+Qt::SortOrder DataQuery::sortOrder() const
+{
+    return d_ptr->sortOrder;
+}
+
+void DataQuery::setSort(const QString &field, Qt::SortOrder order)
+{
+    d_ptr->sortField = field;
+    d_ptr->sortOrder = order;
 }
 
 QVariantHash DataQuery::parameters() const {

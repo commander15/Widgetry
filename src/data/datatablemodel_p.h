@@ -8,7 +8,7 @@ namespace Widgetry {
 class DataTableModelPrivate
 {
 public:
-    int sortColumn = -1;
+    QString sortField;
     Qt::SortOrder sortOrder = Qt::DescendingOrder;
 };
 

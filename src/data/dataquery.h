@@ -29,6 +29,10 @@ public:
     QVariantHash filters() const;
     void setFilters(const QVariantHash &filters);
 
+    QString sortField() const;
+    Qt::SortOrder sortOrder() const;
+    void setSort(const QString &field, Qt::SortOrder order);
+
     int page() const;
     void setPage(int page);
 

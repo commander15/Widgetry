@@ -8,9 +8,9 @@
 #include <Widgetry/dataresponse.h>
 #include <Widgetry/dataedit.h>
 #include <Widgetry/abstractdataeditfactory.h>
+#include <Widgetry/datatablemodel.h>
 
 #include <Jsoner/object.h>
-#include <Jsoner/tablemodel.h>
 
 #include <QtWidgets/qmessagebox.h>
 #include <QtWidgets/qmenu.h>
@@ -402,6 +402,8 @@ DataQuery DataInterface::generateQuery() const
     query.setQuery(ui->searchInput->text());
     if (d->filterWidget)
         query.setFilters(d->filterWidget->object().toVariantHash());
+    if (!d->tableModel->sortField().isEmpty())
+        query.setSort(d->tableModel->sortField(), d->tableModel->sortOrder());
     query.setPage(ui->pageInput->value() > 0 ? ui->pageInput->value() : 1);
     return query;
 }

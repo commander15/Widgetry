@@ -9,9 +9,9 @@ DataTableModel::DataTableModel(QObject *parent)
 {
 }
 
-int DataTableModel::sortColumn() const
+QString DataTableModel::sortField() const
 {
-    return d_ptr->sortColumn;
+    return d_ptr->sortField;
 }
 
 Qt::SortOrder DataTableModel::sortOrder() const
@@ -23,7 +23,7 @@ DataTableModel::~DataTableModel() = default;
 
 void DataTableModel::sort(int column, Qt::SortOrder order)
 {
-    d_ptr->sortColumn = column;
+    d_ptr->sortField = fieldName(column);
     d_ptr->sortOrder = order;
     emit fetchRequested();
 }

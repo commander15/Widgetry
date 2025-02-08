@@ -16,7 +16,7 @@ public:
     explicit DataTableModel(QObject *parent = nullptr);
     virtual ~DataTableModel();
 
-    int sortColumn() const;
+    QString sortField() const;
     Qt::SortOrder sortOrder() const;
     void sort(int column, Qt::SortOrder order) override;
 
