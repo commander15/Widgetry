@@ -38,7 +38,7 @@ AbstractDataEdit *AbstractDataEditFactory::create(const Jsoner::Object &object, 
         return window;
     }
 
-    if (d_ptr->allowDialogCreation) {
+    if (edit->editType() == AbstractDataEdit::WidgetEdit && d_ptr->allowDialogCreation) {
         DataEditDialogHelper *dialog = new DataEditDialogHelper(parent, Qt::Window);
         dialog->init(edit);
         return dialog;
