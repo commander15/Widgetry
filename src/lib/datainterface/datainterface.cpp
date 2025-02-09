@@ -170,7 +170,7 @@ void DataInterface::addNewItem()
 void DataInterface::addItem(const Jsoner::Object &object)
 {
     WIDGETRY_D(DataInterface);
-    if (!d->dataEditFactory || object.isEmpty())
+    if (!d->dataEditFactory)
         return;
 
     addObject(object, d->addCallback);
