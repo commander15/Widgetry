@@ -1,42 +1,24 @@
-add_library(Widgetry)
+include(CMakePackageConfigHelpers)
 
-configure_file(config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/config.h @ONLY)
-
-target_headers(Widgetry
-    PUBLIC
-        widgetry.h global.h config.h
-        userinterface.h
-        interfaceholder.h
-    PRIVATE
-        userinterface_p.h
+configure_package_config_file(
+    WidgetryConfig.cmake.in ${CMAKE_CURRENT_SOURCE_DIR}/WidgetryConfig.cmake
+    INSTALL_DESTINATION lib/cmake/Widgetry
 )
 
-target_sources(Widgetry
-    PRIVATE
-        global.cpp
-        userinterface.cpp
-        interfaceholder.cpp
-        resources/widgetry_resources.qrc
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/WidgetryConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+    ARCH_INDEPENDENT
 )
 
-add_subdirectory(communication)
-add_subdirectory(datainterface)
-add_subdirectory(input)
-add_subdirectory(data)
+add_subdirectory(lib)
 
-if (BUILD_SHARED_LIBS)
-    set(TYPE SHARED)
-else()
-    set(TYPE STATIC)
-endif()
-
-target_compile_definitions(Widgetry
-    PUBLIC
-        WIDGETRY_LIB WIDGETRY_${TYPE}
-    PRIVATE
-        WIDGETRY_BUILD
+install(FILES WidgetryConfig.cmake WidgetryConfigVersion.cmake
+    DESTINATION lib/cmake/Widgetry
 )
 
-target_link_libraries(Widgetry PUBLIC Qt::Widgets Jsoner)
-
-generate_target_headers(Widgetry FOLDER Widgetry)
+install(EXPORT WidgetryTargets
+    NAMESPACE Widgetry::
+    DESTINATION lib/cmake/Widgetry
+)

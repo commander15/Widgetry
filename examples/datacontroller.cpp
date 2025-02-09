@@ -57,6 +57,10 @@ void DataController::fetchManyObjects(const Widgetry::DataQuery &query, const Wi
     while (objects.size() > offset)
         objects.removeLast();
 
+    const QString sortField = query.sortField();
+    if (!sortField.isEmpty()) {
+    }
+
     Widgetry::DataResponse response;
     if (query.page() > 0 && query.page() <= m_objects.size()) {
         response.setObjects(objects);

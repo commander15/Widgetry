@@ -1,1 +1,2 @@
-config.h
+WidgetryConfig.cmake
+WidgetryConfigVersion.cmake
