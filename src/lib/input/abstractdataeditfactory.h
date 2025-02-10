@@ -15,6 +15,7 @@ public:
 
     void setMainField(const QString &field);
     void setMaxCount(int count);
+    void setContainerFlags(Qt::WindowFlags flags);
 
     bool isDialogCreationSupported() const;
     void enableDialogCreation();
@@ -23,6 +24,7 @@ public:
     virtual AbstractDataEdit *create(const Jsoner::Object &object, AbstractDataEdit::Operation operation, QWidget *parent = nullptr);
 
 protected:
+    AbstractDataEdit *createContainer(AbstractDataEdit *edit, QWidget *parent, Qt::WindowFlags flags);
     virtual AbstractDataEdit *createEdit(QWidget *parent = nullptr) = 0;
 
 private:

@@ -8,10 +8,13 @@
 
 namespace Widgetry {
 
-DataEditDialogHelper::DataEditDialogHelper(QWidget *parent, Qt::WindowFlags flags)
-    : QDialog(parent, flags)
+DataEditDialogHelper::DataEditDialogHelper(QWidget *parent, Qt::WindowFlags flags, bool multiple)
+    : QDialog(parent, flags | (multiple ? Qt::Window : Qt::WindowFlags()))
+    , m_multiple(multiple)
 {
     initEditing(this, &QDialog::finished);
+
+    setWindowModality(multiple ? Qt::NonModal : Qt::WindowModal);
 }
 
 void DataEditDialogHelper::init(AbstractDataEdit *edit)
@@ -30,9 +33,9 @@ void DataEditDialogHelper::init(AbstractDataEdit *edit)
     layout->addWidget(m_errorOutput);
 
     // Create a button box (Save and Cancel buttons)
-    m_buttonBox = new QDialogButtonBox();
-    QDialogButtonBox::StandardButtons boxButtons = QDialogButtonBox::Save | QDialogButtonBox::Cancel;
-    m_buttonBox->setStandardButtons(boxButtons);
+    m_buttonBox = new QDialogButtonBox(this);
+    m_buttonBox->setStandardButtons(QDialogButtonBox::Save | QDialogButtonBox::Cancel);
+    m_buttonBox->setWindowModality(windowModality());
     layout->addWidget(m_buttonBox);
 
     // Connect edit signals to the appropriate functions
@@ -78,10 +81,14 @@ void DataEditDialogHelper::updateButtonStates(bool saveable)
     }
 }
 
-void DataEditDialogHelper::exec(const DataEditFinishedCallback &onFinished)
+void DataEditDialogHelper::exec(const DataEditFinishedCallback &callback)
 {
-    d_ptr->finishCallback = onFinished;
-    open();
+    d_ptr->finishCallback = callback;
+
+    if (!m_multiple)
+        QDialog::open();
+    else
+        QWidget::show();
 }
 
 QWidget *DataEditDialogHelper::editWidget() const

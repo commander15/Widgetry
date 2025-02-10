@@ -25,6 +25,11 @@ void AbstractDataEditFactory::setMaxCount(int count)
     d_ptr->maxCount = (count > 0 ? count : 1);
 }
 
+void AbstractDataEditFactory::setContainerFlags(Qt::WindowFlags flags)
+{
+    d_ptr->containerFlags = flags;
+}
+
 bool AbstractDataEditFactory::isDialogCreationSupported() const
 {
     return d_ptr->allowDialogCreation;
@@ -54,16 +59,19 @@ AbstractDataEdit *AbstractDataEditFactory::create(const Jsoner::Object &object, 
 
     if (!edit && (d_ptr->canCreateEdit() || d_ptr->cleanupInvisibleEdits() > 0)) {
         edit = createEdit(parent);
+        if (!edit)
+            return nullptr;
 
-        if (edit)
-            d_ptr->registerEdit(edit);
+        edit = createContainer(edit, parent, d_ptr->containerFlags);
+        d_ptr->registerEdit(edit);
     }
 
-    if (!edit)
-        return nullptr;
-
     edit->setObject(object, operation);
+    return edit;
+}
 
+AbstractDataEdit *AbstractDataEditFactory::createContainer(AbstractDataEdit *edit, QWidget *parent, Qt::WindowFlags flags)
+{
     if (edit->editType() == AbstractDataEdit::WindowEdit && parent && parent->inherits("Widgetry::DataInterface")) {
         DataInterface *interface = static_cast<DataInterface *>(parent);
         DataWindow *window = static_cast<DataWindow *>(edit);
@@ -73,7 +81,7 @@ AbstractDataEdit *AbstractDataEditFactory::create(const Jsoner::Object &object, 
     }
 
     if (edit->editType() == AbstractDataEdit::WidgetEdit && d_ptr->allowDialogCreation) {
-        DataEditDialogHelper *dialog = new DataEditDialogHelper(parent, Qt::Window);
+        DataEditDialogHelper *dialog = new DataEditDialogHelper(parent, flags, d_ptr->maxCount > 1);
         dialog->init(edit);
         return dialog;
     }

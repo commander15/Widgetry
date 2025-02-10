@@ -83,25 +83,38 @@ AbstractDataEdit *AbstractDataEdit::editFromDialog(QDialog *dialog)
 
 void AbstractDataEdit::show()
 {
-    editWidget()->show();
+    QWidget *w = editWidget();
+
+    if (w->inherits("QDialog")) {
+        QDialog *d = static_cast<QDialog *>(w);
+        d->open();
+        return;
+    }
+
+    if (!w->isVisible())
+        w->show();
+    else if (!w->hasFocus())
+        w->setFocus();
+    else if (!w->isActiveWindow())
+        w->activateWindow();
 }
 
 void AbstractDataEdit::show(const Jsoner::Object &object)
 {
     setObject(object, ShowOperation);
-    editWidget()->show();
+    show();
 }
 
 void AbstractDataEdit::add(const Jsoner::Object &object)
 {
     setObject(object, AddOperation);
-    editWidget()->show();
+    show();
 }
 
 void AbstractDataEdit::edit(const Jsoner::Object &object)
 {
     setObject(object, EditOperation);
-    editWidget()->show();
+    show();
 }
 
 void AbstractDataEdit::reset()
@@ -117,7 +130,13 @@ void AbstractDataEdit::clear()
 void AbstractDataEdit::exec(const DataEditFinishedCallback &onFinished)
 {
     d_ptr->finishCallback = onFinished;
-    editWidget()->show();
+
+    QWidget *w = editWidget();
+
+    if (w->inherits("QDialog"))
+        static_cast<QDialog *>(w)->open();
+    else
+        show();
 }
 
 AbstractDataEdit::EditType AbstractDataEdit::editType() const

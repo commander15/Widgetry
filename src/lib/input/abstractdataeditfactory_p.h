@@ -18,7 +18,9 @@ public:
 public:
     QString field{"id"}; // Default id
     int maxCount{1}; // Default limit
+
     bool allowDialogCreation = true;
+    Qt::WindowFlags containerFlags;
 
     QVector<AbstractDataEdit *> edits;
 };

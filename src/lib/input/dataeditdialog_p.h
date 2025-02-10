@@ -14,14 +14,14 @@ class DataEditDialogHelper : public QDialog, public AbstractDataEdit
     Q_OBJECT
 
 public:
-    DataEditDialogHelper(QWidget *parent, Qt::WindowFlags flags);
+    DataEditDialogHelper(QWidget *parent, Qt::WindowFlags flags, bool multiple = false);
 
     void init(AbstractDataEdit *edit);
 
     void updateErrorState(bool show);
     void updateButtonStates(bool saveable);
 
-    void exec(const DataEditFinishedCallback &onFinished) override;
+    void exec(const DataEditFinishedCallback &callback) override;
 
     QWidget *editWidget() const override;
     EditType editType() const override;
@@ -46,6 +46,8 @@ private:
     AbstractDataEdit *m_edit;
     QLabel *m_errorOutput;
     QDialogButtonBox *m_buttonBox;
+
+    bool m_multiple = false;
 };
 
 } // namespace Widgetry
