@@ -13,8 +13,12 @@ public:
     explicit AbstractDataEditFactory();
     virtual ~AbstractDataEditFactory();
 
+    void setMainField(const QString &field);
+    void setMaxCount(int count);
+
     bool isDialogCreationSupported() const;
     void enableDialogCreation();
+    void disableDialogCreation();
 
     virtual AbstractDataEdit *create(const Jsoner::Object &object, AbstractDataEdit::Operation operation, QWidget *parent = nullptr);
 
@@ -23,6 +27,8 @@ protected:
 
 private:
     QScopedPointer<AbstractDataEditFactoryPrivate> d_ptr;
+
+    friend class AbstractDataEditPrivate;
 };
 
 } // namespace Widgetry

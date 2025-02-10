@@ -8,7 +8,19 @@ namespace Widgetry {
 class AbstractDataEditFactoryPrivate
 {
 public:
-    bool allowDialogCreation = false;
+    AbstractDataEdit *editForKey(const QVariant &key) const;
+
+    bool canCreateEdit() const;
+    void registerEdit(AbstractDataEdit *edit);
+
+    int cleanupInvisibleEdits();
+
+public:
+    QString field{"id"}; // Default id
+    int maxCount{1}; // Default limit
+    bool allowDialogCreation = true;
+
+    QVector<AbstractDataEdit *> edits;
 };
 
 } // namespace Widgetry
