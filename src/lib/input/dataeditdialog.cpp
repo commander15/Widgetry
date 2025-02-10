@@ -126,7 +126,12 @@ bool DataEditDialogHelper::validateInput()
 void DataEditDialogHelper::makeWriteable(bool writeable)
 {
     m_edit->makeWriteable(writeable);
-    updateButtonStates(writeable);
+
+    if (!writeable) {
+        m_buttonBox->setStandardButtons(QDialogButtonBox::Close);
+    } else {
+        m_buttonBox->setStandardButtons(QDialogButtonBox::Save | QDialogButtonBox::Cancel);
+    }
 }
 
 } // namespace Widgetry
