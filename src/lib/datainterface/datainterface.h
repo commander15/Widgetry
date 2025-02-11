@@ -94,6 +94,7 @@ protected:
     DataEditFinishedCallback editCallback(AbstractDataEdit::Operation operation) const;
 
 protected:
+    virtual void showMaxWindowMessage(int activeEdits, int maxActiveEdits);
     void showResponseMessage(const QString &title, const DataResponse &response);
     void showResponseMessage(const QString &title, const QString &text, const DataResponse &response);
 

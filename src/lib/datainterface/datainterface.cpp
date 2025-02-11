@@ -273,8 +273,12 @@ void DataInterface::showObject(const Jsoner::Object &object)
         return;
 
     AbstractDataEdit *edit = d->dataEditFactory->create(object, AbstractDataEdit::ShowOperation, this);
-    if (edit)
+    if (edit) {
         edit->exec(nullptr);
+    } else {
+        const int count = d->dataEditFactory->editCount();
+        showMaxWindowMessage(count, count);
+    }
 }
 
 void DataInterface::addObject(const Jsoner::Object &object, const DataEditFinishedCallback &callback)
@@ -285,8 +289,12 @@ void DataInterface::addObject(const Jsoner::Object &object, const DataEditFinish
         return;
 
     AbstractDataEdit *edit = d->dataEditFactory->create(object, AbstractDataEdit::AddOperation, this);
-    if (edit)
-        edit->exec(callback);
+    if (edit) {
+        edit->exec(nullptr);
+    } else {
+        const int count = d->dataEditFactory->editCount();
+        showMaxWindowMessage(count, count);
+    }
 }
 
 void DataInterface::editObject(const Jsoner::Object &object, const DataEditFinishedCallback &callback)
@@ -297,8 +305,12 @@ void DataInterface::editObject(const Jsoner::Object &object, const DataEditFinis
         return;
 
     AbstractDataEdit *edit = d->dataEditFactory->create(object, AbstractDataEdit::EditOperation, this);
-    if (edit)
-        edit->exec(callback);
+    if (edit) {
+        edit->exec(nullptr);
+    } else {
+        const int count = d->dataEditFactory->editCount();
+        showMaxWindowMessage(count, count);
+    }
 }
 
 void DataInterface::showContextMenu(const Jsoner::Array &objects, const QPoint &pos)
@@ -420,6 +432,23 @@ DataEditFinishedCallback DataInterface::editCallback(AbstractDataEdit::Operation
     default:
         return nullptr;
     }
+}
+
+void DataInterface::showMaxWindowMessage(int activeEdits, int maxActiveEdits)
+{
+    QString message = QStringLiteral("It looks like you've opened the maximum number of windows on the '%1' interface. Close one to open a new one.");
+    message.append("<br><br>Active windows count: <b>%2</b>.");
+
+    QStringList details;
+    details.append(QStringLiteral("Interface: ") + title());
+    details.append(QStringLiteral("Max windows count: %1.").arg(maxActiveEdits));
+
+    QMessageBox box;
+    box.setTextFormat(Qt::RichText);
+    box.setWindowTitle(tr("Too many windows open"));
+    box.setText(message.arg(title()).arg(activeEdits));
+    box.setDetailedText(details.join("\n"));
+    box.exec();
 }
 
 void DataInterface::showResponseMessage(const QString &title, const DataResponse &response)
