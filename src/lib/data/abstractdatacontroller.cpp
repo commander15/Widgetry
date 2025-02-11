@@ -1,6 +1,21 @@
 #include "abstractdatacontroller.h"
 
+#include <Widgetry/dataresponse.h>
+
 namespace Widgetry {
+
+void AbstractDataController::fetchSuggestions(const DataQuery &query, const DataQueryResponseCallback &onResponse)
+{
+    fetchSuggestions(query, [](int, int) {}, onResponse);  // Pass a no-op progress callback
+}
+
+void AbstractDataController::fetchSuggestions(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
+{
+    if (onResponse)
+    {
+        fetchSomeSuggestions(query, onProgress, onResponse);  // Call the virtual method with the given callbacks
+    }
+}
 
 void AbstractDataController::fetchObjects(const DataQuery &query, const DataQueryResponseCallback &onResponse)
 {
@@ -65,6 +80,11 @@ void AbstractDataController::deleteObjects(const DataQuery &query, const DataQue
     {
         deleteManyObjects(query, onProgress, onResponse);  // Call the virtual method with the given callbacks
     }
+}
+
+void AbstractDataController::fetchSomeSuggestions(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
+{
+    onResponse(DataResponse());
 }
 
 } // namespace Widgetry

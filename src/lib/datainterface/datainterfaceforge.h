@@ -5,7 +5,10 @@
 
 #include <QtWidgets/qwidget.h>
 
+#include <QtCore/qobject.h>
+
 class QLineEdit;
+class QCompleter;
 class QAbstractButton;
 class QTableView;
 class QSpinBox;
@@ -27,8 +30,10 @@ class AbstractDataEditFactory;
 class DataTableModel;
 
 class DataInterfaceForgePrivate;
-class WIDGETRY_EXPORT DataInterfaceForge
+class WIDGETRY_EXPORT DataInterfaceForge : public QObject
 {
+    Q_OBJECT
+
 public:
     DataInterfaceForge(DataInterfaceForgePrivate *d);
     ~DataInterfaceForge();

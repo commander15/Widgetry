@@ -15,6 +15,8 @@
 #include <QtWidgets/qmessagebox.h>
 #include <QtWidgets/qmenu.h>
 
+#include <QtCore/qstringlistmodel.h>
+
 namespace Widgetry {
 
 DataInterface::DataInterface(QWidget *parent, Qt::WindowFlags flags)
@@ -465,6 +467,25 @@ void DataInterface::showResponseMessage(const QString &title, const QString &tex
     box.setInformativeText(response.informativeText());
     box.setDetailedText(response.detailedText());
     box.exec();
+}
+
+void DataInterface::fetchSearchSuggestions(const QString &query)
+{
+    WIDGETRY_D(DataInterface);
+
+    DataQuery dataQuery;
+    dataQuery.setQuery(query);
+
+    executeDataRequest(&AbstractDataController::fetchSuggestions, dataQuery, [d](const DataResponse &response) {
+        if (!response.isSuccess())
+            return;
+
+        QStringList suggestions;
+        const Jsoner::Array data = response.objects();
+        for (const QJsonValue &value : data)
+            suggestions.append(value.toString());
+        d->completionModel->setStringList(suggestions);
+    });
 }
 
 void DataInterface::preFetch(const DataQuery &query, const std::function<void (const Jsoner::Object &)> &callback)

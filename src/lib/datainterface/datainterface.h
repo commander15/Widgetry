@@ -98,6 +98,7 @@ protected:
     void showResponseMessage(const QString &title, const DataResponse &response);
     void showResponseMessage(const QString &title, const QString &text, const DataResponse &response);
 
+    void fetchSearchSuggestions(const QString &query);
     void preFetch(const DataQuery &query, const std::function<void(const Jsoner::Object &object)> &callback);
     void executeDataRequest(DataControllerRawMethod method, const DataQuery &query);
     void executeDataRequest(DataControllerRawMethod method, const DataQuery &query, const DataQueryResponseCallback &callback);

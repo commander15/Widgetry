@@ -11,8 +11,10 @@
 #include <QtWidgets/qdialog.h>
 #include <QtWidgets/qscrollbar.h>
 #include <QtWidgets/qabstractitemview.h>
+#include <QtWidgets/qcompleter.h>
 
 #include <QtCore/qitemselectionmodel.h>
+#include <QtCore/qstringlistmodel.h>
 
 namespace Widgetry {
 
@@ -225,7 +227,17 @@ void DataInterfaceForge::init()
 {
     ui = d_ptr->forgeInterface()->ui;
 
+    d_ptr->completionModel = new QStringListModel(this);
+
+    d_ptr->completer = new QCompleter(d_ptr->forgeInterface());
+    d_ptr->completer->setCaseSensitivity(Qt::CaseInsensitive);
+    d_ptr->completer->setFilterMode(Qt::MatchContains);
+    d_ptr->completer->setModel(d_ptr->completionModel);
+
     ui->searchInput->setEnabled(false);
+    ui->searchInput->setCompleter(d_ptr->completer);
+
+    QObject::connect(ui->searchInput, &QLineEdit::textChanged, d_ptr->forgeInterface(), &DataInterface::fetchSearchSuggestions);
 
     QObject::connect(ui->toggleFiltersButtons, &QAbstractButton::toggled, ui->toggleFiltersButtons, [this](bool toggled) {
         ui->interfaceLayout->setHorizontalSpacing(toggled ? 6 : 0);

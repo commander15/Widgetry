@@ -21,6 +21,22 @@ DataController::DataController()
     }
 }
 
+void DataController::fetchSomeSuggestions(const Widgetry::DataQuery &query, const Widgetry::DataQueryProgressCallback &onProgress, const Widgetry::DataQueryResponseCallback &onResponse)
+{
+    Jsoner::Array results;
+    for (const QJsonValue &value : m_objects) {
+        const QString key = value.toObject().value("name").toString();
+        if (key.startsWith(query.query(), Qt::CaseInsensitive))
+            results.append(key);
+    }
+
+    Widgetry::DataResponse response;
+    response.setObjects(results);
+    response.setSuccess(!results.isEmpty());
+
+    onResponse(response);
+}
+
 void DataController::fetchManyObjects(const Widgetry::DataQuery &query, const Widgetry::DataQueryProgressCallback &onProgress, const Widgetry::DataQueryResponseCallback &onResponse)
 {
     Jsoner::Array objects;

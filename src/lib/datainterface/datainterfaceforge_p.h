@@ -3,6 +3,8 @@
 
 #include "datainterfaceforge.h"
 
+class QStringListModel;
+
 namespace Widgetry {
 
 class DataInterface;
@@ -13,6 +15,9 @@ public:
     virtual ~DataInterfaceForgePrivate() = default;
 
     virtual DataInterface *forgeInterface() const = 0;
+
+    QCompleter *completer = nullptr;
+    QStringListModel *completionModel = nullptr;
 
     AbstractDataEdit *filterWidget = nullptr;
 
