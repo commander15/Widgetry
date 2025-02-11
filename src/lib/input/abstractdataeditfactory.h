@@ -22,6 +22,8 @@ public:
     void enableDialogCreation();
     void disableDialogCreation();
 
+    int editCount() const;
+    QList<AbstractDataEdit *> edits() const;
     virtual AbstractDataEdit *create(const Jsoner::Object &object, AbstractDataEdit::Operation operation, QWidget *parent = nullptr);
 
 protected:

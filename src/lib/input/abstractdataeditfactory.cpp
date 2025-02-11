@@ -58,6 +58,16 @@ void AbstractDataEditFactory::disableDialogCreation()
     d_ptr->allowDialogCreation = false;
 }
 
+int AbstractDataEditFactory::editCount() const
+{
+    return d_ptr->edits.count();
+}
+
+QList<AbstractDataEdit *> AbstractDataEditFactory::edits() const
+{
+    return d_ptr->edits;
+}
+
 AbstractDataEdit *AbstractDataEditFactory::create(const Jsoner::Object &object, AbstractDataEdit::Operation operation, QWidget *parent)
 {
     const QVariant key = (operation == AbstractDataEdit::AddOperation ? QVariant() : object.variant(d_ptr->field));
