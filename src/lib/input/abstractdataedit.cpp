@@ -63,6 +63,16 @@ void AbstractDataEdit::setReadOnly(bool r)
     d_ptr->readOnly = r;
 }
 
+DataInterface *AbstractDataEdit::interface() const
+{
+    return d_ptr->interface;
+}
+
+void AbstractDataEdit::setInterface(DataInterface *interface)
+{
+    d_ptr->interface = interface;
+}
+
 QWidget *AbstractDataEdit::editWidget() const
 {
     AbstractDataEdit *edit = const_cast<AbstractDataEdit *>(this);
@@ -174,6 +184,7 @@ AbstractDataEditPrivate::AbstractDataEditPrivate(AbstractDataEdit *q)
     , operation(AbstractDataEdit::ShowOperation)
     , readOnly(false)
     , finishCallback(nullptr)
+    , interface(nullptr)
 {
 }
 

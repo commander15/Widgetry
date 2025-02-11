@@ -24,6 +24,8 @@ public:
     QString completionErrorString;
 
     DataEditFinishedCallback finishCallback;
+
+    DataInterface *interface;
 };
 
 } // namespace Widgetry

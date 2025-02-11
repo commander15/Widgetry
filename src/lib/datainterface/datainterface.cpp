@@ -276,6 +276,7 @@ void DataInterface::showObject(const Jsoner::Object &object)
 
     AbstractDataEdit *edit = d->dataEditFactory->create(object, AbstractDataEdit::ShowOperation, this);
     if (edit) {
+        edit->setInterface(this);
         edit->exec(nullptr);
     } else {
         const int count = d->dataEditFactory->editCount();
@@ -292,7 +293,8 @@ void DataInterface::addObject(const Jsoner::Object &object, const DataEditFinish
 
     AbstractDataEdit *edit = d->dataEditFactory->create(object, AbstractDataEdit::AddOperation, this);
     if (edit) {
-        edit->exec(nullptr);
+        edit->setInterface(this);
+        edit->exec(callback);
     } else {
         const int count = d->dataEditFactory->editCount();
         showMaxWindowMessage(count, count);
@@ -308,7 +310,8 @@ void DataInterface::editObject(const Jsoner::Object &object, const DataEditFinis
 
     AbstractDataEdit *edit = d->dataEditFactory->create(object, AbstractDataEdit::EditOperation, this);
     if (edit) {
-        edit->exec(nullptr);
+        edit->setInterface(this);
+        edit->exec(callback);
     } else {
         const int count = d->dataEditFactory->editCount();
         showMaxWindowMessage(count, count);

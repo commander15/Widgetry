@@ -13,6 +13,7 @@ class QDialog;
 
 namespace Widgetry {
 
+class DataInterface;
 class DataResponse;
 typedef std::function<void(const Jsoner::Object &, int)> DataEditFinishedCallback;
 
@@ -49,6 +50,9 @@ public:
 
     bool isReadOnly() const;
     void setReadOnly(bool r = true);
+
+    DataInterface *interface() const;
+    void setInterface(DataInterface *interface);
 
     virtual QWidget *editWidget() const;
     virtual EditType editType() const;
