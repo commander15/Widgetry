@@ -34,6 +34,16 @@ QString DataSelector::searchText() const
     return ui->searchInput->text();
 }
 
+DataQuery DataSelector::searchQuery() const
+{
+    return d_ptr->dataQuery;
+}
+
+void DataSelector::setSearchQuery(const DataQuery &query)
+{
+    d_ptr->dataQuery = query;
+}
+
 void DataSelector::setHeader(int index, const QString &name)
 {
     d_ptr->model.setHeaderData(index, Qt::Horizontal, name);
@@ -89,9 +99,8 @@ void DataSelector::setDataController(AbstractDataController *controller)
 
 void DataSelector::search(const QString &query)
 {
-    DataQuery dataQuery;
-    dataQuery.setQuery(query);
-    search(query);
+    ui->searchInput->setText(query);
+    refresh();
 }
 
 void DataSelector::search(const DataQuery &query)

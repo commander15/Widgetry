@@ -33,6 +33,9 @@ public:
 
     QString searchText() const;
 
+    DataQuery searchQuery() const;
+    void setSearchQuery(const DataQuery &query);
+
     void setHeader(int index, const QString &name);
     void setResizeMode(int index, QHeaderView::ResizeMode mode);
 
