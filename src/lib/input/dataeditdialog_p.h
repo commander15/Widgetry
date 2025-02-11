@@ -21,6 +21,9 @@ public:
     void updateErrorState(bool show);
     void updateButtonStates(bool saveable);
 
+    DataInterface *interface() const override;
+    void setInterface(DataInterface *interface) override;
+
     void exec(const DataEditFinishedCallback &callback) override;
 
     QWidget *editWidget() const override;

@@ -80,6 +80,16 @@ void DataEditDialogHelper::updateButtonStates(bool saveable)
     }
 }
 
+DataInterface *DataEditDialogHelper::interface() const
+{
+    return m_edit->interface();
+}
+
+void DataEditDialogHelper::setInterface(DataInterface *interface)
+{
+    m_edit->setInterface(interface);
+}
+
 void DataEditDialogHelper::exec(const DataEditFinishedCallback &callback)
 {
     d_ptr->finishCallback = callback;

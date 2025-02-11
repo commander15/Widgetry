@@ -51,8 +51,8 @@ public:
     bool isReadOnly() const;
     void setReadOnly(bool r = true);
 
-    DataInterface *interface() const;
-    void setInterface(DataInterface *interface);
+    virtual DataInterface *interface() const;
+    virtual void setInterface(DataInterface *interface);
 
     virtual QWidget *editWidget() const;
     virtual EditType editType() const;
