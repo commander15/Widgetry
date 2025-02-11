@@ -12,11 +12,13 @@ public:
 
     bool canCreateEdit() const;
     void registerEdit(AbstractDataEdit *edit);
+    void unregisterEdit(AbstractDataEdit *edit);
 
     int cleanupInvisibleEdits();
 
 public:
     QString field{"id"}; // Default id
+    bool singleInstance = true;
     int maxCount{1}; // Default limit
 
     bool allowDialogCreation = true;

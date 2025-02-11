@@ -14,6 +14,7 @@ public:
     virtual ~AbstractDataEditFactory();
 
     void setMainField(const QString &field);
+    void setSingleInstance(bool single = true);
     void setMaxCount(int count);
     void setContainerFlags(Qt::WindowFlags flags);
 

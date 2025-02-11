@@ -33,9 +33,8 @@ void DataEditDialogHelper::init(AbstractDataEdit *edit)
     layout->addWidget(m_errorOutput);
 
     // Create a button box (Save and Cancel buttons)
-    m_buttonBox = new QDialogButtonBox(this);
+    m_buttonBox = new QDialogButtonBox;
     m_buttonBox->setStandardButtons(QDialogButtonBox::Save | QDialogButtonBox::Cancel);
-    m_buttonBox->setWindowModality(windowModality());
     layout->addWidget(m_buttonBox);
 
     // Connect edit signals to the appropriate functions
@@ -85,10 +84,10 @@ void DataEditDialogHelper::exec(const DataEditFinishedCallback &callback)
 {
     d_ptr->finishCallback = callback;
 
-    if (!m_multiple)
-        QDialog::open();
-    else
+    if (m_multiple)
         QWidget::show();
+    else
+        QDialog::open();
 }
 
 QWidget *DataEditDialogHelper::editWidget() const

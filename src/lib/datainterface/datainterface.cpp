@@ -274,7 +274,7 @@ void DataInterface::showObject(const Jsoner::Object &object)
 
     AbstractDataEdit *edit = d->dataEditFactory->create(object, AbstractDataEdit::ShowOperation, this);
     if (edit)
-        edit->show();
+        edit->exec(nullptr);
 }
 
 void DataInterface::addObject(const Jsoner::Object &object, const DataEditFinishedCallback &callback)

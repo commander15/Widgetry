@@ -15,14 +15,27 @@ AbstractDataEditFactory::AbstractDataEditFactory()
 {
 }
 
+AbstractDataEditFactory::~AbstractDataEditFactory()
+{
+    while (d_ptr->edits.size() > 0)
+        delete d_ptr->edits.takeFirst();
+}
+
 void AbstractDataEditFactory::setMainField(const QString &field)
 {
     d_ptr->field = field;
 }
 
+void AbstractDataEditFactory::setSingleInstance(bool single)
+{
+    d_ptr->singleInstance = single;
+    d_ptr->maxCount = 1;
+}
+
 void AbstractDataEditFactory::setMaxCount(int count)
 {
     d_ptr->maxCount = (count > 0 ? count : 1);
+    d_ptr->singleInstance = false;
 }
 
 void AbstractDataEditFactory::setContainerFlags(Qt::WindowFlags flags)
@@ -45,12 +58,6 @@ void AbstractDataEditFactory::disableDialogCreation()
     d_ptr->allowDialogCreation = false;
 }
 
-AbstractDataEditFactory::~AbstractDataEditFactory()
-{
-    while (d_ptr->edits.size() > 0)
-        delete d_ptr->edits.takeFirst();
-}
-
 AbstractDataEdit *AbstractDataEditFactory::create(const Jsoner::Object &object, AbstractDataEdit::Operation operation, QWidget *parent)
 {
     const QVariant key = (operation == AbstractDataEdit::AddOperation ? QVariant() : object.variant(d_ptr->field));
@@ -59,14 +66,15 @@ AbstractDataEdit *AbstractDataEditFactory::create(const Jsoner::Object &object, 
 
     if (!edit && (d_ptr->canCreateEdit() || d_ptr->cleanupInvisibleEdits() > 0)) {
         edit = createEdit(parent);
-        if (!edit)
-            return nullptr;
-
-        edit = createContainer(edit, parent, d_ptr->containerFlags);
-        d_ptr->registerEdit(edit);
+        if (edit) {
+            edit = createContainer(edit, parent, d_ptr->containerFlags);
+            d_ptr->registerEdit(edit);
+        }
     }
 
-    edit->setObject(object, operation);
+    if (edit)
+        edit->setObject(object, operation);
+
     return edit;
 }
 
@@ -81,7 +89,7 @@ AbstractDataEdit *AbstractDataEditFactory::createContainer(AbstractDataEdit *edi
     }
 
     if (edit->editType() == AbstractDataEdit::WidgetEdit && d_ptr->allowDialogCreation) {
-        DataEditDialogHelper *dialog = new DataEditDialogHelper(parent, flags, d_ptr->maxCount > 1);
+        DataEditDialogHelper *dialog = new DataEditDialogHelper(parent, flags, !d_ptr->singleInstance);
         dialog->init(edit);
         return dialog;
     }
@@ -91,7 +99,7 @@ AbstractDataEdit *AbstractDataEditFactory::createContainer(AbstractDataEdit *edi
 
 AbstractDataEdit *AbstractDataEditFactoryPrivate::editForKey(const QVariant &key) const
 {
-    if (maxCount == 1)
+    if (singleInstance)
         return !edits.isEmpty() ? edits.first() : nullptr;
 
     auto e = std::find_if(edits.begin(), edits.end(), [this, &key](const AbstractDataEdit *edit) {
@@ -108,10 +116,15 @@ bool AbstractDataEditFactoryPrivate::canCreateEdit() const
 
 void AbstractDataEditFactoryPrivate::registerEdit(AbstractDataEdit *edit)
 {
-    edits.append(edit);
-
     QWidget *w = edit->editWidget();
-    QObject::connect(w, &QObject::destroyed, w, [this, edit] { edits.removeOne(edit); });
+    QObject::connect(w, &QObject::destroyed, w, [this, edit] { unregisterEdit(edit); });
+
+    edits.append(edit);
+}
+
+void AbstractDataEditFactoryPrivate::unregisterEdit(AbstractDataEdit *edit)
+{
+    edits.removeOne(edit);
 }
 
 int AbstractDataEditFactoryPrivate::cleanupInvisibleEdits()
