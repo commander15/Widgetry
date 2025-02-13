@@ -43,6 +43,7 @@ signals:
 protected:
     void registerInterface(UserInterface *interface) override;
     void unregisterInterface(UserInterface *interface) override;
+    void processInterfaceChange(UserInterface *from, UserInterface *to) override;
 
 private:
     Q_SLOT void processIconChange(const QIcon &icon);

@@ -96,10 +96,13 @@ int SimpleInterfaceHolder::currentIndex() const
 
 void SimpleInterfaceHolder::setCurrentIndex(int index)
 {
+    const int oldIndex = _current;
     if (isValidIndex(index)) {
-        const int oldIndex = _current;
         _current = index;
         processInterfaceChange(interface(oldIndex), interface(index));
+    } else {
+        _current = -1;
+        processInterfaceChange(interface(oldIndex), nullptr);
     }
 }
 
@@ -118,23 +121,25 @@ int SimpleInterfaceHolder::count() const
 
 int SimpleInterfaceHolder::addInterface(UserInterface *interface)
 {
-    if (!_interfaces.contains(interface))
-        registerInterface(interface);
+    if (_interfaces.contains(interface))
+        return _interfaces.indexOf(interface);
 
+    registerInterface(interface);
     _interfaces.append(interface);
     return _interfaces.count() - 1;
 }
 
 int SimpleInterfaceHolder::insertInterface(int index, UserInterface *interface)
 {
-    if (index >= 0 && index <= _interfaces.size()) {
-        if (!_interfaces.contains(interface))
-            registerInterface(interface);
-
-        _interfaces.insert(index, interface);
-        return index;
-    } else
+    if (index < 0 || index >_interfaces.size())
         return -1;
+
+    if (_interfaces.contains(interface))
+        return _interfaces.indexOf(interface);
+
+    registerInterface(interface);
+    _interfaces.insert(index, interface);
+    return index;
 }
 
 void SimpleInterfaceHolder::removeInterface(UserInterface *interface)

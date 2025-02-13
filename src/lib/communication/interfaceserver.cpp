@@ -31,19 +31,8 @@ InterfaceServer *InterfaceServer::global()
 
 void InterfaceServer::setCurrentIndex(int index)
 {
-    if (SimpleInterfaceHolder::currentIndex() == index)
-        return;
-
     SimpleInterfaceHolder::setCurrentIndex(index);
     d->currentInterface = interface(index);
-
-    emit currentIconChanged(d->currentInterface ? d->currentInterface->icon() : QIcon());
-    emit currentTitleChanged(d->currentInterface ? d->currentInterface->title() : QString());
-
-    const QStringList operations = (d->currentInterface ? d->currentInterface->availableOperations() : QStringList());
-    for (const QString &operation : operations)
-        emit currentOperationSupportChanged(operation, d->currentInterface->isOperationSupported(operation));
-
     emit currentIndexChanged(index);
 }
 
@@ -67,6 +56,18 @@ void InterfaceServer::unregisterInterface(UserInterface *interface)
     disconnect(interface, &UserInterface::titleChanged, this, &InterfaceServer::processTitleChange);
     disconnect(interface, &UserInterface::operationSupportChanged, this, &InterfaceServer::processOperationSupportChange);
     disconnect(interface, &UserInterface::operationRequested, this, &InterfaceServer::processRequestedOperation);
+}
+
+void InterfaceServer::processInterfaceChange(UserInterface *from, UserInterface *to)
+{
+    Q_UNUSED(from);
+
+    emit currentIconChanged(to ? to->icon() : QIcon());
+    emit currentTitleChanged(to ? to->title() : QString());
+
+    const QStringList operations = (to ? to->availableOperations() : QStringList());
+    for (const QString &operation : operations)
+        emit currentOperationSupportChanged(operation, to->isOperationSupported(operation));
 }
 
 void InterfaceServer::processIconChange(const QIcon &icon)
