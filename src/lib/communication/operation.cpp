@@ -6,6 +6,7 @@ namespace Widgetry {
 Operation::Operation(const QString &name)
     : d_ptr(new OperationData())
 {
+    d_ptr->name = name;
 }
 
 Operation::Operation(const Operation &other)
