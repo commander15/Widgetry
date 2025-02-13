@@ -10,6 +10,9 @@ class UserInterface : public Widgetry::DataInterface
 public:
     explicit UserInterface(QWidget *parent = nullptr);
     ~UserInterface();
+
+public slots:
+    void selectIt();
 };
 
 #endif // USERINTERFACE_H
