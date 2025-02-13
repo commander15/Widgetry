@@ -11,11 +11,7 @@ namespace Widgetry {
 class DataSelectorPrivate
 {
 public:
-    DataTableModel model;
-
-    int dataSearchThreshold = 3;
-    DataQuery dataQuery;
-    AbstractDataController *dataController = nullptr;
+    DataSelectorW
 };
 
 } // namespace Widgetry

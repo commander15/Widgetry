@@ -1,27 +1,32 @@
 #include "dataselector.h"
-#include "dataselector_p.h"
 #include "ui_dataselector.h"
 
 #include <Widgetry/abstractdatacontroller.h>
+#include <Widgetry/dataquery.h>
 #include <Widgetry/dataresponse.h>
+
+#include <Jsoner/object.h>
+#include <Jsoner/array.h>
+
+#include <QtWidgets/qtableview.h>
 
 namespace Widgetry {
 
 DataSelector::DataSelector(QWidget *parent, Qt::WindowFlags flags)
     : QDialog(parent, flags)
     , ui(new Ui::DataSelector)
-    , d_ptr(new DataSelectorPrivate())
 {
     ui->setupUi(this);
 
-    ui->tableView->setModel(&d_ptr->model);
+    ui->selector->layout()->setContentsMargins(QMargins());
+    connect(ui->selector->tableView(), &QAbstractItemView::activated, this, [this](const QModelIndex &index) {
+        if (index.isValid())
+            accept();
+    });
 
-    //connect(ui->searchInput, &QLineEdit::textChanged, this, &DataSelector::fetchCompletions);
-    connect(ui->searchInput, &QLineEdit::textChanged, this, &DataSelector::autoSearch);
-    connect(ui->refreshButton, &QAbstractButton::clicked, this, &DataSelector::refresh);
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &DataSelector::closeDialog);
 
-    connect(&d_ptr->model, &DataTableModel::fetchRequested, this, &DataSelector::refresh);
+    addActions(ui->selector->actions());
 }
 
 DataSelector::~DataSelector()
@@ -31,125 +36,92 @@ DataSelector::~DataSelector()
 
 QString DataSelector::searchText() const
 {
-    return ui->searchInput->text();
+    return ui->selector->searchText();
 }
 
 DataQuery DataSelector::searchQuery() const
 {
-    return d_ptr->dataQuery;
+    return ui->selector->searchQuery();
 }
 
 void DataSelector::setSearchQuery(const DataQuery &query)
 {
-    d_ptr->dataQuery = query;
+    ui->selector->setSearchQuery(query);
 }
 
 void DataSelector::setHeader(int index, const QString &name)
 {
-    d_ptr->model.setHeaderData(index, Qt::Horizontal, name);
+    ui->selector->setHeader(index, name);
 }
 
 void DataSelector::setResizeMode(int index, QHeaderView::ResizeMode mode)
 {
-    ui->tableView->horizontalHeader()->setSectionResizeMode(index, mode);
+    ui->selector->setResizeMode(index, mode);
 }
 
 QStringList DataSelector::fields() const
 {
-    return d_ptr->model.fields();
+    return ui->selector->fields();
 }
 
 void DataSelector::setFields(const QStringList &fields)
 {
-    d_ptr->model.setFields(fields);
+    ui->selector->setFields(fields);
 }
 
 Jsoner::Object DataSelector::selectedObject() const
 {
-    const QModelIndex index = ui->tableView->currentIndex();
-    return (index.isValid() ? d_ptr->model.object(index.row()) : Jsoner::Object());
+    return ui->selector->selectedObject();
 }
 
 Jsoner::Array DataSelector::selectedObjects() const
 {
-    Jsoner::Array objects;
-    const QModelIndexList indexes = ui->tableView->selectionModel()->selectedRows();
-    const Jsoner::ItemModel *model = &d_ptr->model;
-
-    for (const QModelIndex &index : indexes)
-        objects.append(model->object(index.row()));
-
-    return objects;
+    return ui->selector->selectedObjects();
 }
 
 QTableView *DataSelector::tableView() const
 {
-    return ui->tableView;
+    return ui->selector->tableView();
 }
 
 AbstractDataController *DataSelector::dataController() const
 {
-    return d_ptr->dataController;
+    return ui->selector->dataController();
 }
 
 void DataSelector::setDataController(AbstractDataController *controller)
 {
-    d_ptr->dataController = controller;
+    ui->selector->setDataController(controller);
+}
+
+DataSelectorWidget *DataSelector::selectorWidget() const
+{
+    return ui->selector;
 }
 
 void DataSelector::search(const QString &query)
 {
-    ui->searchInput->setText(query);
-    refresh();
+    ui->selector->search(query);
 }
 
 void DataSelector::search(const DataQuery &query)
 {
-    ui->searchInput->setText(query.query());
-    d_ptr->dataQuery = query;
-    refresh();
+    ui->selector->search(query);
 }
 
 void DataSelector::refresh()
 {
-    if (!d_ptr->dataController)
-        return;
-
-    d_ptr->dataQuery.setQuery(ui->searchInput->text());
-
-    d_ptr->dataController->fetchObjects(d_ptr->dataQuery, [this](const DataResponse &response) {
-        if (response.isSuccess())
-            d_ptr->model.setArray(response.objects());
-        else
-            d_ptr->model.setArray(Jsoner::Array());
-    });
+    ui->selector->refresh();
 }
 
-void DataSelector::fetchCompletions(const QString &query)
+void DataSelector::clear()
 {
-    if (!d_ptr->dataController)
-        return;
-
-    DataQuery dataQuery;
-    dataQuery.setQuery(query);
-
-    d_ptr->dataController->fetchSuggestions(dataQuery, [this](const DataResponse &response) {
-        if (!response.isSuccess())
-            return;
-    });
-}
-
-void DataSelector::autoSearch(const QString &query)
-{
-    if (d_ptr->dataSearchThreshold < 0 || query.size() < d_ptr->dataSearchThreshold)
-        return;
-
-    refresh();
+    ui->selector->clear();
 }
 
 void DataSelector::closeDialog()
 {
-    if (ui->tableView->currentIndex().isValid())
+    if (ui->selector->tableView()->currentIndex().isValid())
         accept();
     else
         reject();

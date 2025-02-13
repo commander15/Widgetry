@@ -1,9 +1,9 @@
-#ifndef WIDGETRY_DATASELECTOR_H
-#define WIDGETRY_DATASELECTOR_H
+#ifndef WIDGETRY_DATASELECTORWIDGET_H
+#define WIDGETRY_DATASELECTORWIDGET_H
 
 #include <Widgetry/global.h>
 
-#include <QtWidgets/qdialog.h>
+#include <QtWidgets/qwidget.h>
 #include <QtWidgets/qheaderview.h>
 
 namespace Jsoner {
@@ -16,20 +16,20 @@ class QTableView;
 namespace Widgetry {
 
 namespace Ui {
-class DataSelector;
+class DataSelectorWidget;
 }
 
-class AbstractDataController;
 class DataQuery;
-class DataSelectorWidget;
+class AbstractDataController;
 
-class WIDGETRY_EXPORT DataSelector : public QDialog
+class DataSelectorWidgetPrivate;
+class WIDGETRY_EXPORT DataSelectorWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    DataSelector(QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
-    ~DataSelector();
+    DataSelectorWidget(QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
+    ~DataSelectorWidget();
 
     QString searchText() const;
 
@@ -50,8 +50,6 @@ public:
     AbstractDataController *dataController() const;
     void setDataController(AbstractDataController *controller);
 
-    DataSelectorWidget *selectorWidget() const;
-
 public slots:
     void search(const QString &query);
     void search(const DataQuery &query);
@@ -59,12 +57,14 @@ public slots:
     void clear();
 
 private slots:
-    void closeDialog();
+    void fetchCompletions(const QString &query);
+    void autoSearch(const QString &query);
 
 private:
-    Ui::DataSelector *ui;
+    Ui::DataSelectorWidget *ui;
+    QScopedPointer<DataSelectorWidgetPrivate> d_ptr;
 };
 
 } // namespace Widgetry
 
-#endif // WIDGETRY_DATASELECTOR_H
+#endif // WIDGETRY_DATASELECTORWIDGET_H
