@@ -75,7 +75,7 @@ DataInterface::~DataInterface()
 
 bool DataInterface::isOperationSupported(const QString &operation) const
 {
-    if (operation == "edit" || operation == "deleteItems")
+    if (operation == "editItem" || operation == "deleteItems")
         return ui->tableView->currentIndex().isValid();
 
     return UserInterface::isOperationSupported(operation);
