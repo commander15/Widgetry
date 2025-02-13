@@ -75,7 +75,7 @@ DataInterface::~DataInterface()
 
 bool DataInterface::isOperationSupported(const QString &operation) const
 {
-    return s_availableOperations.contains(operation);
+    return UserInterface::isOperationSupported(operation) || s_availableOperations.contains(operation);
 }
 
 QStringList DataInterface::availableOperations() const
