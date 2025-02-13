@@ -73,11 +73,6 @@ DataInterface::~DataInterface()
     delete ui;
 }
 
-bool DataInterface::isOperationSupported(const QString &operation) const
-{
-    return UserInterface::isOperationSupported(operation) || s_availableOperations.contains(operation);
-}
-
 QStringList DataInterface::availableOperations() const
 {
     return UserInterface::availableOperations() + s_availableOperations;
@@ -370,8 +365,9 @@ bool DataInterface::handleOperation(Operation *operation)
         return handleDeleteItems(parameters);
     }
 
-    return false;
+    return UserInterface::handleOperation(operation);
 }
+
 bool DataInterface::handleSearch(const QVariantHash &parameters)
 {
     search(parameters.value("query").toString());

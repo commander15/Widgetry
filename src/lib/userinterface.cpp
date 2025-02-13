@@ -52,8 +52,7 @@ QAction *UserInterface::action() const
 
 bool UserInterface::isOperationSupported(const QString &operation) const
 {
-    Q_UNUSED(operation);
-    return false;
+    return availableOperations().contains(operation);
 }
 
 QStringList UserInterface::supportedOperations() const
