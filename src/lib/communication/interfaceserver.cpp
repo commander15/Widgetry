@@ -35,7 +35,6 @@ void InterfaceServer::setCurrentIndex(int index)
         return;
 
     SimpleInterfaceHolder::setCurrentIndex(index);
-
     d->currentInterface = interface(index);
 
     emit currentIconChanged(d->currentInterface ? d->currentInterface->icon() : QIcon());
