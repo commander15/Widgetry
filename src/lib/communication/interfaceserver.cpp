@@ -35,13 +35,17 @@ void InterfaceServer::setCurrentIndex(int index)
         return;
 
     SimpleInterfaceHolder::setCurrentIndex(index);
-    emit currentIndexChanged(index);
 
     d->currentInterface = interface(index);
 
     emit currentIconChanged(d->currentInterface ? d->currentInterface->icon() : QIcon());
     emit currentTitleChanged(d->currentInterface ? d->currentInterface->title() : QString());
-    emit currentOperationSupportChanged("*", false);
+
+    const QStringList operations = (d->currentInterface ? d->currentInterface->availableOperations() : QStringList());
+    for (const QString &operation : operations)
+        emit currentOperationSupportChanged(operation, d->currentInterface->isOperationSupported(operation));
+
+    emit currentIndexChanged(index);
 }
 
 void InterfaceServer::sync()
