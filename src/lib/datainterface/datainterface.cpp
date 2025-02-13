@@ -73,6 +73,14 @@ DataInterface::~DataInterface()
     delete ui;
 }
 
+bool DataInterface::isOperationSupported(const QString &operation) const
+{
+    if (operation == "edit" || operation == "deleteItems")
+        return ui->tableView->currentIndex().isValid();
+
+    return UserInterface::isOperationSupported(operation);
+}
+
 QStringList DataInterface::availableOperations() const
 {
     return UserInterface::availableOperations() + s_availableOperations;
@@ -527,7 +535,7 @@ void DataInterface::executeDataRequest(DataControllerRawMethod method, const Dat
     (controller->*method)(prepareQuery(query), onProgress, onResponse);
 }
 
-QStringList DataInterface::s_availableOperations = { "search", "filter", "refresh", "showItem", "addItem", "editItem", "deleteItem" };
+QStringList DataInterface::s_availableOperations = { "search", "filter", "refresh", "showItem", "addItem", "editItem", "deleteItems" };
 
 DataInterfacePrivate::DataInterfacePrivate(DataInterface *q, const QByteArray &id)
     : UserInterfacePrivate(q, id)

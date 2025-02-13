@@ -142,18 +142,24 @@ void DataInterfaceForge::setTableModel(DataTableModel *model)
         ui->deleteButton->setEnabled(single || multiple);
     };
 
+    auto updateOperations = [this](int selectedRows) {
+        d_ptr->forgeInterface()->sync();
+    };
+
     QObject::connect(model, &DataTableModel::fetchRequested, d_ptr->forgeInterface(), &DataInterface::refresh);
 
-    QObject::connect(model, &QAbstractItemModel::modelReset, model, [updateButtons, this] {
+    QObject::connect(model, &QAbstractItemModel::modelReset, model, [updateButtons, updateOperations, this] {
         updateButtons(0);
+        updateOperations(0);
 
         QScrollBar *bar = ui->tableView->verticalScrollBar();
         bar->setValue(bar->minimum());
     });
 
     QItemSelectionModel *selectionModel = ui->tableView->selectionModel();
-    QObject::connect(selectionModel, &QItemSelectionModel::selectionChanged, selectionModel, [updateButtons, selectionModel](const QItemSelection &, const QItemSelection &) {
+    QObject::connect(selectionModel, &QItemSelectionModel::selectionChanged, selectionModel, [updateButtons, updateOperations, selectionModel](const QItemSelection &, const QItemSelection &) {
         updateButtons(selectionModel->selectedRows().count());
+        updateOperations(selectionModel->selectedRows().count());
     });
 
     ui->refreshButton->setEnabled(model);

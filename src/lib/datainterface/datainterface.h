@@ -35,6 +35,7 @@ public:
     DataInterface(const QByteArray &id, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
     virtual ~DataInterface();
 
+    bool isOperationSupported(const QString &operation) const override;
     QStringList availableOperations() const override;
 
     DataInterfaceForge *forge() const;
