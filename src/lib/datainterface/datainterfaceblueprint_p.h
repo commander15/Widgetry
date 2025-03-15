@@ -45,7 +45,7 @@ public:
     QStringList fields;
     QList<QHeaderView::ResizeMode> resizeModes;
     QAbstractItemDelegate *delegate = nullptr;
-    DataTableModel *model = nullptr;
+    DataGate::TableModel *model = nullptr;
 
     QMenu *contextMenu = nullptr;
     bool contextMenuAddDefaultActions = false;
@@ -53,7 +53,7 @@ public:
 
     AbstractDataEditFactory *editFactory = nullptr;
 
-    AbstractDataController *dataController = nullptr;
+    DataGate::AbstractDataController *dataController = nullptr;
 
     bool commit = true;
 

@@ -1,9 +1,9 @@
 #include "dataselector.h"
 #include "ui_dataselector.h"
 
-#include <Widgetry/abstractdatacontroller.h>
-#include <Widgetry/dataquery.h>
-#include <Widgetry/dataresponse.h>
+#include <DataGate/abstractdatacontroller.h>
+#include <DataGate/dataquery.h>
+#include <DataGate/dataresponse.h>
 
 #include <Jsoner/object.h>
 #include <Jsoner/array.h>
@@ -39,12 +39,12 @@ QString DataSelector::searchText() const
     return ui->selector->searchText();
 }
 
-DataQuery DataSelector::searchQuery() const
+DataGate::DataQuery DataSelector::searchQuery() const
 {
     return ui->selector->searchQuery();
 }
 
-void DataSelector::setSearchQuery(const DataQuery &query)
+void DataSelector::setSearchQuery(const DataGate::DataQuery &query)
 {
     ui->selector->setSearchQuery(query);
 }
@@ -84,12 +84,12 @@ QTableView *DataSelector::tableView() const
     return ui->selector->tableView();
 }
 
-AbstractDataController *DataSelector::dataController() const
+DataGate::AbstractDataController *DataSelector::dataController() const
 {
     return ui->selector->dataController();
 }
 
-void DataSelector::setDataController(AbstractDataController *controller)
+void DataSelector::setDataController(DataGate::AbstractDataController *controller)
 {
     ui->selector->setDataController(controller);
 }
@@ -104,7 +104,7 @@ void DataSelector::search(const QString &query)
     ui->selector->search(query);
 }
 
-void DataSelector::search(const DataQuery &query)
+void DataSelector::search(const DataGate::DataQuery &query)
 {
     ui->selector->search(query);
 }

@@ -1,11 +1,13 @@
 #include "datacontroller.h"
 
-#include <Widgetry/dataquery.h>
-#include <Widgetry/dataresponse.h>
+#include <DataGate/dataquery.h>
+#include <DataGate/dataresponse.h>
 
 #include <Jsoner/object.h>
 
 #include <QtCore/qrandom.h>
+
+using namespace DataGate;
 
 DataController::DataController()
 {
@@ -21,29 +23,29 @@ DataController::DataController()
     }
 }
 
-void DataController::fetchSomeSuggestions(const Widgetry::DataQuery &query, const Widgetry::DataQueryProgressCallback &onProgress, const Widgetry::DataQueryResponseCallback &onResponse)
+void DataController::fetchSomeSearchSuggestions(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
 {
     Jsoner::Array results;
     for (const QJsonValue &value : m_objects) {
         const QString key = value.toObject().value("name").toString();
-        if (key.startsWith(query.query(), Qt::CaseInsensitive))
+        if (key.startsWith(query.string(), Qt::CaseInsensitive))
             results.append(key);
     }
 
-    Widgetry::DataResponse response;
-    response.setObjects(results);
+    DataResponse response;
+    response.setArray(results);
     response.setSuccess(!results.isEmpty());
 
     onResponse(response);
 }
 
-void DataController::fetchManyObjects(const Widgetry::DataQuery &query, const Widgetry::DataQueryProgressCallback &onProgress, const Widgetry::DataQueryResponseCallback &onResponse)
+void DataController::fetchManyObjects(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
 {
     Jsoner::Array objects;
     for (const QJsonValue &value : m_objects) {
         const Jsoner::Object object = value.toObject();
 
-        const QString q = query.query();
+        const QString q = query.string();
         if (!q.isEmpty() && !object.string("name").contains(q)) {
             objects.append(object);
             continue;
@@ -77,9 +79,9 @@ void DataController::fetchManyObjects(const Widgetry::DataQuery &query, const Wi
     if (!sortField.isEmpty()) {
     }
 
-    Widgetry::DataResponse response;
+    DataResponse response;
     if (query.page() > 0 && query.page() <= m_objects.size()) {
-        response.setObjects(objects);
+        response.setArray(objects);
         response.setPage(query.page());
         response.setPageCount(pageCount);
         response.setSuccess(true);
@@ -87,11 +89,11 @@ void DataController::fetchManyObjects(const Widgetry::DataQuery &query, const Wi
     onResponse(response);
 }
 
-void DataController::fetchOneObject(const Widgetry::DataQuery &query, const Widgetry::DataQueryProgressCallback &onProgress, const Widgetry::DataQueryResponseCallback &onResponse)
+void DataController::fetchOneObject(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
 {
     const int id = query.object().integer("id");
 
-    Widgetry::DataResponse response;
+    DataResponse response;
     if (id <= m_objects.size()) {
         response.setObject(m_objects.at(id - 1));
         response.setSuccess(true);
@@ -99,23 +101,23 @@ void DataController::fetchOneObject(const Widgetry::DataQuery &query, const Widg
     onResponse(response);
 }
 
-void DataController::addOneObject(const Widgetry::DataQuery &query, const Widgetry::DataQueryProgressCallback &onProgress, const Widgetry::DataQueryResponseCallback &onResponse)
+void DataController::addOneObject(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
 {
     Jsoner::Object object = query.object();
     object.put("id", m_objects.size());
     m_objects.append(object);
 
-    Widgetry::DataResponse response;
+    DataResponse response;
     response.setObject(object);
     response.setSuccess(true);
     onResponse(response);
 }
 
-void DataController::editOneObject(const Widgetry::DataQuery &query, const Widgetry::DataQueryProgressCallback &onProgress, const Widgetry::DataQueryResponseCallback &onResponse)
+void DataController::editOneObject(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
 {
     const int id = query.object().integer("id");
 
-    Widgetry::DataResponse response;
+    DataResponse response;
     if (id <= m_objects.size()) {
         m_objects.replace(id - 1, query.object());
         response.setObject(query.object());
@@ -124,7 +126,7 @@ void DataController::editOneObject(const Widgetry::DataQuery &query, const Widge
     onResponse(response);
 }
 
-void DataController::deleteManyObjects(const Widgetry::DataQuery &query, const Widgetry::DataQueryProgressCallback &onProgress, const Widgetry::DataQueryResponseCallback &onResponse)
+void DataController::deleteManyObjects(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
 {
-    onResponse(Widgetry::DataResponse());
+    onResponse(DataResponse());
 }

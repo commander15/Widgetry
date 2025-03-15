@@ -4,7 +4,8 @@
 #include <Widgetry/datainterface.h>
 #include <Widgetry/datainterfaceforge.h>
 #include <Widgetry/abstractdataedit.h>
-#include <Widgetry/datatablemodel.h>
+
+#include <DataGate/tablemodel.h>
 
 #include <QtWidgets/qtableview.h>
 #include <QtWidgets/qmenu.h>
@@ -102,7 +103,7 @@ void DataInterfaceBlueprint::tableDelegate(QAbstractItemDelegate *delegate)
     d_ptr->delegate = delegate;
 }
 
-void DataInterfaceBlueprint::tableModel(DataTableModel *model)
+void DataInterfaceBlueprint::tableModel(DataGate::TableModel *model)
 {
     d_ptr->model = model;
 }
@@ -144,7 +145,7 @@ void DataInterfaceBlueprint::edit(AbstractDataEditFactory *factory)
     d_ptr->editFactory = factory;
 }
 
-void DataInterfaceBlueprint::dataController(AbstractDataController *controller)
+void DataInterfaceBlueprint::dataController(DataGate::AbstractDataController *controller)
 {
     d_ptr->dataController = controller;
 }
@@ -212,9 +213,9 @@ void DataInterfaceBlueprintPrivate::buildTable(bool init)
     if (delegate)
         forge->tableView()->setItemDelegate(delegate);
 
-    DataTableModel *model;
+    DataGate::TableModel *model;
     if (init) {
-        model = (this->model ? this->model : new DataTableModel(interface));
+        model = (this->model ? this->model : new DataGate::TableModel(interface));
         model->setFields(fields);
         forge->setTableModel(model);
     } else {

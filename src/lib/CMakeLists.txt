@@ -22,7 +22,6 @@ target_sources(Widgetry
 add_subdirectory(communication)
 add_subdirectory(datainterface)
 add_subdirectory(input)
-add_subdirectory(data)
 
 if (BUILD_SHARED_LIBS)
     set(TYPE SHARED)
@@ -39,7 +38,7 @@ target_compile_definitions(Widgetry
         WIDGETRY_BUILD
 )
 
-target_link_libraries(Widgetry PUBLIC Qt::Widgets Jsoner::Jsoner)
+target_link_libraries(Widgetry PUBLIC Qt::Widgets DataGate::DataGate Jsoner::Jsoner)
 
 generate_target_headers(Widgetry FOLDER Widgetry)
 

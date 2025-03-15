@@ -5,7 +5,8 @@
 
 #include <Widgetry/datainterface.h>
 #include <Widgetry/dataedit.h>
-#include <Widgetry/datatablemodel.h>
+
+#include <DataGate/tablemodel.h>
 
 #include <QtWidgets/qmenu.h>
 #include <QtWidgets/qdialog.h>
@@ -94,7 +95,7 @@ QTableView *DataInterfaceForge::tableView() const
     return ui->tableView;
 }
 
-DataTableModel *DataInterfaceForge::tableModel() const
+DataGate::TableModel *DataInterfaceForge::tableModel() const
 {
     return d_ptr->tableModel;
 }
@@ -131,7 +132,7 @@ void DataInterfaceForge::setFilterWidget(AbstractDataEdit *widget)
     d_ptr->filterWidget = widget;
 }
 
-void DataInterfaceForge::setTableModel(DataTableModel *model)
+void DataInterfaceForge::setTableModel(DataGate::TableModel *model)
 {
     ui->tableView->setModel(model);
 
@@ -145,8 +146,6 @@ void DataInterfaceForge::setTableModel(DataTableModel *model)
     auto updateOperations = [this](int selectedRows) {
         d_ptr->forgeInterface()->sync();
     };
-
-    QObject::connect(model, &DataTableModel::fetchRequested, d_ptr->forgeInterface(), &DataInterface::refresh);
 
     QObject::connect(model, &QAbstractItemModel::modelReset, model, [updateButtons, updateOperations, this] {
         updateButtons(0);

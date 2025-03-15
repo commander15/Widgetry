@@ -11,13 +11,16 @@
 
 #include <QtCore/qscopedpointer.h>
 
+namespace DataGate {
+class TableModel;
+class AbstractDataController;
+}
+
 namespace Widgetry {
 
 class DataInterface;
 class AbstractDataEdit;
 class AbstractDataEditFactory;
-class DataTableModel;
-class AbstractDataController;
 
 class DataInterfaceBlueprintPrivate;
 class WIDGETRY_EXPORT DataInterfaceBlueprint
@@ -54,7 +57,7 @@ public:
     void tableDelegate(QAbstractItemDelegate *delegate);
 
     template<typename T> T *tableModel(QObject *parent = nullptr);
-    void tableModel(DataTableModel *model);
+    void tableModel(DataGate::TableModel *model);
 
     QMenu *contextMenu(bool addDefaultActions = true);
     void contextMenu(QMenu *menu, bool addDefaultActions = true);
@@ -70,7 +73,7 @@ public:
     void edit(AbstractDataEditFactory *factory);
 
     template<typename T> T *dataController();
-    void dataController(AbstractDataController *controller);
+    void dataController(DataGate::AbstractDataController *controller);
 
     DataInterface *interface() const;
 

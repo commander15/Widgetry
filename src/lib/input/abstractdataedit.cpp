@@ -174,7 +174,7 @@ void AbstractDataEdit::finishEditing(int result)
     }
 }
 
-void AbstractDataEdit::handleResponse(const DataResponse &response)
+void AbstractDataEdit::handleResponse(const DataGate::DataResponse &response)
 {
     Q_UNUSED(response);
 }

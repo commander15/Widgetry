@@ -4,12 +4,12 @@
 #include <Widgetry/global.h>
 #include <Widgetry/userinterface.h>
 #include <Widgetry/abstractdataedit.h>
-#include <Widgetry/abstractdatacontroller.h>
+
+#include <DataGate/abstractdatacontroller.h>
 
 namespace Jsoner {
 class Object;
 class Array;
-class TableModel;
 }
 
 namespace Widgetry {
@@ -19,11 +19,8 @@ class DataInterface;
 }
 
 class DataInterfaceForge;
-class AbstractDataController;
-class DataQuery;
-class DataResponse;
 
-typedef void(AbstractDataController::*DataControllerRawMethod)(const DataQuery &, const DataQueryProgressCallback &, const DataQueryResponseCallback &);
+typedef void(DataGate::AbstractDataController::*DataControllerRawMethod)(const DataGate::DataQuery &, const DataGate::DataQueryProgressCallback &, const DataGate::DataQueryResponseCallback &);
 
 class DataInterfacePrivate;
 class WIDGETRY_EXPORT DataInterface : public UserInterface
@@ -40,8 +37,8 @@ public:
 
     DataInterfaceForge *forge() const;
 
-    virtual AbstractDataController *dataController() const;
-    void setDataController(AbstractDataController *controller);
+    virtual DataGate::AbstractDataController *dataController() const;
+    void setDataController(DataGate::AbstractDataController *controller);
 
 public slots:
     void search(const QString &query);
@@ -89,19 +86,19 @@ protected:
 
     void handleOperationResult(const Operation &operation) override;
 
-    virtual DataQuery prepareQuery(const DataQuery &query) const;
+    virtual DataGate::DataQuery prepareQuery(const DataGate::DataQuery &query) const;
 
     DataEditFinishedCallback editCallback(AbstractDataEdit::Operation operation) const;
 
 protected:
     virtual void showMaxWindowMessage(int activeEdits, int maxActiveEdits);
-    void showResponseMessage(const QString &title, const DataResponse &response);
-    void showResponseMessage(const QString &title, const QString &text, const DataResponse &response);
+    void showResponseMessage(const QString &title, const DataGate::DataResponse &response);
+    void showResponseMessage(const QString &title, const QString &text, const DataGate::DataResponse &response);
 
     void fetchSearchSuggestions(const QString &query);
-    void preFetch(const DataQuery &query, const std::function<void(const Jsoner::Object &object)> &callback);
-    void executeDataRequest(DataControllerRawMethod method, const DataQuery &query);
-    void executeDataRequest(DataControllerRawMethod method, const DataQuery &query, const DataQueryResponseCallback &callback);
+    void preFetch(const DataGate::DataQuery &query, const std::function<void(const Jsoner::Object &object)> &callback);
+    void executeDataRequest(DataControllerRawMethod method, const DataGate::DataQuery &query);
+    void executeDataRequest(DataControllerRawMethod method, const DataGate::DataQuery &query, const DataGate::DataQueryResponseCallback &callback);
 
     friend class DataInterfaceForge;
 
@@ -111,6 +108,7 @@ private:
     Ui::DataInterface *ui;
 
     static QStringList s_availableOperations;
+    static QStringList s_permissions;
 
     friend class DataInterfacePrivate;
     friend class AbstractDataEditFactory;

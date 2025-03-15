@@ -3,19 +3,19 @@
 
 #include "dataselectorwidget.h"
 
-#include <Widgetry/datatablemodel.h>
-#include <Widgetry/dataquery.h>
+#include <DataGate/tablemodel.h>
+#include <DataGate/dataquery.h>
 
 namespace Widgetry {
 
 class DataSelectorWidgetPrivate
 {
 public:
-    DataTableModel model;
+    DataGate::TableModel model;
 
     int dataSearchThreshold = 3;
-    DataQuery dataQuery;
-    AbstractDataController *dataController = nullptr;
+    DataGate::DataQuery dataQuery;
+    DataGate::AbstractDataController *dataController = nullptr;
 };
 
 } // namespace Widgetry

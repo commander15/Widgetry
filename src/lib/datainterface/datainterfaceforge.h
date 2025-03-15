@@ -14,6 +14,10 @@ class QTableView;
 class QSpinBox;
 class QMenu;
 
+namespace DataGate {
+class TableModel;
+}
+
 namespace Jsoner {
 class Object;
 class Array;
@@ -27,7 +31,6 @@ class DataInterface;
 
 class AbstractDataEdit;
 class AbstractDataEditFactory;
-class DataTableModel;
 
 class DataInterfaceForgePrivate;
 class WIDGETRY_EXPORT DataInterfaceForge : public QObject
@@ -57,7 +60,7 @@ public:
     QAbstractButton *filterButton() const;
 
     QTableView *tableView() const;
-    DataTableModel *tableModel() const;
+    DataGate::TableModel *tableModel() const;
 
     QSpinBox *pageInput() const;
     QAbstractButton *previousPageButton() const;
@@ -68,7 +71,7 @@ public:
 
 public:
     void setFilterWidget(AbstractDataEdit *widget);
-    void setTableModel(DataTableModel *model);
+    void setTableModel(DataGate::TableModel *model);
     void setDataEdit(AbstractDataEditFactory *factory);
     void setContextMenu(QMenu *menu, bool addDefaultActions = true);
 

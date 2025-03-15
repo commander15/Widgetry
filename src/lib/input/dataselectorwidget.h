@@ -6,6 +6,11 @@
 #include <QtWidgets/qwidget.h>
 #include <QtWidgets/qheaderview.h>
 
+namespace DataGate {
+class DataQuery;
+class AbstractDataController;
+}
+
 namespace Jsoner {
 class Object;
 class Array;
@@ -19,9 +24,6 @@ namespace Ui {
 class DataSelectorWidget;
 }
 
-class DataQuery;
-class AbstractDataController;
-
 class DataSelectorWidgetPrivate;
 class WIDGETRY_EXPORT DataSelectorWidget : public QWidget
 {
@@ -33,8 +35,8 @@ public:
 
     QString searchText() const;
 
-    DataQuery searchQuery() const;
-    void setSearchQuery(const DataQuery &query);
+    DataGate::DataQuery searchQuery() const;
+    void setSearchQuery(const DataGate::DataQuery &query);
 
     void setHeader(int index, const QString &name);
     void setResizeMode(int index, QHeaderView::ResizeMode mode);
@@ -47,12 +49,12 @@ public:
 
     QTableView *tableView() const;
 
-    AbstractDataController *dataController() const;
-    void setDataController(AbstractDataController *controller);
+    DataGate::AbstractDataController *dataController() const;
+    void setDataController(DataGate::AbstractDataController *controller);
 
 public slots:
     void search(const QString &query);
-    void search(const DataQuery &query);
+    void search(const DataGate::DataQuery &query);
     void refresh();
     void clear();
 

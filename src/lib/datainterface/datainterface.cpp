@@ -3,12 +3,14 @@
 #include "ui_datainterface.h"
 
 #include <Widgetry/operation.h>
-#include <Widgetry/abstractdatacontroller.h>
-#include <Widgetry/dataquery.h>
-#include <Widgetry/dataresponse.h>
 #include <Widgetry/dataedit.h>
 #include <Widgetry/abstractdataeditfactory.h>
-#include <Widgetry/datatablemodel.h>
+
+#include <DataGate/abstractdatacontroller.h>
+#include <DataGate/dataquery.h>
+#include <DataGate/dataresponse.h>
+#include <DataGate/tablemodel.h>
+#include <DataGate/permissionmanager.h>
 
 #include <Jsoner/object.h>
 
@@ -16,6 +18,8 @@
 #include <QtWidgets/qmenu.h>
 
 #include <QtCore/qstringlistmodel.h>
+
+using namespace DataGate;
 
 namespace Widgetry {
 
@@ -75,6 +79,14 @@ DataInterface::~DataInterface()
 
 bool DataInterface::isOperationSupported(const QString &operation) const
 {
+    int index = s_availableOperations.indexOf(operation);
+    if (index == -1)
+        return UserInterface::isOperationSupported(operation);
+
+    const QString permission = s_permissions.at(index);
+    if (!PermissionManager::hasPermission(permission))
+        return false;
+
     if (operation == "editItem" || operation == "deleteItems")
         return ui->tableView->currentIndex().isValid();
 
@@ -92,13 +104,13 @@ DataInterfaceForge *DataInterface::forge() const
     return d->forge;
 }
 
-AbstractDataController *DataInterface::dataController() const
+DataGate::AbstractDataController *DataInterface::dataController() const
 {
     WIDGETRY_D(const DataInterface);
     return d->dataController;
 }
 
-void DataInterface::setDataController(AbstractDataController *controller)
+void DataInterface::setDataController(DataGate::AbstractDataController *controller)
 {
     WIDGETRY_D(DataInterface);
     d->dataController = controller;
@@ -129,7 +141,7 @@ void DataInterface::refresh()
         return;
 
     DataQuery query;
-    query.setQuery(ui->searchInput->text());
+    query.setString(ui->searchInput->text());
     if (d->filterWidget)
         query.setFilters(d->filterWidget->object().toVariantHash());
     if (!d->tableModel->sortField().isEmpty())
@@ -142,7 +154,7 @@ void DataInterface::refresh()
             return;
         }
 
-        d->tableModel->setArray(response.objects());
+        d->tableModel->setArray(response.array());
 
         ui->pageInput->setMaximum(response.pageCount());
         ui->pageInput->setValue(response.page());
@@ -423,7 +435,7 @@ void DataInterface::handleOperationResult(const Operation &operation)
     Q_UNUSED(operation);
 }
 
-DataQuery DataInterface::prepareQuery(const DataQuery &query) const
+DataGate::DataQuery DataInterface::prepareQuery(const DataGate::DataQuery &query) const
 {
     return query;
 }
@@ -481,21 +493,21 @@ void DataInterface::fetchSearchSuggestions(const QString &query)
     WIDGETRY_D(DataInterface);
 
     DataQuery dataQuery;
-    dataQuery.setQuery(query);
+    dataQuery.setString(query);
 
-    executeDataRequest(&AbstractDataController::fetchSuggestions, dataQuery, [d](const DataResponse &response) {
+    executeDataRequest(&AbstractDataController::fetchSearchSuggestions, dataQuery, [d](const DataGate::DataResponse &response) {
         if (!response.isSuccess())
             return;
 
         QStringList suggestions;
-        const Jsoner::Array data = response.objects();
+        const Jsoner::Array data = response.array();
         for (const QJsonValue &value : data)
             suggestions.append(value.toString());
         d->completionModel->setStringList(suggestions);
     });
 }
 
-void DataInterface::preFetch(const DataQuery &query, const std::function<void (const Jsoner::Object &)> &callback)
+void DataInterface::preFetch(const DataGate::DataQuery &query, const std::function<void (const Jsoner::Object &)> &callback)
 {
     executeDataRequest(&AbstractDataController::fetchObject, query, [this, callback](const DataResponse &response) {
         if (!response.isSuccess()) {
@@ -507,7 +519,7 @@ void DataInterface::preFetch(const DataQuery &query, const std::function<void (c
     });
 }
 
-void DataInterface::executeDataRequest(DataControllerRawMethod method, const DataQuery &query)
+void DataInterface::executeDataRequest(DataControllerRawMethod method, const DataGate::DataQuery &query)
 {
     executeDataRequest(method, query, [this](const DataResponse &response) {
         if (!response.text().isEmpty() || !response.informativeText().isEmpty())
@@ -515,7 +527,7 @@ void DataInterface::executeDataRequest(DataControllerRawMethod method, const Dat
     });
 }
 
-void DataInterface::executeDataRequest(DataControllerRawMethod method, const DataQuery &query, const DataQueryResponseCallback &callback)
+void DataInterface::executeDataRequest(DataControllerRawMethod method, const DataGate::DataQuery &query, const DataGate::DataQueryResponseCallback &callback)
 {
     AbstractDataController *controller = dataController();
     if (!controller)
@@ -536,6 +548,7 @@ void DataInterface::executeDataRequest(DataControllerRawMethod method, const Dat
 }
 
 QStringList DataInterface::s_availableOperations = { "search", "filter", "refresh", "showItem", "addItem", "editItem", "deleteItems" };
+QStringList DataInterface::s_permissions = { "search", "filter", "refresh", "show", "add", "edit", "delete" };
 
 DataInterfacePrivate::DataInterfacePrivate(DataInterface *q, const QByteArray &id)
     : UserInterfacePrivate(q, id)

@@ -21,7 +21,7 @@ public:
 
     AbstractDataEdit *filterWidget = nullptr;
 
-    DataTableModel *tableModel = nullptr;
+    DataGate::TableModel *tableModel = nullptr;
 
     QMenu *contextMenu = nullptr;
     QAction *showAction = nullptr;

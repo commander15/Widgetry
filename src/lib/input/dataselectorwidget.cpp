@@ -2,8 +2,10 @@
 #include "dataselectorwidget_p.h"
 #include "ui_dataselectorwidget.h"
 
-#include <Widgetry/abstractdatacontroller.h>
-#include <Widgetry/dataresponse.h>
+#include <DataGate/abstractdatacontroller.h>
+#include <DataGate/dataresponse.h>
+
+using namespace DataGate;
 
 namespace Widgetry {
 
@@ -20,7 +22,7 @@ DataSelectorWidget::DataSelectorWidget(QWidget *parent, Qt::WindowFlags flags)
     connect(ui->searchInput, &QLineEdit::textChanged, this, &DataSelectorWidget::autoSearch);
     connect(ui->refreshButton, &QAbstractButton::clicked, this, &DataSelectorWidget::refresh);
 
-    connect(&d_ptr->model, &DataTableModel::fetchRequested, this, &DataSelectorWidget::refresh);
+    connect(&d_ptr->model, &TableModel::fetchRequested, this, &DataSelectorWidget::refresh);
 
     addAction(ui->actionGoToSearchBar);
     addAction(ui->actionTriggerSearch);
@@ -41,9 +43,9 @@ DataQuery DataSelectorWidget::searchQuery() const
     return d_ptr->dataQuery;
 }
 
-void DataSelectorWidget::setSearchQuery(const DataQuery &query)
+void DataSelectorWidget::setSearchQuery(const DataGate::DataQuery &query)
 {
-    ui->searchInput->setText(query.query());
+    ui->searchInput->setText(query.string());
     d_ptr->dataQuery = query;
 }
 
@@ -90,12 +92,12 @@ QTableView *DataSelectorWidget::tableView() const
     return ui->tableView;
 }
 
-AbstractDataController *DataSelectorWidget::dataController() const
+DataGate::AbstractDataController *DataSelectorWidget::dataController() const
 {
     return d_ptr->dataController;
 }
 
-void DataSelectorWidget::setDataController(AbstractDataController *controller)
+void DataSelectorWidget::setDataController(DataGate::AbstractDataController *controller)
 {
     d_ptr->dataController = controller;
 }
@@ -108,7 +110,7 @@ void DataSelectorWidget::search(const QString &query)
 
 void DataSelectorWidget::search(const DataQuery &query)
 {
-    ui->searchInput->setText(query.query());
+    ui->searchInput->setText(query.string());
     d_ptr->dataQuery = query;
     refresh();
 }
@@ -118,11 +120,11 @@ void DataSelectorWidget::refresh()
     if (!d_ptr->dataController)
         return;
 
-    d_ptr->dataQuery.setQuery(ui->searchInput->text());
+    d_ptr->dataQuery.setString(ui->searchInput->text());
 
     d_ptr->dataController->fetchObjects(d_ptr->dataQuery, [this](const DataResponse &response) {
         if (response.isSuccess())
-            d_ptr->model.setArray(response.objects());
+            d_ptr->model.setArray(response.array());
         else
             d_ptr->model.setArray(Jsoner::Array());
     });
@@ -140,9 +142,9 @@ void DataSelectorWidget::fetchCompletions(const QString &query)
         return;
 
     DataQuery dataQuery;
-    dataQuery.setQuery(query);
+    dataQuery.setString(query);
 
-    d_ptr->dataController->fetchSuggestions(dataQuery, [this](const DataResponse &response) {
+    d_ptr->dataController->fetchSearchSuggestions(dataQuery, [this](const DataResponse &response) {
         if (!response.isSuccess())
             return;
     });

@@ -15,6 +15,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(cmake/Utils.cmake)
 
 find_package(Qt REQUIRED COMPONENTS Core Gui Widgets)
+find_package(DataGate REQUIRED)
 find_package(Jsoner REQUIRED)
 
 add_subdirectory(src)
