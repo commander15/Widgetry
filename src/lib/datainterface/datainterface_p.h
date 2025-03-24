@@ -21,7 +21,6 @@ public:
     DataEditFinishedCallback editCallback;
 
     DataInterfaceForge *forge;
-    DataGate::AbstractDataController *dataController;
 };
 
 } // namespace Widgetry

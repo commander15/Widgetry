@@ -98,22 +98,36 @@ QStringList DataInterface::availableOperations() const
     return UserInterface::availableOperations() + s_availableOperations;
 }
 
-DataInterfaceForge *DataInterface::forge() const
+Jsoner::Object DataInterface::currentObject() const
 {
-    WIDGETRY_D(DataInterface);
-    return d->forge;
+    WIDGETRY_D(const DataInterface);
+    const int index = ui->tableView->currentIndex().row();
+    return (index >= 0 ? d->tableModel->object(index) : Jsoner::Object());
 }
 
-DataGate::AbstractDataController *DataInterface::dataController() const
+Jsoner::Array DataInterface::selectedObjects() const
+{
+    WIDGETRY_D(const DataInterface);
+
+    QItemSelectionModel *model = ui->tableView->selectionModel();
+    const QModelIndexList indexes = (model ? model->selectedRows() : QModelIndexList());
+
+    Jsoner::Array objects;
+    for (const QModelIndex &index : indexes)
+        objects.append(d->tableModel->object(index.row()));
+    return objects;
+}
+
+AbstractDataController *DataInterface::dataController() const
 {
     WIDGETRY_D(const DataInterface);
     return d->dataController;
 }
 
-void DataInterface::setDataController(DataGate::AbstractDataController *controller)
+DataInterfaceForge *DataInterface::forge() const
 {
     WIDGETRY_D(DataInterface);
-    d->dataController = controller;
+    return d->forge;
 }
 
 void DataInterface::search(const QString &query)
@@ -140,29 +154,14 @@ void DataInterface::refresh()
     if (!d->dataController)
         return;
 
-    DataQuery query;
-    query.setString(ui->searchInput->text());
+    TableModel *model = d->tableModel;
+    model->setQuery(ui->searchInput->text());
     if (d->filterWidget)
-        query.setFilters(d->filterWidget->object().toVariantHash());
-    if (!d->tableModel->sortField().isEmpty())
-        query.setSort(d->tableModel->sortField(), d->tableModel->sortOrder());
-    query.setPage(ui->pageInput->value() > 0 ? ui->pageInput->value() : 1);
+        model->setFilters(d->filterWidget->object().toVariantHash());
+    model->setPage(ui->pageInput->value());
+    model->get(prepareQuery(model->dataQuery()));
 
-    executeDataRequest(&AbstractDataController::fetchObjects, query, [this, d](const DataResponse &response) {
-        if (!response.isSuccess()) {
-            showResponseMessage(tr("Error during data download !"), response);
-            return;
-        }
-
-        d->tableModel->setArray(response.array());
-
-        ui->pageInput->setMaximum(response.pageCount());
-        ui->pageInput->setValue(response.page());
-        ui->pageInput->setSuffix(" / " + QString::number(response.pageCount()));
-
-        ui->previousPageButton->setEnabled(response.page() > 1);
-        ui->nextPageButton->setEnabled(response.page() < response.pageCount());
-    });
+    beginRequest();
 }
 
 void DataInterface::showCurrentItem()
@@ -262,26 +261,6 @@ void DataInterface::translateUi(bool full)
     UserInterface::translateUi();
 }
 
-Jsoner::Object DataInterface::currentObject() const
-{
-    WIDGETRY_D(const DataInterface);
-    const int index = ui->tableView->currentIndex().row();
-    return (index >= 0 ? d->tableModel->object(index) : Jsoner::Object());
-}
-
-Jsoner::Array DataInterface::selectedObjects() const
-{
-    WIDGETRY_D(const DataInterface);
-
-    QItemSelectionModel *model = ui->tableView->selectionModel();
-    const QModelIndexList indexes = (model ? model->selectedRows() : QModelIndexList());
-
-    Jsoner::Array objects;
-    for (const QModelIndex &index : indexes)
-        objects.append(d->tableModel->object(index.row()));
-    return objects;
-}
-
 void DataInterface::showObject(const Jsoner::Object &object)
 {
     WIDGETRY_D(DataInterface);
@@ -331,6 +310,8 @@ void DataInterface::editObject(const Jsoner::Object &object, const DataEditFinis
         const int count = d->dataEditFactory->editCount();
         showMaxWindowMessage(count, count);
     }
+
+    Q_UNUSED(edit); // Just to calm down static code analyzer
 }
 
 void DataInterface::showContextMenu(const Jsoner::Array &objects, const QPoint &pos)
@@ -408,7 +389,10 @@ bool DataInterface::handleRefresh(const QVariantHash &parameters)
 
 bool DataInterface::handleShowItem(const QVariantHash &parameters)
 {
-    showItem(parameters.value("item").toJsonObject());
+    if (parameters.contains("item"))
+        showItem(parameters.value("item").toJsonObject());
+    else
+        showCurrentItem();
     return true;
 }
 
@@ -420,13 +404,19 @@ bool DataInterface::handleAddItem(const QVariantHash &parameters)
 
 bool DataInterface::handleEditItem(const QVariantHash &parameters)
 {
-    editItem(parameters.value("item").toJsonObject());
+    if (parameters.contains("item"))
+        editItem(parameters.value("item").toJsonObject());
+    else
+        editCurrentItem();
     return true;
 }
 
 bool DataInterface::handleDeleteItems(const QVariantHash &parameters)
 {
-    deleteItems(parameters.value("items").toJsonArray());
+    if (parameters.contains("items"))
+        deleteItems(parameters.value("items").toJsonArray());
+    else
+        deleteSelectedItems();
     return true;
 }
 
@@ -488,25 +478,6 @@ void DataInterface::showResponseMessage(const QString &title, const QString &tex
     box.exec();
 }
 
-void DataInterface::fetchSearchSuggestions(const QString &query)
-{
-    WIDGETRY_D(DataInterface);
-
-    DataQuery dataQuery;
-    dataQuery.setString(query);
-
-    executeDataRequest(&AbstractDataController::fetchSearchSuggestions, dataQuery, [d](const DataGate::DataResponse &response) {
-        if (!response.isSuccess())
-            return;
-
-        QStringList suggestions;
-        const Jsoner::Array data = response.array();
-        for (const QJsonValue &value : data)
-            suggestions.append(value.toString());
-        d->completionModel->setStringList(suggestions);
-    });
-}
-
 void DataInterface::preFetch(const DataGate::DataQuery &query, const std::function<void (const Jsoner::Object &)> &callback)
 {
     executeDataRequest(&AbstractDataController::fetchObject, query, [this, callback](const DataResponse &response) {
@@ -529,7 +500,9 @@ void DataInterface::executeDataRequest(DataControllerRawMethod method, const Dat
 
 void DataInterface::executeDataRequest(DataControllerRawMethod method, const DataGate::DataQuery &query, const DataGate::DataQueryResponseCallback &callback)
 {
-    AbstractDataController *controller = dataController();
+    WIDGETRY_D(DataInterface);
+
+    AbstractDataController *controller = d->dataController;
     if (!controller)
         return;
 
@@ -553,7 +526,6 @@ QStringList DataInterface::s_permissions = { "search", "filter", "refresh", "sho
 DataInterfacePrivate::DataInterfacePrivate(DataInterface *q, const QByteArray &id)
     : UserInterfacePrivate(q, id)
     , forge(new DataInterfaceForge(this))
-    , dataController(nullptr)
 {
 }
 

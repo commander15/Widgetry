@@ -67,7 +67,6 @@ void DataInterfaceBlueprint::action(QAction *action)
 void DataInterfaceBlueprint::search(bool allowed)
 {
     d_ptr->searchAllowed = allowed;
-    d_ptr->seachChanged = true;
 }
 
 void DataInterfaceBlueprint::button(QAbstractButton *button)
@@ -101,11 +100,6 @@ int DataInterfaceBlueprint::tableHeader(const QString &field, QHeaderView::Resiz
 void DataInterfaceBlueprint::tableDelegate(QAbstractItemDelegate *delegate)
 {
     d_ptr->delegate = delegate;
-}
-
-void DataInterfaceBlueprint::tableModel(DataGate::TableModel *model)
-{
-    d_ptr->model = model;
 }
 
 QMenu *DataInterfaceBlueprint::contextMenu(bool addDefaultActions)
@@ -155,6 +149,11 @@ DataInterface *DataInterfaceBlueprint::interface() const
     return d_ptr->interface;
 }
 
+void DataInterfaceBlueprint::forge(const std::function<void (DataInterfaceForge *)> &callback)
+{
+    d_ptr->forgeCallback = callback;
+}
+
 bool DataInterfaceBlueprint::isInit() const
 {
     return !d_ptr->forge->isBluePrinted();
@@ -169,6 +168,9 @@ DataInterfaceBlueprintPrivate::DataInterfaceBlueprintPrivate(DataInterface *inte
 bool DataInterfaceBlueprintPrivate::build(bool init)
 {
     if (commit) {
+        if (init)
+            buildDataController();
+
         buildInterface(init);
         buildTable(init);
         buildContextMenu(init);
@@ -176,14 +178,24 @@ bool DataInterfaceBlueprintPrivate::build(bool init)
         if (init) {
             buildEdit();
             buildFilter();
-            buildDataController();
         }
+
+        if (forgeCallback)
+            forgeCallback(forge);
 
         return true;
     } else {
         cleanup();
         return false;
     }
+}
+
+void DataInterfaceBlueprintPrivate::buildDataController()
+{
+    if (!dataController)
+        return;
+
+    forge->setDataController(dataController);
 }
 
 void DataInterfaceBlueprintPrivate::buildInterface(bool init)
@@ -199,8 +211,7 @@ void DataInterfaceBlueprintPrivate::buildInterface(bool init)
     if (interfaceAction)
         interface->setAction(interfaceAction);
 
-    if (seachChanged)
-        forge->searchBar()->setEnabled(searchAllowed);
+    forge->searchBar()->setEnabled(searchAllowed);
 
     for (QAbstractButton *button : std::as_const(buttons))
         forge->addButton(button);
@@ -208,19 +219,13 @@ void DataInterfaceBlueprintPrivate::buildInterface(bool init)
 
 void DataInterfaceBlueprintPrivate::buildTable(bool init)
 {
-    QTableView *tableView = forge->tableView();
-
     if (delegate)
         forge->tableView()->setItemDelegate(delegate);
 
-    DataGate::TableModel *model;
-    if (init) {
-        model = (this->model ? this->model : new DataGate::TableModel(interface));
-        model->setFields(fields);
-        forge->setTableModel(model);
-    } else {
-        model = forge->tableModel();
-    }
+    DataGate::TableModel *model = forge->tableModel();
+
+    if (init)
+        model->setFields(this->fields);
 
     QHeaderView *header = forge->tableView()->horizontalHeader();
     for (int i(0); i < fields.size(); ++i) {
@@ -285,14 +290,6 @@ void DataInterfaceBlueprintPrivate::buildFilter()
         return;
 
     forge->setFilterWidget(filter);
-}
-
-void DataInterfaceBlueprintPrivate::buildDataController()
-{
-    if (!dataController)
-        return;
-
-    interface->setDataController(dataController);
 }
 
 void DataInterfaceBlueprintPrivate::cleanup()

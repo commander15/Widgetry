@@ -37,6 +37,9 @@ UserInterface::~UserInterface()
 
 void UserInterface::selectIt()
 {
+    operate("editItem");
+    return;
+
     Widgetry::DataSelector selector(this);
     selector.setWindowTitle(tr("User selector"));
     selector.setDataController(dataController());

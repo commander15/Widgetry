@@ -56,9 +56,6 @@ public:
     template<typename T> T *tableDelegate(QObject *parent = nullptr);
     void tableDelegate(QAbstractItemDelegate *delegate);
 
-    template<typename T> T *tableModel(QObject *parent = nullptr);
-    void tableModel(DataGate::TableModel *model);
-
     QMenu *contextMenu(bool addDefaultActions = true);
     void contextMenu(QMenu *menu, bool addDefaultActions = true);
 
@@ -76,6 +73,8 @@ public:
     void dataController(DataGate::AbstractDataController *controller);
 
     DataInterface *interface() const;
+
+    void forge(const std::function<void(DataInterfaceForge *forge)> &callback);
 
 private:
     bool isInit() const;
@@ -128,14 +127,6 @@ inline T *DataInterfaceBlueprint::tableDelegate(QObject *parent)
     T *delegate = new T(parent ? parent : interface());
     tableDelegate(delegate);
     return delegate;
-}
-
-template<typename T>
-inline T *DataInterfaceBlueprint::tableModel(QObject *parent)
-{
-    T *model = new T(parent ? parent : interface());
-    tableModel(model);
-    return model;
 }
 
 template<typename Functor>

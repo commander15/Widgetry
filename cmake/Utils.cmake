@@ -1,3 +1,5 @@
+option(Widgetry_SHOW_HEADERS "add headers on targets as sources" ON)
+
 function(target_headers target)
     set(options)
     set(oneValueArgs)
@@ -14,6 +16,10 @@ function(target_headers target)
     if (ARG_PRIVATE)
         list(TRANSFORM ARG_PRIVATE PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/)
         set_property(TARGET ${target} APPEND PROPERTY PRIVATE_HEADER ${ARG_PRIVATE})
+    endif()
+    
+    if (Widgetry_SHOW_HEADERS)
+        target_sources(${target} PRIVATE ${ARG_PUBLIC} ${ARG_PRIVATE})
     endif()
 endfunction()
 
@@ -46,10 +52,7 @@ function(generate_target_headers target)
     endif()
 
     # Adding destination to target's include path
-    target_include_directories(${target}
-        PUBLIC
-            $<BUILD_INTERFACE:${ARG_DESTINATION}>
-    )
+    target_include_directories(${target} PUBLIC $<BUILD_INTERFACE:${ARG_DESTINATION}>)
 endfunction()
 
 function(generate_nested_headers destination)

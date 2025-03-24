@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/">
+    <qresource prefix="/widgetry">
         <file>icons/filter_icon.png</file>
         <file>icons/action_show.png</file>
         <file>icons/search_icon.png</file>
@@ -14,5 +14,6 @@
         <file>icons/login_password.png</file>
         <file>icons/login_id.png</file>
         <file>icons/login_icon.png</file>
+        <file>icons/widgetry.png</file>
     </qresource>
 </RCC>

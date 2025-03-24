@@ -1,26 +1,27 @@
 #include <QApplication>
 #include <QDialog>
 
+#include "logincontroller.h"
 #include "userinterface.h"
 
 #include <Widgetry/widgetry.h>
-
-void monitor(QDialog *d);
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
     Widgetry::init(app);
 
+    DataGate::Authenticator::init<LoginController>();
+
+    Widgetry::LoginDialog login;
+    login.setIdentifierType(Widgetry::LoginDialog::LoginIdentifier);
+    login.showOnLogOut();
+    login.open();
+
     UserInterface ui;
-    ui.show();
+    QObject::connect(DataGate::Authenticator::global(), &DataGate::Authenticator::loggedIn, &ui, [&ui](const Jsoner::Object &) {
+        ui.show();
+    });
 
     return app.exec();
-}
-
-void monitor(QDialog *d)
-{
-    QObject::connect(d, &QDialog::finished, d, [](int r) {
-        qDebug() << "Dialog exit code:" << r;
-    });
 }

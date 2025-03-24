@@ -126,7 +126,7 @@
        <widget class="QToolButton" name="toggleFiltersButtons">
         <property name="icon">
          <iconset resource="../resources/widgetry_resources.qrc">
-          <normaloff>:/icons/filter_icon.png</normaloff>:/icons/filter_icon.png</iconset>
+          <normaloff>:/widgetry/icons/filter_icon.png</normaloff>:/widgetry/icons/filter_icon.png</iconset>
         </property>
         <property name="checkable">
          <bool>true</bool>
@@ -165,7 +165,7 @@
           <widget class="QToolButton" name="refreshButton">
            <property name="icon">
             <iconset resource="../resources/widgetry_resources.qrc">
-             <normaloff>:/icons/action_refresh.png</normaloff>:/icons/action_refresh.png</iconset>
+             <normaloff>:/widgetry/icons/action_refresh.png</normaloff>:/widgetry/icons/action_refresh.png</iconset>
            </property>
           </widget>
          </item>
@@ -173,7 +173,7 @@
           <widget class="QToolButton" name="addButton">
            <property name="icon">
             <iconset resource="../resources/widgetry_resources.qrc">
-             <normaloff>:/icons/action_add.png</normaloff>:/icons/action_add.png</iconset>
+             <normaloff>:/widgetry/icons/action_add.png</normaloff>:/widgetry/icons/action_add.png</iconset>
            </property>
           </widget>
          </item>
@@ -181,7 +181,7 @@
           <widget class="QToolButton" name="editButton">
            <property name="icon">
             <iconset resource="../resources/widgetry_resources.qrc">
-             <normaloff>:/icons/action_edit.png</normaloff>:/icons/action_edit.png</iconset>
+             <normaloff>:/widgetry/icons/action_edit.png</normaloff>:/widgetry/icons/action_edit.png</iconset>
            </property>
           </widget>
          </item>
@@ -189,7 +189,7 @@
           <widget class="QToolButton" name="deleteButton">
            <property name="icon">
             <iconset resource="../resources/widgetry_resources.qrc">
-             <normaloff>:/icons/action_delete.png</normaloff>:/icons/action_delete.png</iconset>
+             <normaloff>:/widgetry/icons/action_delete.png</normaloff>:/widgetry/icons/action_delete.png</iconset>
            </property>
           </widget>
          </item>

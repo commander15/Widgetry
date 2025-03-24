@@ -6,6 +6,7 @@
 #include <QtWidgets/qwidget.h>
 
 #include <QtCore/qobject.h>
+#include <abstractdatacontroller.h>
 
 class QLineEdit;
 class QCompleter;
@@ -71,15 +72,26 @@ public:
 
 public:
     void setFilterWidget(AbstractDataEdit *widget);
-    void setTableModel(DataGate::TableModel *model);
     void setDataEdit(AbstractDataEditFactory *factory);
     void setContextMenu(QMenu *menu, bool addDefaultActions = true);
+
+    void setDataController(DataGate::AbstractDataController *controller);
 
 protected:
     bool prepareContextMenu(const Jsoner::Array &objects, QMenu *menu);
 
+private slots:
+    void fetchSearchSuggestions(const QString &query);
+
+    void processFetchedData(const DataGate::DataResponse &response);
+
 private:
     void init();
+    void initSearchCompletion();
+    void initFiltering();
+    void initButtons();
+    void initTable();
+    void initPagination();
 
     bool isBluePrinted() const;
     void setBluePrinted(bool printed = true);

@@ -16,7 +16,7 @@ DataController::DataController()
 
     for (int i(0); i < pageCount * itemsPerPage; ++i) {
         Jsoner::Object object;
-        object.insert("id", (i * itemsPerPage) + 1);
+        object.insert("id", i + 1);
         object.insert("name", "John Doe " + QString::number(gen->bounded(1500, 2025)));
         object.insert("score", gen->bounded(0, pageCount * itemsPerPage));
         m_objects.append(object);
@@ -26,7 +26,7 @@ DataController::DataController()
 void DataController::fetchSomeSearchSuggestions(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
 {
     Jsoner::Array results;
-    for (const QJsonValue &value : m_objects) {
+    for (const QJsonValue &value : std::as_const(m_objects)) {
         const QString key = value.toObject().value("name").toString();
         if (key.startsWith(query.string(), Qt::CaseInsensitive))
             results.append(key);
@@ -41,51 +41,64 @@ void DataController::fetchSomeSearchSuggestions(const DataQuery &query, const Da
 
 void DataController::fetchManyObjects(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
 {
+    const QString q = query.string();
+    const QVariantHash filters = query.filters();
+    const QStringList filterNames = filters.keys();
+
     Jsoner::Array objects;
-    for (const QJsonValue &value : m_objects) {
-        const Jsoner::Object object = value.toObject();
 
-        const QString q = query.string();
-        if (!q.isEmpty() && !object.string("name").contains(q)) {
-            objects.append(object);
-            continue;
-        }
+    if (q.isEmpty() && filters.isEmpty()) {
+        objects = m_objects;
+    } else {
+        for (const QJsonValue &value : m_objects) {
+            const Jsoner::Object object = value.toObject();
 
-        const QVariantHash filters = query.filters();
-        if (!filters.isEmpty()) {
-            bool byPass = false;
-
-            const QStringList names = filters.keys();
-            for (const QString &name : names) {
-                const QString value = filters.value(name).toString();
-                if (object.string(name).contains(value)) {
-                    objects.append(object);
-                    byPass = true;
-                    continue;
-                }
+            if (!q.isEmpty() && !object.string("name").contains(q)) {
+                objects.append(object);
+                continue;
             }
 
-            if (byPass)
-                continue;
+            if (!filters.isEmpty()) {
+                for (const QString &name : filterNames) {
+                    const QString value = filters.value(name).toString();
+
+                    if (object.string(name).contains(value)) {
+                        objects.append(object);
+                        break;
+                    }
+                }
+            }
         }
     }
 
-    const int offset = query.page() * itemsPerPage;
-    const int pageCount = qCeil<double>(objects.size() / itemsPerPage);
-    while (objects.size() > offset)
-        objects.removeLast();
-
-    const QString sortField = query.sortField();
-    if (!sortField.isEmpty()) {
-    }
+    int currentPage = query.page();
+    int totalPage = qCeil(objects.size() / itemsPerPage);
 
     DataResponse response;
-    if (query.page() > 0 && query.page() <= m_objects.size()) {
-        response.setArray(objects);
-        response.setPage(query.page());
-        response.setPageCount(pageCount);
-        response.setSuccess(true);
+    response.setPageCount(pageCount);
+    response.setSuccess(true);
+
+    if (totalPage <= 0) {
+        response.setPage(1);
+        onResponse(response);
+        return;
     }
+
+    if (currentPage < 1 || currentPage > totalPage) {
+        currentPage = 1;
+    }
+
+    const int offset = (currentPage - 1) * itemsPerPage;
+
+    Jsoner::Array result;
+    for (int i(offset); i < objects.size(); ++i) {
+        result.append(objects.at(i));
+        if (result.size() == itemsPerPage)
+            break;
+    }
+
+    response.setArray(result);
+    response.setPage(currentPage);
     onResponse(response);
 }
 

@@ -3,6 +3,8 @@
 
 #include "datainterfaceforge.h"
 
+#include <DataGate/abstractdatacontroller.h>
+
 class QStringListModel;
 
 namespace Widgetry {
@@ -29,6 +31,8 @@ public:
     QAction *deleteAction = nullptr;
 
     AbstractDataEditFactory *dataEditFactory = nullptr;
+
+    DataGate::AbstractDataController *dataController = nullptr;
 
     bool bluePrinted = false;
 };

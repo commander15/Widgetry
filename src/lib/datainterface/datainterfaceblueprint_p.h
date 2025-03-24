@@ -21,12 +21,12 @@ public:
     DataInterfaceBlueprintPrivate(DataInterface *interface);
 
     bool build(bool init);
+    void buildDataController();
     void buildInterface(bool init);
     void buildTable(bool init);
     void buildContextMenu(bool init);
     void buildEdit();
     void buildFilter();
-    void buildDataController();
 
     void cleanup();
 
@@ -35,7 +35,6 @@ public:
     QAction *interfaceAction = nullptr;
 
     bool searchAllowed = false;
-    bool seachChanged = false;
 
     QList<QAbstractButton *> buttons;
 
@@ -45,7 +44,6 @@ public:
     QStringList fields;
     QList<QHeaderView::ResizeMode> resizeModes;
     QAbstractItemDelegate *delegate = nullptr;
-    DataGate::TableModel *model = nullptr;
 
     QMenu *contextMenu = nullptr;
     bool contextMenuAddDefaultActions = false;
@@ -59,6 +57,8 @@ public:
 
     DataInterface *interface;
     DataInterfaceForge *forge;
+
+    std::function<void(DataInterfaceForge *forge)> forgeCallback;
 };
 
 } // namespace Widgetry

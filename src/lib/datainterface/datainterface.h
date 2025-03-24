@@ -35,10 +35,11 @@ public:
     bool isOperationSupported(const QString &operation) const override;
     QStringList availableOperations() const override;
 
-    DataInterfaceForge *forge() const;
+    Jsoner::Object currentObject() const;
+    Jsoner::Array selectedObjects() const;
 
-    virtual DataGate::AbstractDataController *dataController() const;
-    void setDataController(DataGate::AbstractDataController *controller);
+    DataGate::AbstractDataController *dataController() const;
+    DataInterfaceForge *forge() const;
 
 public slots:
     void search(const QString &query);
@@ -61,9 +62,6 @@ protected:
     void prepareUi() override;
     void translateUi(bool full = true) override;
 
-    Jsoner::Object currentObject() const;
-    Jsoner::Array selectedObjects() const;
-
     virtual void showObject(const Jsoner::Object &object);
     virtual void addObject(const Jsoner::Object &object, const DataEditFinishedCallback &callback);
     virtual void editObject(const Jsoner::Object &object, const DataEditFinishedCallback &callback);
@@ -83,7 +81,6 @@ protected:
     bool handleAddItem(const QVariantHash &parameters);
     bool handleEditItem(const QVariantHash &parameters);
     bool handleDeleteItems(const QVariantHash &parameters);
-
     void handleOperationResult(const Operation &operation) override;
 
     virtual DataGate::DataQuery prepareQuery(const DataGate::DataQuery &query) const;
@@ -95,7 +92,6 @@ protected:
     void showResponseMessage(const QString &title, const DataGate::DataResponse &response);
     void showResponseMessage(const QString &title, const QString &text, const DataGate::DataResponse &response);
 
-    void fetchSearchSuggestions(const QString &query);
     void preFetch(const DataGate::DataQuery &query, const std::function<void(const Jsoner::Object &object)> &callback);
     void executeDataRequest(DataControllerRawMethod method, const DataGate::DataQuery &query);
     void executeDataRequest(DataControllerRawMethod method, const DataGate::DataQuery &query, const DataGate::DataQueryResponseCallback &callback);
