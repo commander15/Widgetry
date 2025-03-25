@@ -163,10 +163,8 @@ void LoginDialog::setVisible(bool visible)
 {
     QDialog::setVisible(visible);
 
-    if (ui->identifierInput->text().isEmpty())
-        ui->identifierInput->setFocus();
-    else
-        ui->passwordInput->setFocus();
+    if (visible)
+        restore(true);
 }
 
 void LoginDialog::togglePasswordVisibility()
@@ -192,9 +190,13 @@ void LoginDialog::logIn()
     ui->passwordInput->setReadOnly(true);
     ui->passwordInput->clearFocus();
 
-    ui->stackedWidget->setCurrentIndex(1);
+    ui->logInButton->setEnabled(false);
 
     Authenticator::logIn(ui->identifierInput->text(), ui->passwordInput->text());
+    QTimer::singleShot(300, this, [this] {
+        if (ui->stackedWidget->currentIndex() == 0)
+            ui->stackedWidget->setCurrentIndex(1);
+    });
 }
 
 void LoginDialog::showError(const AuthenticationError &error)
@@ -202,18 +204,31 @@ void LoginDialog::showError(const AuthenticationError &error)
     ui->errorOutput->setText(error.errorString());
     ui->stackedWidget->setCurrentIndex(2);
 
-    ui->identifierInput->setReadOnly(false);
-
-    ui->passwordInput->clear();
-    ui->passwordInput->setReadOnly(false);
-    ui->passwordInput->setFocus();
-
+    restore(false);
     m_cleanTimer->start();
 }
 
 void LoginDialog::hideError()
 {
-    ui->stackedWidget->setCurrentIndex(0);
+    restore(true);
+}
+
+void LoginDialog::restore(bool full)
+{
+    ui->identifierInput->setReadOnly(false);
+
+    ui->passwordInput->setReadOnly(false);
+    ui->passwordInput->clear();
+
+    if (full)
+        ui->stackedWidget->setCurrentIndex(0);
+
+    if (ui->identifierInput->text().isEmpty())
+        ui->identifierInput->setFocus();
+    else
+        ui->passwordInput->setFocus();
+
+    ui->logInButton->setEnabled(true);
 }
 
 }

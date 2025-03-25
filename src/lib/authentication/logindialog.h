@@ -64,6 +64,8 @@ private slots:
     void hideError();
 
 private:
+    void restore(bool full);
+
     Ui::LoginDialog *ui;
 
     bool m_showOnLogOut;
