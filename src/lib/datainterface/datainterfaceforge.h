@@ -70,6 +70,8 @@ public:
     QMenu *contextMenu() const;
     AbstractDataEditFactory *dataEditFactory() const;
 
+    bool isBluePrinted() const;
+
 public:
     void setFilterWidget(AbstractDataEdit *widget);
     void setDataEdit(AbstractDataEditFactory *factory);
@@ -77,13 +79,17 @@ public:
 
     void setDataController(DataGate::AbstractDataController *controller);
 
+signals:
+    void operationSupportChanged(const QString &name);
+
 protected:
     bool prepareContextMenu(const Jsoner::Array &objects, QMenu *menu);
 
 private slots:
     void fetchSearchSuggestions(const QString &query);
-
     void processFetchedData(const DataGate::DataResponse &response);
+
+    void processOperationSupportChange(const QString &name, bool apply = true);
 
 private:
     void init();
@@ -93,7 +99,8 @@ private:
     void initTable();
     void initPagination();
 
-    bool isBluePrinted() const;
+    bool applyOperationSupport();
+
     void setBluePrinted(bool printed = true);
 
     Ui::DataInterface *ui;

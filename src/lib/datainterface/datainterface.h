@@ -35,6 +35,8 @@ public:
     bool isOperationSupported(const QString &operation) const override;
     QStringList availableOperations() const override;
 
+    QStringList crudOperations() const;
+
     Jsoner::Object currentObject() const;
     Jsoner::Array selectedObjects() const;
 

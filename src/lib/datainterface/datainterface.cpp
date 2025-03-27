@@ -79,6 +79,9 @@ DataInterface::~DataInterface()
 
 bool DataInterface::isOperationSupported(const QString &operation) const
 {
+    if (!dataController())
+        return UserInterface::isOperationSupported(operation);
+
     int index = s_availableOperations.indexOf(operation);
     if (index == -1)
         return UserInterface::isOperationSupported(operation);
@@ -87,8 +90,17 @@ bool DataInterface::isOperationSupported(const QString &operation) const
     if (!PermissionManager::hasPermission(permission))
         return false;
 
-    if (operation == "editItem" || operation == "deleteItems")
-        return ui->tableView->currentIndex().isValid();
+    if (operation == "addItem" && !forge()->dataEditFactory())
+        return false;
+
+    const QStringList operations = { "showItem", "editItem", "deleteItems" };
+    if (operations.contains(operation)) {
+        if (!ui->tableView->currentIndex().isValid())
+            return false;
+
+        if (!forge()->dataEditFactory())
+            return false;
+    }
 
     return UserInterface::isOperationSupported(operation);
 }
@@ -96,6 +108,11 @@ bool DataInterface::isOperationSupported(const QString &operation) const
 QStringList DataInterface::availableOperations() const
 {
     return UserInterface::availableOperations() + s_availableOperations;
+}
+
+QStringList DataInterface::crudOperations() const
+{
+    return { "showItem", "addItem", "editItem", "deleteItems" };
 }
 
 Jsoner::Object DataInterface::currentObject() const

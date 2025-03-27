@@ -9,6 +9,7 @@
 #include <DataGate/tablemodel.h>
 #include <DataGate/dataquery.h>
 #include <DataGate/dataresponse.h>
+#include <DataGate/permissionmanager.h>
 
 #include <QtWidgets/qmenu.h>
 #include <QtWidgets/qdialog.h>
@@ -128,20 +129,30 @@ AbstractDataEditFactory *DataInterfaceForge::dataEditFactory() const
     return d_ptr->dataEditFactory;
 }
 
+bool DataInterfaceForge::isBluePrinted() const
+{
+    return d_ptr->bluePrinted;
+}
+
 void DataInterfaceForge::setFilterWidget(AbstractDataEdit *widget)
 {
+    if (!widget || d_ptr->filterWidget)
+        return;
+
     ui->filterContainerLayout->addWidget(widget->editWidget());
-    ui->toggleFiltersButtons->setVisible(widget);
     d_ptr->filterWidget = widget;
+
+    emit operationSupportChanged("filter");
 }
 
 void DataInterfaceForge::setDataEdit(AbstractDataEditFactory *factory)
 {
     d_ptr->dataEditFactory = factory;
 
-    ui->addButton->setEnabled(factory);
-    ui->editButton->setEnabled(factory);
-    ui->deleteButton->setEnabled(factory);
+    const bool enable = factory;
+    emit operationSupportChanged("showItem");
+    emit operationSupportChanged("addItem");
+    emit operationSupportChanged("editItem");
 }
 
 void DataInterfaceForge::setContextMenu(QMenu *menu, bool addDefaultActions)
@@ -181,6 +192,14 @@ void DataInterfaceForge::setDataController(DataGate::AbstractDataController *con
 {
     d_ptr->tableModel->setController(controller);
     d_ptr->dataController = controller;
+
+    emit operationSupportChanged("refresh");
+    emit operationSupportChanged("search");
+    emit operationSupportChanged("filter");
+    emit operationSupportChanged("showItem");
+    emit operationSupportChanged("addItem");
+    emit operationSupportChanged("editItem");
+    emit operationSupportChanged("deleteItems");
 }
 
 bool DataInterfaceForge::prepareContextMenu(const Jsoner::Array &objects, QMenu *menu)
@@ -188,17 +207,16 @@ bool DataInterfaceForge::prepareContextMenu(const Jsoner::Array &objects, QMenu 
     if (objects.isEmpty())
         return false;
 
-    const bool single = objects.size() == 1;
-    const bool multiple = objects.size() > 1;
+    DataInterface *interface = d_ptr->forgeInterface();
 
     if (d_ptr->showAction)
-        d_ptr->showAction->setVisible(single);
+        d_ptr->showAction->setVisible(interface->isOperationSupported("showItem"));
 
     if (d_ptr->editAction)
-        d_ptr->editAction->setVisible(single);
+        d_ptr->editAction->setVisible(interface->isOperationSupported("editItem"));
 
     if (d_ptr->deleteAction)
-        d_ptr->deleteAction->setVisible(single || multiple);
+        d_ptr->deleteAction->setVisible(interface->isOperationSupported("deleteItems"));
 
     return true;
 }
@@ -284,6 +302,36 @@ void DataInterfaceForge::processFetchedData(const DataGate::DataResponse &respon
     }
 }
 
+void DataInterfaceForge::processOperationSupportChange(const QString &name, bool apply)
+{
+    if (name == "refresh") {
+        ui->refreshButton->setEnabled(apply);
+    }
+
+    if (name == "search") {
+        ui->searchInput->setVisible(apply);
+    }
+
+    if (name == "filter") {
+        ui->filterButton->setVisible(apply);
+
+        if (ui->filterContainer->isVisible() != apply)
+            ui->filterContainer->setVisible(apply);
+    }
+
+    if (name == "addItem") {
+        ui->addButton->setEnabled(apply);
+    }
+
+    if (name == "editItem") {
+        ui->editButton->setEnabled(apply);
+    }
+
+    if (name == "deleteItems") {
+        ui->deleteButton->setEnabled(apply);
+    }
+}
+
 void DataInterfaceForge::init()
 {
     ui = d_ptr->forgeInterface()->ui;
@@ -293,6 +341,12 @@ void DataInterfaceForge::init()
     initButtons();
     initTable();
     initPagination();
+
+    connect(d_ptr->forgeInterface(), &UserInterface::operationSupportChanged, this, &DataInterfaceForge::processOperationSupportChange);
+
+    connect(this, &DataInterfaceForge::operationSupportChanged, this, [this](const QString &name) {
+        processOperationSupportChange(name, d_ptr->forgeInterface()->isOperationSupported(name));
+    });
 }
 
 void DataInterfaceForge::initSearchCompletion()
@@ -337,35 +391,30 @@ void DataInterfaceForge::initTable()
     // Mouse shortcuts
 
     connect(ui->tableView, &QAbstractItemView::activated, ui->tableView, [this](const QModelIndex &index) {
+        if (!d_ptr->forgeInterface()->isOperationSupported("showItem"))
+            return;
+
         const Jsoner::Object object = d_ptr->tableModel->object(index.row());
         d_ptr->forgeInterface()->showItem(object);
     });
 
-    auto updateButtons = [this](int selectedRows) {
-        const bool single = selectedRows == 1;
-        const bool multiple = selectedRows > 1;
-        ui->editButton->setEnabled(single);
-        ui->deleteButton->setEnabled(single || multiple);
-    };
-
-    auto updateOperations = [this](int selectedRows) {
-        d_ptr->forgeInterface()->sync();
-    };
-
     // Reactions to model changes
 
-    connect(model, &QAbstractItemModel::modelReset, model, [updateButtons, updateOperations, this] {
-        updateButtons(0);
-        updateOperations(0);
+    auto react = [this] {
+        emit operationSupportChanged("showItem");
+        emit operationSupportChanged("editItem");
+        emit operationSupportChanged("deleteItems");
+    };
 
+    connect(model, &QAbstractItemModel::modelReset, model, [react, this] {
+        react();
         QScrollBar *bar = ui->tableView->verticalScrollBar();
         bar->setValue(bar->minimum());
     });
 
     QItemSelectionModel *selectionModel = ui->tableView->selectionModel();
-    connect(selectionModel, &QItemSelectionModel::selectionChanged, selectionModel, [updateButtons, updateOperations, selectionModel](const QItemSelection &, const QItemSelection &) {
-        updateButtons(selectionModel->selectedRows().count());
-        updateOperations(selectionModel->selectedRows().count());
+    connect(selectionModel, &QItemSelectionModel::selectionChanged, selectionModel, [react](const QItemSelection &, const QItemSelection &) {
+        react();
     });
 
     d_ptr->tableModel = model;
@@ -376,11 +425,6 @@ void DataInterfaceForge::initPagination()
     connect(ui->pageInput, &QSpinBox::valueChanged, this, [this](int page) {
         d_ptr->forgeInterface()->refresh();
     });
-}
-
-bool DataInterfaceForge::isBluePrinted() const
-{
-    return d_ptr->bluePrinted;
 }
 
 void DataInterfaceForge::setBluePrinted(bool printed)
