@@ -75,7 +75,7 @@ protected:
     virtual void monitorRequest(int processed, int total);
     virtual void endRequest();
 
-    bool handleOperation(Operation *operation) override;
+    bool handleOperation(WidgetOperation *operation) override;
     bool handleSearch(const QVariantHash &parameters);
     bool handleFilter(const QVariantHash &parameters);
     bool handleRefresh(const QVariantHash &parameters);
@@ -83,7 +83,7 @@ protected:
     bool handleAddItem(const QVariantHash &parameters);
     bool handleEditItem(const QVariantHash &parameters);
     bool handleDeleteItems(const QVariantHash &parameters);
-    void handleOperationResult(const Operation &operation) override;
+    void handleOperationResult(const WidgetOperation &operation) override;
 
     virtual DataGate::DataQuery prepareQuery(const DataGate::DataQuery &query) const;
 

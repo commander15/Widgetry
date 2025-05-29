@@ -7,7 +7,7 @@
 
 namespace Widgetry {
 
-class Operation;
+class WidgetOperation;
 
 class UserInterfacePrivate;
 class WIDGETRY_EXPORT UserInterface : public QWidget
@@ -44,7 +44,7 @@ signals:
     void titleChanged(const QString &title);
 
     void operationSupportChanged(const QString &operation, bool supported);
-    void operationRequested(const Operation &operation);
+    void operationRequested(const WidgetOperation &operation);
 
 protected:
     UserInterface(UserInterfacePrivate *d, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
@@ -53,11 +53,11 @@ protected:
     virtual void cleanupUi();
     virtual void translateUi(bool full = true);
 
-    virtual bool handleOperation(Operation *operation);
-    virtual void handleOperationResult(const Operation &operation);
+    virtual bool handleOperation(WidgetOperation *operation);
+    virtual void handleOperationResult(const WidgetOperation &operation);
 
-    void requestServerOperation(const Operation &operation);
-    void requestOperation(const Operation &operation);
+    void requestServerOperation(const WidgetOperation &operation);
+    void requestOperation(const WidgetOperation &operation);
 
     void showEvent(QShowEvent *event) override;
     void hideEvent(QHideEvent *event) override;

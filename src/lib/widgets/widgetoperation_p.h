@@ -5,15 +5,13 @@
 
 namespace Widgetry {
 
-class OperationData : public QSharedData
+class WidgetOperationData : public QSharedData
 {
 public:
     QString name;
     QVariantHash parameters;
-    QVariantHash results;
     QByteArray senderId;
     QByteArray receiverId;
-    bool success = false;
 };
 
 } // namespace Widgetry

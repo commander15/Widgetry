@@ -7,14 +7,14 @@
 
 namespace Widgetry {
 
-class OperationData;
-class WIDGETRY_EXPORT Operation
+class WidgetOperationData;
+class WIDGETRY_EXPORT WidgetOperation
 {
 public:
-    Operation(const QString &name);
-    Operation(const Operation &other);
-    Operation(Operation &&other);
-    ~Operation();
+    WidgetOperation(const QString &name);
+    WidgetOperation(const WidgetOperation &other);
+    WidgetOperation(WidgetOperation &&other);
+    ~WidgetOperation();
 
     QString name() const;
 
@@ -27,14 +27,8 @@ public:
     QByteArray receiverId() const;
     void setReceiverId(const QByteArray &id);
 
-    bool isSuccess() const;
-    void setSuccess(bool success);
-
-    QVariantHash results() const;
-    void setResults(const QVariantHash &results);
-
 private:
-    QExplicitlySharedDataPointer<OperationData> d_ptr;
+    QExplicitlySharedDataPointer<WidgetOperationData> d_ptr;
 };
 
 } // namespace Widgetry

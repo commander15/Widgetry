@@ -11,27 +11,23 @@ target_headers(Widgetry
     PUBLIC
         widgetry.h
         global.h config.h
-        userinterface.h
-        interfaceholder.h
-        watcher/abstractrequestwatcher.h
     PRIVATE
         debug_p.h
-        userinterface_p.h
 )
 
 target_sources(Widgetry
     PRIVATE
         debug.cpp
         global.cpp
-        userinterface.cpp
-        interfaceholder.cpp
-        watcher/abstractrequestwatcher.cpp
         resources/widgetry_resources.qrc
 )
 
+add_subdirectory(components)
 add_subdirectory(authentication)
-add_subdirectory(communication)
-add_subdirectory(datainterface)
+add_subdirectory(widgets)
+add_subdirectory(databrowser)
+#add_subdirectory(communication)
+#add_subdirectory(datainterface)
 add_subdirectory(input)
 
 target_include_directories(Widgetry 
