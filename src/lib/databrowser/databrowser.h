@@ -77,6 +77,8 @@ protected:
 
     virtual bool processDataResponse(const DataGate::DataResponse &response);
 
+    bool eventFilter(QObject *object, QEvent *event) override;
+
 private:
     Ui::DataBrowser *ui;
 

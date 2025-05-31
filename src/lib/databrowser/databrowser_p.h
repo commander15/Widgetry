@@ -10,6 +10,8 @@
 
 #include <QtCore/qitemselectionmodel.h>
 
+#include <QtWidgets/qmenu.h>
+
 namespace Widgetry {
 
 typedef std::function<void(const Jsoner::Object &)> EditingCallback;
@@ -28,13 +30,17 @@ public:
 
     Ui::DataBrowser *ui;
 
+    QMenu *contextMenu;
+    QAction *showAction;
+    QAction *editAction;
+    QAction *deleteAction;
+
     DataGate::TableModel tableModel;
 
     AbstractDataEditFactory *editFactory;
 
     AbstractDataEdit *filterWidget;
 
-    DataGate::AbstractDataController *dataController;
     DataGate::DataQueryProgressCallback progressCallback;
 };
 
