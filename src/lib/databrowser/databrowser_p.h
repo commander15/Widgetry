@@ -10,8 +10,6 @@
 
 #include <QtCore/qitemselectionmodel.h>
 
-#include <QtWidgets/qmenu.h>
-
 namespace Widgetry {
 
 typedef std::function<void(const Jsoner::Object &)> EditingCallback;
@@ -22,18 +20,21 @@ class DataBrowserPrivate : public QObject, public WidgetPrivate
 
 public:
     DataBrowserPrivate(DataBrowser *q, const QByteArray &id);
-    virtual ~DataBrowserPrivate();
+    virtual ~DataBrowserPrivate() = default;
+
+    void init(Ui::DataBrowser *ui);
+
+    Q_SLOT void fetchSearchSuggestions(const QString &text);
 
     void openEdit(const QJsonObject &item, AbstractDataEdit::Operation operation, const EditingCallback &callback);
-    bool hasDataFeature(DataGate::AbstractDataController::Feature feature) const;
-    Q_SLOT void adaptToSelection(const QItemSelection &selected, const QItemSelection &deselected);
+    bool hasDataFeature(DataGate::AbstractDataManager::Feature feature) const;
+
+    Q_SLOT void adaptToSelection();
+
+    Q_SLOT void processModelResponse(const DataGate::DataResponse &response);
+    bool processDataResponse(const DataGate::DataQuery &query, const DataGate::DataResponse &response);
 
     Ui::DataBrowser *ui;
-
-    QMenu *contextMenu;
-    QAction *showAction;
-    QAction *editAction;
-    QAction *deleteAction;
 
     DataGate::TableModel tableModel;
 
@@ -42,6 +43,8 @@ public:
     AbstractDataEdit *filterWidget;
 
     DataGate::DataQueryProgressCallback progressCallback;
+
+    bool blueprinted = false;
 };
 
 }

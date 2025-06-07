@@ -22,13 +22,14 @@ target_sources(Widgetry
         resources/widgetry_resources.qrc
 )
 
+add_subdirectory(app)
 add_subdirectory(components)
 add_subdirectory(authentication)
-add_subdirectory(widgets)
+add_subdirectory(widget)
 add_subdirectory(databrowser)
+add_subdirectory(dataedit)
 #add_subdirectory(communication)
 #add_subdirectory(datainterface)
-add_subdirectory(input)
 
 target_include_directories(Widgetry 
     PUBLIC
@@ -46,6 +47,8 @@ target_compile_definitions(Widgetry
 )
 
 target_link_libraries(Widgetry PUBLIC Qt::Core Qt::Gui Qt::Widgets DataGate::DataGate Jsoner::Jsoner)
+
+install(CODE "file(REMOVE_RECURSE ${CMAKE_INSTALL_PREFIX}/include/Widgetry)")
 
 install(TARGETS Widgetry
     EXPORT WidgetryTargets

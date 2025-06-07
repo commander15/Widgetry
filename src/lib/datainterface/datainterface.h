@@ -23,14 +23,14 @@ class DataInterfaceForge;
 typedef void(DataGate::AbstractDataController::*DataControllerRawMethod)(const DataGate::DataQuery &, const DataGate::DataQueryProgressCallback &, const DataGate::DataQueryResponseCallback &);
 
 class DataInterfacePrivate;
-class WIDGETRY_EXPORT DataInterface : public UserInterface
+class WIDGETRY_EXPORT DataBrowser : public UserInterface
 {
     Q_OBJECT
 
 public:
-    DataInterface(QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
-    DataInterface(const QByteArray &id, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
-    virtual ~DataInterface();
+    DataBrowser(QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
+    DataBrowser(const QByteArray &id, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
+    virtual ~DataBrowser();
 
     bool isOperationSupported(const QString &operation) const override;
     QStringList availableOperations() const override;
@@ -101,7 +101,7 @@ protected:
     friend class DataInterfaceForge;
 
 private:
-    Q_DISABLE_COPY(DataInterface)
+    Q_DISABLE_COPY(DataBrowser)
 
     Ui::DataInterface *ui;
 

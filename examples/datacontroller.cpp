@@ -23,6 +23,11 @@ DataController::DataController()
     }
 }
 
+bool DataController::hasFeature(Feature feature, DataGate::AbstractDataClient *client) const
+{
+    return client;
+}
+
 void DataController::fetchSomeSearchSuggestions(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
 {
     Jsoner::Array results;
@@ -43,36 +48,39 @@ void DataController::fetchManyObjects(const DataQuery &query, const DataQueryPro
 {
     const QString q = query.string();
     const QVariantHash filters = query.filters();
-    const QStringList filterNames = filters.keys();
 
     Jsoner::Array objects;
 
     if (q.isEmpty() && filters.isEmpty()) {
         objects = m_objects;
     } else {
-        for (const QJsonValue &value : m_objects) {
+        for (const QJsonValue &value : std::as_const(m_objects)) {
             const Jsoner::Object object = value.toObject();
 
-            if (!q.isEmpty() && !object.string("name").contains(q)) {
+            if (!q.isEmpty() && object.string("name").contains(q)) {
                 objects.append(object);
                 continue;
             }
 
-            if (!filters.isEmpty()) {
-                for (const QString &name : filterNames) {
-                    const QString value = filters.value(name).toString();
-
-                    if (object.string(name).contains(value)) {
-                        objects.append(object);
-                        break;
-                    }
-                }
+            QString name = filters.value("name").toString();
+            if (!name.isEmpty() && object.string("name").contains(name)) {
+                objects.append(object);
+                continue;
             }
+
+            int score = filters.value("score", 0).toInt();
+            if (score > 0 && object.integer("score") == score) {
+                objects.append(object);
+                continue;
+            }
+
+            if (q.isEmpty() && name.isEmpty() && score == 0)
+                objects.append(object);
         }
     }
 
     int currentPage = query.page();
-    int totalPage = qCeil(objects.size() / itemsPerPage);
+    int totalPage = pageCount;
 
     DataResponse response;
     response.setPageCount(pageCount);
@@ -84,7 +92,7 @@ void DataController::fetchManyObjects(const DataQuery &query, const DataQueryPro
         return;
     }
 
-    if (currentPage < 1 || currentPage > totalPage) {
+    if (currentPage > totalPage) {
         currentPage = 1;
     }
 
@@ -139,7 +147,32 @@ void DataController::editOneObject(const DataQuery &query, const DataQueryProgre
     onResponse(response);
 }
 
+void DataController::deleteOneObject(const DataGate::DataQuery &query, const DataGate::DataQueryProgressCallback &onProgress, const DataGate::DataQueryResponseCallback &onResponse)
+{
+    const int id = query.object().integer("id");
+
+    DataResponse response;
+    if (id <= m_objects.size()) {
+        m_objects.removeAt(id - 1);
+        response.setObject(query.object());
+        response.setSuccess(true);
+    }
+    onResponse(response);
+}
+
 void DataController::deleteManyObjects(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
 {
-    onResponse(DataResponse());
+    const int id = query.object().integer("id");
+    auto it = std::find_if(m_objects.begin(), m_objects.end(), [&id](const QJsonValue &value) {
+        return value.toObject().value("id").toInt() == id;
+    });
+
+    if (it != m_objects.end()) {
+        m_objects.erase(it);
+        DataResponse response;
+        response.setSuccess(true);
+        onResponse(response);
+    } else {
+        onResponse(DataResponse());
+    }
 }

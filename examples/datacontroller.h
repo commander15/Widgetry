@@ -1,20 +1,23 @@
 #ifndef DATACONTROLLER_H
 #define DATACONTROLLER_H
 
-#include <DataGate/abstractdatacontroller.h>
+#include <DataGate/abstractdatamanager.h>
 
 #include <Jsoner/array.h>
 
-class DataController : public DataGate::AbstractDataController
+class DataController : public DataGate::AbstractDataManager
 {
 public:
     DataController();
+
+    bool hasFeature(Feature feature, DataGate::AbstractDataClient *client) const override;
 
     void fetchSomeSearchSuggestions(const DataGate::DataQuery &query, const DataGate::DataQueryProgressCallback &onProgress, const DataGate::DataQueryResponseCallback &onResponse) override;
     void fetchManyObjects(const DataGate::DataQuery &query, const DataGate::DataQueryProgressCallback &onProgress, const DataGate::DataQueryResponseCallback &onResponse) override;
     void fetchOneObject(const DataGate::DataQuery &query, const DataGate::DataQueryProgressCallback &onProgress, const DataGate::DataQueryResponseCallback &onResponse) override;
     void addOneObject(const DataGate::DataQuery &query, const DataGate::DataQueryProgressCallback &onProgress, const DataGate::DataQueryResponseCallback &onResponse) override;
     void editOneObject(const DataGate::DataQuery &query, const DataGate::DataQueryProgressCallback &onProgress, const DataGate::DataQueryResponseCallback &onResponse) override;
+    void deleteOneObject(const DataGate::DataQuery &query, const DataGate::DataQueryProgressCallback &onProgress, const DataGate::DataQueryResponseCallback &onResponse) override;
     void deleteManyObjects(const DataGate::DataQuery &query, const DataGate::DataQueryProgressCallback &onProgress, const DataGate::DataQueryResponseCallback &onResponse) override;
 
 private:

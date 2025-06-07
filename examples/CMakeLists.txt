@@ -8,4 +8,5 @@ qt_add_executable(Simple main.cpp
     datacontroller.h datacontroller.cpp
     userwindow.h userwindow.cpp userwindow.ui
     logincontroller.h logincontroller.cpp
+    mainwindow.h mainwindow.cpp mainwindow.ui
 )

@@ -14,14 +14,16 @@ void LoginController::attemptLogIn(const DataGate::LoginQuery &query, const Data
         { "admin", "admin" }
     };
 
-    const QString login = query.identifier();
-    const QString password = query.password();
-
     DataGate::DataResponse response;
-    response.setSuccess(credentials.value(login) == password);
-    response.setCode(DataGate::AuthenticationError::BadCredentials);
+    if (credentials.value(query.identifier()) == query.password()) {
+        response.setSuccess(true);
+        response.setCode(DataGate::AuthenticationError::NoError);
+    } else {
+        response.setSuccess(false);
+        response.setCode(DataGate::AuthenticationError::BadCredentials);
+    }
 
-    QTimer::singleShot(2000, [callback, response] { callback(response); });
+    QTimer::singleShot(2000, qApp, [callback, response] { callback(response); });
 }
 
 void LoginController::attemptLogOut(const DataGate::LoginQuery &query, const DataGate::DataQueryResponseCallback &callback)

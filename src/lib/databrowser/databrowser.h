@@ -3,11 +3,12 @@
 
 #include <Widgetry/global.h>
 #include <Widgetry/widget.h>
+#include <Widgetry/abstractdataedit.h>
 
 #include <DataGate/abstractdataclient.h>
 
 namespace DataGate {
-class AbstractDataController;
+class AbstractDataManager;
 class DataResponse;
 }
 
@@ -39,24 +40,31 @@ public:
     Jsoner::Array selectedObjects() const;
 
     Q_SLOT void showCurrentItem();
-    void showItem(const Jsoner::Object &item);
+    void showItem(const Jsoner::Object &object);
 
     Q_SLOT void addNewItem();
-    void addItem(const Jsoner::Object &item);
+    void addItem(const Jsoner::Object &object);
 
     Q_SLOT void editCurrentItem();
-    void editItem(const Jsoner::Object &item);
+    void editItem(const Jsoner::Object &object);
 
     Q_SLOT void deleteSelectedItems();
-    void deleteItems(const Jsoner::Array &items);
+    void deleteItems(const Jsoner::Array &objects);
+
+    QStringList availableOperations() const override;
 
     Q_SLOT void sync() override;
+
+    AbstractDataEdit *filterEdit() const;
+    void setFilterEdit(AbstractDataEdit *edit);
 
     AbstractDataEditFactory *editFactory() const;
     void setEditFactory(AbstractDataEditFactory *factory);
 
-    DataGate::AbstractDataController *dataController() const;
-    void setDataController(DataGate::AbstractDataController *controller);
+    DataGate::AbstractDataManager *dataManager() const;
+    void setDataManager(DataGate::AbstractDataManager *manager);
+
+    DataEditFinishedCallback editCallback(AbstractDataEdit::Operation operation);
 
 protected:
     enum QueryType {
@@ -72,17 +80,20 @@ protected:
     void prepareUi() override;
     void translateUi(bool full = true) override;
 
+    QVariant handleOperation(const WidgetOperation &operation, bool *success) override;
+    void handleOperationResult(const WidgetOperation &operation, const QVariantHash &result, bool success) override;
+
     virtual DataGate::DataQuery newQuery(QueryType type);
     DataGate::DataQuery newQuery() override final;
 
-    virtual bool processDataResponse(const DataGate::DataResponse &response);
-
-    bool eventFilter(QObject *object, QEvent *event) override;
+    virtual bool processDataResponse(const DataGate::DataQuery &query, const DataGate::DataResponse &response);
+    virtual void showResponseMessage(const DataGate::DataQuery &query, const DataGate::DataResponse &response);
 
 private:
     Ui::DataBrowser *ui;
 
     friend class DataBrowserPrivate;
+    friend class DataBrowserBlueprintPrivate;
 };
 
 } // namespace Widgetry

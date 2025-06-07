@@ -5,30 +5,28 @@
 
 #include "datacontroller.h"
 
-#include <Widgetry/datainterfaceblueprint.h>
+#include <Widgetry/databrowserblueprint.h>
 #include <Widgetry/dataselector.h>
 
 UserInterface::UserInterface(QWidget *parent)
-    : Widgetry::DataInterface("users", parent)
+    : Widgetry::DataBrowser("users", parent)
 {
-    Widgetry::DataInterfaceBlueprint ui(this);
+    Widgetry::DataBrowserBlueprint ui(this);
 
     ui.title(tr("Users"));
 
-    ui.button(QIcon("/home/commander/Projects/TMS/DEV/TMS/src/resources/icons/action_print.png"), this, &UserInterface::selectIt);
+    ui.button("selectButton", QIcon("/home/commander/Projects/TMS/DEV/TMS/src/resources/icons/action_print.png"), this, &UserInterface::selectIt);
 
-    ui.tableHeader(tr("ID"), "id", QHeaderView::ResizeToContents);
-    ui.tableHeader(tr("Name"), "name", QHeaderView::Stretch);
-    ui.tableHeader(tr("Score"), "score", QHeaderView::ResizeToContents);
+    ui.tableColumn(tr("ID"), "id", QHeaderView::ResizeToContents);
+    ui.tableColumn(tr("Name"), "name", QHeaderView::Stretch);
+    ui.tableColumn(tr("Score"), "score", QHeaderView::ResizeToContents);
 
-    ui.search();
-    ui.edit<UserEdit>()->mainField("id")->maxCount(2);
-    ui.filter<UserEdit>();
+    ui.edit<UserWindow>()->mainField("id")->maxCount(2);
+    ui.filter<UserEdit>()->registerFields();
 
-    ui.contextMenu();
-    ui.contextMenuAction("Hello", this, &UserInterface::addNewItem);
+    ui.contextMenuAction("Hello", this, &UserInterface::selectIt);
 
-    ui.dataController<DataController>();
+    ui.dataManager<DataController>();
 }
 
 UserInterface::~UserInterface()
@@ -37,12 +35,12 @@ UserInterface::~UserInterface()
 
 void UserInterface::selectIt()
 {
-    operate("editItem");
-    return;
-
     Widgetry::DataSelector selector(this);
     selector.setWindowTitle(tr("User selector"));
-    selector.setDataController(dataController());
+    selector.setDataManager(dataManager());
+
+    DataGate::DataQuery query = newQuery(RefreshQuery);
+    selector.setSearchQuery(query);
 
     QStringList headers;
     QStringList fields;
@@ -56,7 +54,7 @@ void UserInterface::selectIt()
 
     selector.setFields(fields);
     for (int i(0); i < headers.size(); ++i) {
-        selector.setHeader(i, headers.at(i));
+        selector.setLabel(i, headers.at(i));
         selector.setResizeMode(i, QHeaderView::Stretch);
     }
 

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.30)
 
 project(Widgetry
     DESCRIPTION "The frontend-oriented C++ UI framework"
-    VERSION     "1.0.0"
+    VERSION     "2.0.0"
     LANGUAGES   CXX C
 )
 
@@ -60,9 +60,7 @@ qt_policy(SET QTP0002 NEW)
 qt_policy(SET QTP0003 NEW)
 
 # Other dependencies
-
-find_package(DataGate REQUIRED)
-find_package(Jsoner REQUIRED)
+include(cmake/Dependencies.cmake)
 
 # Project directories
 

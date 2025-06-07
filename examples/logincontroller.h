@@ -1,9 +1,9 @@
 #ifndef LOGINCONTROLLER_H
 #define LOGINCONTROLLER_H
 
-#include <DataGate/abstractlogincontroller.h>
+#include <DataGate/abstractloginmanager.h>
 
-class LoginController : public DataGate::AbstractLoginController
+class LoginController : public DataGate::AbstractLoginManager
 {
 public:
     LoginController();

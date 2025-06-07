@@ -2,9 +2,10 @@
 #include "databrowser_p.h"
 #include "ui_databrowser.h"
 
-#include <Widgetry/private/debug_p.h>
 #include <Widgetry/abstractdataeditfactory.h>
 #include <Widgetry/abstractdataedit.h>
+#include <Widgetry/widgetoperation.h>
+#include <Widgetry/private/debug_p.h>
 
 #include <DataGate/dataquery.h>
 #include <DataGate/dataresponse.h>
@@ -12,6 +13,9 @@
 #include <QtGui/qevent.h>
 
 #include <QtWidgets/qmessagebox.h>
+#include <QtWidgets/qtableview.h>
+#include <QtWidgets/qmenu.h>
+#include <QtWidgets/qshortcut.h>
 
 using namespace DataGate;
 
@@ -22,22 +26,8 @@ DataBrowser::DataBrowser(const QByteArray &id, QWidget *parent, Qt::WindowFlags 
     , ui(new Ui::DataBrowser())
 {
     WIDGETRY_D(DataBrowser);
-    d->ui = ui;
-
     ui->setupUi(this);
-
-    ui->tableView->setModel(&d->tableModel);
-    ui->tableView->installEventFilter(this);
-
-    QItemSelectionModel *selectionModel = ui->tableView->selectionModel();
-    connect(selectionModel, &QItemSelectionModel::selectionChanged, d, &DataBrowserPrivate::adaptToSelection);
-
-    connect(&d->tableModel, &TableModel::finished, this, &DataBrowser::processDataResponse);
-
-    d->contextMenu = new QMenu(ui->tableView);
-    d->showAction = d->contextMenu->addAction(QIcon(":/widgetry/icons/action_show.png"), QString());
-    d->editAction = d->contextMenu->addAction(QIcon(":/widgetry/icons/action_edit.png"), QString());
-    d->deleteAction = d->contextMenu->addAction(QIcon(":/widgetry/icons/action_delete.png"), QString());
+    d->init(ui);
 }
 
 DataBrowser::DataBrowser(QWidget *parent, Qt::WindowFlags flags)
@@ -69,6 +59,8 @@ void DataBrowser::search(const QString &query)
 void DataBrowser::filter(const QVariantHash &filters)
 {
     WIDGETRY_D(DataBrowser);
+    if (d->filterWidget)
+        d->filterWidget->setObject(Jsoner::Object::fromVariantHash(filters), d->filterWidget->operation());
     refresh();
 }
 
@@ -76,7 +68,7 @@ void DataBrowser::refresh()
 {
     WIDGETRY_D(DataBrowser);
 
-    if (!d->tableModel.controller()) {
+    if (!d->tableModel.manager()) {
         widgetryWarning() << "DataBrowser::refresh(): no data controller set !";
         return;
     }
@@ -86,35 +78,23 @@ void DataBrowser::refresh()
 
 Jsoner::Object DataBrowser::currentObject() const
 {
-    WIDGETRY_D(const DataBrowser);
-
-    const QModelIndex index = ui->tableView->currentIndex();
-    return (index.isValid() ? d->tableModel.object(index.row()) : Jsoner::Object());
+    return ui->tableWidget->currentObject();
 }
 
 Jsoner::Array DataBrowser::selectedObjects() const
 {
-    WIDGETRY_D(const DataBrowser);
-
-    const QModelIndexList selectedIndexes = ui->tableView->selectionModel()->selectedRows();
-    Jsoner::Array objects;
-
-    std::transform(selectedIndexes.begin(), selectedIndexes.end(), std::back_inserter(objects), [d](const QModelIndex &index) {
-        return d->tableModel.object(index.row());
-    });
-
-    return objects;
+    return ui->tableWidget->selectedObjects();
 }
 
 void DataBrowser::showCurrentItem()
 {
-    showItem(currentObject());
+    showItem(ui->tableWidget->currentObject());
 }
 
-void DataBrowser::showItem(const Jsoner::Object &item)
+void DataBrowser::showItem(const Jsoner::Object &object)
 {
     WIDGETRY_D(DataBrowser);
-    d->openEdit(item, AbstractDataEdit::ShowOperation, nullptr);
+    d->openEdit(object, AbstractDataEdit::ShowOperation, nullptr);
 }
 
 void DataBrowser::addNewItem()
@@ -122,66 +102,116 @@ void DataBrowser::addNewItem()
     addItem(Jsoner::Object());
 }
 
-void DataBrowser::addItem(const Jsoner::Object &item)
+void DataBrowser::addItem(const Jsoner::Object &object)
 {
     WIDGETRY_D(DataBrowser);
-    d->openEdit(item, AbstractDataEdit::AddOperation, [=](const Jsoner::Object &object) {
+    d->openEdit(object, AbstractDataEdit::AddOperation, [=](const Jsoner::Object &object) {
         DataQuery query = newQuery(AddQuery);
-        query.setObject(object);
-        d->tableModel.controller()->addObject(query, d->progressCallback, [this](const DataResponse &response) {
-            processDataResponse(response);
+        if (query.object().isEmpty())
+            query.setObject(object);
+
+        d->tableModel.manager()->addObject(query, d->progressCallback, [d, query](const DataResponse &response) {
+            if (d->processDataResponse(query, response))
+                return;
+
+            if (response.isSuccess())
+                QMetaObject::invokeMethod(d->q_ptr, "refresh", Qt::QueuedConnection);
         });
     });
 }
 
 void DataBrowser::editCurrentItem()
 {
-    editItem(currentObject());
+    editItem(ui->tableWidget->currentObject());
 }
 
-void DataBrowser::editItem(const Jsoner::Object &item)
+void DataBrowser::editItem(const Jsoner::Object &object)
 {
     WIDGETRY_D(DataBrowser);
-    d->openEdit(item, AbstractDataEdit::EditOperation, [=](const Jsoner::Object &object) {
+    d->openEdit(object, AbstractDataEdit::EditOperation, [=](const Jsoner::Object &object) {
         DataQuery query = newQuery(EditQuery);
-        query.setObject(object);
-        d->tableModel.controller()->editObject(query, d->progressCallback, [this](const DataResponse &response) {
-            processDataResponse(response);
+        if (query.object().isEmpty())
+            query.setObject(object);
+
+        d->tableModel.manager()->editObject(query, d->progressCallback, [d, query](const DataResponse &response) {
+            if (d->processDataResponse(query, response))
+                return;
+
+            if (response.isSuccess())
+                QMetaObject::invokeMethod(d->q_ptr, "refresh", Qt::QueuedConnection);
         });
     });
 }
 
 void DataBrowser::deleteSelectedItems()
 {
-    deleteItems(selectedObjects());
+    deleteItems(ui->tableWidget->selectedObjects());
 }
 
-void DataBrowser::deleteItems(const Jsoner::Array &items)
+void DataBrowser::deleteItems(const Jsoner::Array &objects)
 {
     WIDGETRY_D(DataBrowser);
 
-    if (!d->tableModel.controller()) {
+    if (!d->tableModel.manager())
         return;
-    }
 
-    d->tableModel.controller()->deleteObjects(items, [this](const DataResponse &response) {
-        processDataResponse(response);
+    auto answer = QMessageBox::question(this, tr("Deletion"), tr("Do you really want to delete these %n item(s)", nullptr, objects.size()));
+    if (answer != QMessageBox::Yes)
+        return;
+
+    DataQuery query = newQuery(DeleteQuery);
+    if (query.array().isEmpty())
+        query.setArray(ui->tableWidget->selectedObjects());
+
+    d->tableModel.manager()->deleteObjects(query, [d, query, this](const DataResponse &response) {
+        if (d->processDataResponse(query, response))
+            return;
+
+        if (response.isSuccess())
+            refresh();
     });
+}
+
+QStringList DataBrowser::availableOperations() const
+{
+    static const QStringList operations = {
+        "search", "filter", "refresh",
+        "showCurrentItem", "addCurrentItem", "editCurrentItem", "deleteSelectedItems",
+        "showItem", "addItem", "editItem", "deleteItems"
+    };
+
+    return Widget::availableOperations() + operations;
 }
 
 void DataBrowser::sync()
 {
     WIDGETRY_D(DataBrowser);
 
-    ui->searchInput->setVisible(d->hasDataFeature(AbstractDataController::SearchByKeywordsSearch));
-    ui->filterButton->setVisible(d->hasDataFeature(AbstractDataController::SearchByFilters));
-    ui->filterContainer->setVisible(ui->filterButton->isVisible());
-    ui->tableView->setSortingEnabled(d->hasDataFeature(AbstractDataController::SortedResults));
+    ui->searchInput->setEnabled(d->hasDataFeature(AbstractDataManager::SearchByKeywords));
 
-    ui->addButton->setVisible(d->hasDataFeature(AbstractDataController::CreateObject));
-    d->adaptToSelection(ui->tableView->selectionModel()->selection(), QItemSelection());
+    ui->toggleFiltersButtons->setVisible(d->hasDataFeature(AbstractDataManager::SearchByFilters));
+    if (ui->toggleFiltersButtons->isHidden())
+        ui->filterFrame->setVisible(false);
+
+    ui->tableWidget->view()->setSortingEnabled(d->hasDataFeature(AbstractDataManager::ResultsSorting));
+
+    ui->addButton->setEnabled(d->hasDataFeature(AbstractDataManager::ObjectAdd));
+    d->adaptToSelection();
 
     Widget::sync();
+}
+
+AbstractDataEdit *DataBrowser::filterEdit() const
+{
+    WIDGETRY_D(const DataBrowser);
+    return d->filterWidget;
+}
+
+void DataBrowser::setFilterEdit(AbstractDataEdit *edit)
+{
+    WIDGETRY_D(DataBrowser);
+    ui->filterContainerLayout->addWidget(edit->editWidget());
+    d->filterWidget = edit;
 }
 
 AbstractDataEditFactory *DataBrowser::editFactory() const
@@ -194,18 +224,42 @@ void DataBrowser::setEditFactory(AbstractDataEditFactory *factory)
 {
     WIDGETRY_D(DataBrowser);
     d->editFactory = factory;
+    sync();
 }
 
-AbstractDataController *DataBrowser::dataController() const
+AbstractDataManager *DataBrowser::dataManager() const
 {
     WIDGETRY_D(const DataBrowser);
-    return d->tableModel.controller();
+    return d->tableModel.manager();
 }
 
-void DataBrowser::setDataController(DataGate::AbstractDataController *controller)
+void DataBrowser::setDataManager(DataGate::AbstractDataManager *manager)
 {
     WIDGETRY_D(DataBrowser);
-    d->tableModel.setController(controller);
+    d->tableModel.setManager(manager);
+    sync();
+}
+
+DataEditFinishedCallback DataBrowser::editCallback(AbstractDataEdit::Operation operation)
+{
+    return [this, operation](const Jsoner::Object &object, int result) {
+        if (object.isEmpty() || result != AbstractDataEdit::Accepted)
+            return;
+
+        switch (operation) {
+        case AbstractDataEdit::ShowOperation:
+            showItem(object);
+            break;
+
+        case AbstractDataEdit::AddOperation:
+            addItem(object);
+            break;
+
+        case AbstractDataEdit::EditOperation:
+            editItem(object);
+            break;
+        }
+    };
 }
 
 void DataBrowser::prepareUi()
@@ -222,11 +276,44 @@ void DataBrowser::translateUi(bool full)
     if (full)
         ui->retranslateUi(this);
 
-    d->showAction->setText(tr("Show"));
-    d->editAction->setText(tr("Edit"));
-    d->deleteAction->setText(tr("Delete"));
-
     Widget::translateUi(full);
+}
+
+QVariant DataBrowser::handleOperation(const WidgetOperation &operation, bool *success)
+{
+    const QString function = operation.name();
+    *success = true;
+
+    if (function == QStringLiteral("search")) {
+        search(operation.parameter().toString());
+    } else if (function == QStringLiteral("filter")) {
+        filter(operation.parameter().toHash());
+    } else if (function == QStringLiteral("refresh")) {
+        refresh();
+    } else if (function == QStringLiteral("showCurrentItem")) {
+        showCurrentItem();
+    } else if (function == QStringLiteral("showItem")) {
+        showItem(operation.parameter().toJsonObject());
+    } else if (function == QStringLiteral("addNewItem")) {
+        addNewItem();
+    } else if (function == QStringLiteral("addItem")) {
+        addItem(operation.parameter().toJsonObject());
+    } else if (function == QStringLiteral("editCurrentItem")) {
+        editCurrentItem();
+    } else if (function == QStringLiteral("editItem")) {
+        editItem(operation.parameter().toJsonObject());
+    } else if (function == QStringLiteral("deleteSelectedItems")) {
+        deleteSelectedItems();
+    } else if (function == QStringLiteral("deleteItems")) {
+        deleteItems(operation.parameter().toJsonArray());
+    }
+
+    return Widget::handleOperation(operation, success);
+}
+
+void DataBrowser::handleOperationResult(const WidgetOperation &operation, const QVariantHash &result, bool success)
+{
+    Widget::handleOperationResult(operation, result, success);
 }
 
 DataQuery DataBrowser::newQuery(QueryType type)
@@ -241,7 +328,6 @@ DataQuery DataBrowser::newQuery(QueryType type)
         query.setString(ui->searchInput->text());
         if (d->filterWidget)
             query.setFilters(d->filterWidget->object().toVariantHash());
-        query.setPage(ui->pageInput->value());
         query.setClient(this);
         break;
 
@@ -269,60 +355,95 @@ DataQuery DataBrowser::newQuery()
     return newQuery(EmptyQuery);
 }
 
-bool DataBrowser::processDataResponse(const DataResponse &response)
+bool DataBrowser::processDataResponse(const DataQuery &query, const DataResponse &response)
 {
-    WIDGETRY_D(DataBrowser);
-
-    if (sender() == &d->tableModel && response.isSuccess()) {
-        const Jsoner::Object object = response.object();
-        ui->pageInput->setMaximum(response.pageCount());
-        ui->pageInput->setValue(response.page());
-        ui->previousPageButton->setVisible(response.page() > 1);
-        ui->nextPageButton->setVisible(response.page() < response.pageCount());
-    }
-
-    if (response.hasMessage()) {
-        QMessageBox box;
-        box.setText(response.text());
-        box.setInformativeText(response.informativeText());
-        box.setDetailedText(response.detailedText());
-
-        if (response.isSuccess()) {
-            box.setWindowTitle(response.title().isEmpty() ? tr("Message") : response.title());
-            box.setIcon(QMessageBox::Information);
-        } else {
-            box.setWindowTitle(response.title().isEmpty() ? tr("Error") : response.title());
-            box.setIcon(QMessageBox::Warning);
-        }
-
-        box.exec();
-    }
-
+    Q_UNUSED(query);
+    Q_UNUSED(response);
     return false;
 }
 
-bool DataBrowser::eventFilter(QObject *object, QEvent *event)
+void DataBrowser::showResponseMessage(const DataGate::DataQuery &query, const DataGate::DataResponse &response)
 {
-    WIDGETRY_D(DataBrowser);
+    QMessageBox box(this);
+    box.setWindowFlag(Qt::CustomizeWindowHint, true);
+    box.setWindowFlag(Qt::WindowStaysOnTopHint, true);
 
-    if (object == ui->tableView && event->type() == QEvent::ContextMenu) {
-        d->contextMenu->popup(static_cast<QContextMenuEvent *>(event)->globalPos());
-        return true;
+    if (response.isSuccess()) {
+        box.setWindowTitle(response.title().isEmpty() ? tr("Message") : response.title());
+        box.setIcon(QMessageBox::Information);
+    } else {
+        box.setWindowTitle(response.title().isEmpty() ? tr("Error") : response.title());
+        box.setIcon(QMessageBox::Warning);
     }
 
-    return Widget::eventFilter(object, event);
+    box.setText(response.text());
+    box.setInformativeText(response.informativeText());
+    box.setDetailedText(response.detailedText());
+
+    box.exec();
 }
 
 DataBrowserPrivate::DataBrowserPrivate(DataBrowser *q, const QByteArray &id)
     : WidgetPrivate(q, id)
     , ui(nullptr)
-    , contextMenu(nullptr)
     , editFactory(nullptr)
     , filterWidget(nullptr)
 {
     progressCallback = [](qint64 current, qint64 total) {
         widgetryInfo() << "Request progress";
     };
+
+    connect(&tableModel, &TableModel::finished, this, &DataBrowserPrivate::processModelResponse);
+}
+
+void DataBrowserPrivate::init(Ui::DataBrowser *ui)
+{
+    WIDGETRY_Q(DataBrowser);
+
+    connect(ui->searchInput, &SearchBar::completionsRequested, this, &DataBrowserPrivate::fetchSearchSuggestions);
+
+    ui->toggleFiltersButtons->hide();
+    ui->filterFrame->hide();
+
+    ui->tableWidget->addAction(ui->actionShow);
+    ui->tableWidget->setModel(&tableModel);
+    connect(ui->tableWidget, &TableWidget::selectionChanged, this, &DataBrowserPrivate::adaptToSelection);
+    connect(ui->tableWidget, &TableWidget::doubleClicked, q, [q, this](const QModelIndex &index) { q->showItem(tableModel.object(index.row())); });
+
+    QMenu *contextMenu = new QMenu(ui->tableWidget);
+    contextMenu->addAction(ui->actionShow);
+    contextMenu->addAction(ui->actionEdit);
+    contextMenu->addAction(ui->actionDelete);
+    ui->tableWidget->setContextMenu(contextMenu);
+
+    QShortcut *shortcut = new QShortcut(QKeySequence::Find, q);
+    connect(shortcut, &QShortcut::activated, ui->searchInput, QOverload<>::of(&QWidget::setFocus));
+
+    this->ui = ui;
+}
+
+void DataBrowserPrivate::fetchSearchSuggestions(const QString &text)
+{
+    WIDGETRY_Q(DataBrowser);
+
+    AbstractDataManager *manager = tableModel.manager();
+    if (!manager || !manager->hasFeature(AbstractDataManager::SearchSuggestions, q))
+        return;
+
+    DataQuery query = q->newQuery(DataBrowser::RefreshQuery);
+    query.setString(text);
+    manager->fetchSearchSuggestions(query, [this](const DataResponse &response) {
+        if (!response.isSuccess())
+            return;
+
+        const Jsoner::Array suggestions = response.array();
+        QStringList keywords;
+        std::transform(suggestions.begin(), suggestions.end(), std::back_inserter(keywords), [](const QJsonValue &value) {
+            return value.toString();
+        });
+
+        ui->searchInput->addCompletions(keywords);
+    });
 }
 
 void DataBrowserPrivate::openEdit(const QJsonObject &item, AbstractDataEdit::Operation operation, const EditingCallback &callback)
@@ -334,15 +455,17 @@ void DataBrowserPrivate::openEdit(const QJsonObject &item, AbstractDataEdit::Ope
         return;
     }
 
-    AbstractDataController *controller = tableModel.controller();
+    AbstractDataManager *controller = tableModel.manager();
 
     if (!controller) {
         widgetryWarning() << q->title() << ": no data controller set !";
         return;
     }
 
-    controller->fetchObject(q->newQuery(DataBrowser::ShowQuery), nullptr, [=](const DataResponse &response) {
-        if (q->processDataResponse(response) || !response.isSuccess())
+    DataQuery query = q->newQuery(DataBrowser::ShowQuery);
+    query.setObject(item);
+    controller->fetchObject(query, progressCallback, [=](const DataResponse &response) {
+        if (processDataResponse(query, response) || !response.isSuccess())
             return;
 
         AbstractDataEdit *edit = editFactory->create(response.object(), operation, q_ptr);
@@ -358,24 +481,41 @@ void DataBrowserPrivate::openEdit(const QJsonObject &item, AbstractDataEdit::Ope
     });
 }
 
-bool DataBrowserPrivate::hasDataFeature(DataGate::AbstractDataController::Feature feature) const
+bool DataBrowserPrivate::hasDataFeature(AbstractDataManager::Feature feature) const
 {
     WIDGETRY_Q(DataBrowser);
-    AbstractDataController *dataController = tableModel.controller();
+    // ToDo: add optional (bool attrib based) permission check here !
+    AbstractDataManager *dataController = tableModel.manager();
     return dataController ? dataController->hasFeature(feature, q) : false;
 }
 
-void DataBrowserPrivate::adaptToSelection(const QItemSelection &selected, const QItemSelection &deselected)
+void DataBrowserPrivate::adaptToSelection()
 {
+    const QModelIndexList selected = ui->tableWidget->selectedRows();
     const bool single = selected.count() == 1;
     const bool multiple = selected.count() > 1;
 
-    ui->editButton->setVisible(single && hasDataFeature(AbstractDataController::UpdateObject));
-    ui->deleteButton->setVisible((single || multiple) && hasDataFeature(AbstractDataController::DeleteObjects));
+    ui->editButton->setEnabled(single && hasDataFeature(AbstractDataManager::ObjectEdit));
+    ui->deleteButton->setEnabled((single || multiple) && hasDataFeature(AbstractDataManager::ObjectDelete));
 
-    showAction->setVisible(single);
-    editAction->setVisible(single && hasDataFeature(AbstractDataController::UpdateObject));
-    deleteAction->setVisible((single || multiple) && hasDataFeature(AbstractDataController::DeleteObjects));
+    ui->actionShow->setVisible(single);
+    ui->actionEdit->setVisible(single && hasDataFeature(AbstractDataManager::ObjectEdit));
+    ui->actionDelete->setVisible((single || multiple) && hasDataFeature(AbstractDataManager::ObjectDelete));
+}
+
+void DataBrowserPrivate::processModelResponse(const DataGate::DataResponse &response)
+{
+    if (response.isSuccess())
+        adaptToSelection();
+    processDataResponse(tableModel.dataQuery(), response);
+}
+
+bool DataBrowserPrivate::processDataResponse(const DataGate::DataQuery &query, const DataGate::DataResponse &response)
+{
+    WIDGETRY_Q(DataBrowser);
+    if (response.hasMessage())
+        q->showResponseMessage(query, response);
+    return q->processDataResponse(query, response);
 }
 
 } // namespace Widgetry

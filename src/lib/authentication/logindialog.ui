@@ -91,38 +91,20 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QLineEdit" name="identifierInput">
+       <widget class="LoginEdit" name="identifierInput">
         <property name="font">
          <font>
           <pointsize>12</pointsize>
          </font>
-        </property>
-        <property name="maxLength">
-         <number>30</number>
-        </property>
-        <property name="placeholderText">
-         <string>Identifier</string>
-        </property>
-        <property name="clearButtonEnabled">
-         <bool>true</bool>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="passwordInput">
+       <widget class="PasswordEdit" name="passwordInput">
         <property name="font">
          <font>
           <pointsize>12</pointsize>
          </font>
-        </property>
-        <property name="maxLength">
-         <number>20</number>
-        </property>
-        <property name="echoMode">
-         <enum>QLineEdit::EchoMode::Password</enum>
-        </property>
-        <property name="placeholderText">
-         <string>Password</string>
         </property>
        </widget>
       </item>
@@ -160,9 +142,6 @@
           </item>
           <item>
            <widget class="QPushButton" name="logInButton">
-            <property name="focusPolicy">
-             <enum>Qt::FocusPolicy::NoFocus</enum>
-            </property>
             <property name="text">
              <string>Log In</string>
             </property>
@@ -185,6 +164,18 @@
         </widget>
         <widget class="QWidget" name="page">
          <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QProgressBar" name="progressBar">
             <property name="maximum">
@@ -240,34 +231,20 @@
     </widget>
    </item>
   </layout>
-  <action name="actionLogin">
-   <property name="icon">
-    <iconset resource="../resources/widgetry_resources.qrc">
-     <normaloff>:/widgetry/icons/login_icon.png</normaloff>:/widgetry/icons/login_icon.png</iconset>
-   </property>
-  </action>
-  <action name="actionPassword">
-   <property name="icon">
-    <iconset resource="../resources/widgetry_resources.qrc">
-     <normaloff>:/widgetry/icons/login_password.png</normaloff>:/widgetry/icons/login_password.png</iconset>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionShowPassword">
-   <property name="icon">
-    <iconset resource="../resources/widgetry_resources.qrc">
-     <normaloff>:/widgetry/icons/password_show.png</normaloff>:/widgetry/icons/password_show.png</iconset>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
  </widget>
- <resources>
-  <include location="../resources/widgetry_resources.qrc"/>
- </resources>
+ <customwidgets>
+  <customwidget>
+   <class>LoginEdit</class>
+   <extends>QLineEdit</extends>
+   <header location="global">Widgetry/loginedit.h</header>
+  </customwidget>
+  <customwidget>
+   <class>PasswordEdit</class>
+   <extends>QLineEdit</extends>
+   <header location="global">Widgetry/passwordedit.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
  <connections>
   <connection>
    <sender>identifierInput</sender>
@@ -296,26 +273,13 @@
      <y>185</y>
     </hint>
     <hint type="destinationlabel">
-     <x>320</x>
-     <y>240</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>logInButton</sender>
-   <signal>clicked()</signal>
-   <receiver>identifierInput</receiver>
-   <slot>setFocus()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>289</x>
-     <y>231</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>497</x>
-     <y>146</y>
+     <x>319</x>
+     <y>248</y>
     </hint>
    </hints>
   </connection>
  </connections>
+ <slots>
+  <slot>logIn()</slot>
+ </slots>
 </ui>

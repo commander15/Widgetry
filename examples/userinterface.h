@@ -1,9 +1,9 @@
 #ifndef USERINTERFACE_H
 #define USERINTERFACE_H
 
-#include <Widgetry/datainterface.h>
+#include <Widgetry/databrowser.h>
 
-class UserInterface : public Widgetry::DataInterface
+class UserInterface : public Widgetry::DataBrowser
 {
     Q_OBJECT
 

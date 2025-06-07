@@ -13,29 +13,13 @@
   <property name="windowTitle">
    <string notr="true">Browser</string>
   </property>
-  <layout class="QGridLayout" name="interfaceLayout" columnstretch="0,0,1">
-   <item row="1" column="1" colspan="2">
-    <widget class="QTableView" name="tableView">
-     <property name="contextMenuPolicy">
-      <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
-     </property>
-     <property name="editTriggers">
-      <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
-     </property>
-     <property name="selectionBehavior">
-      <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
-     </property>
-     <property name="sortingEnabled">
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
+  <layout class="QGridLayout" name="interfaceLayout" rowstretch="0,1,0" columnstretch="0,2">
    <item row="1" column="0" rowspan="2">
     <widget class="QFrame" name="filterFrame">
      <property name="frameShape">
       <enum>QFrame::Shape::StyledPanel</enum>
      </property>
-     <layout class="QGridLayout" name="gridLayout_3">
+     <layout class="QGridLayout" name="gridLayout_3" rowstretch="1,0,0">
       <item row="2" column="0">
        <spacer name="horizontalSpacer_4">
         <property name="orientation">
@@ -97,7 +81,7 @@
      </layout>
     </widget>
    </item>
-   <item row="0" column="0" colspan="3">
+   <item row="0" column="0" colspan="2">
     <widget class="QWidget" name="topBar" native="true">
      <layout class="QHBoxLayout" name="topBarLayout" stretch="0,0,0,0">
       <property name="leftMargin">
@@ -113,18 +97,12 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QLineEdit" name="searchInput">
+       <widget class="Widgetry::SearchBar" name="searchInput">
         <property name="maximumSize">
          <size>
           <width>500</width>
           <height>16777215</height>
          </size>
-        </property>
-        <property name="maxLength">
-         <number>30</number>
-        </property>
-        <property name="placeholderText">
-         <string>Search...</string>
         </property>
        </widget>
       </item>
@@ -173,6 +151,9 @@
             <iconset resource="../resources/widgetry_resources.qrc">
              <normaloff>:/widgetry/icons/action_refresh.png</normaloff>:/widgetry/icons/action_refresh.png</iconset>
            </property>
+           <property name="shortcut">
+            <string>F5</string>
+           </property>
           </widget>
          </item>
          <item>
@@ -180,6 +161,9 @@
            <property name="icon">
             <iconset resource="../resources/widgetry_resources.qrc">
              <normaloff>:/widgetry/icons/action_add.png</normaloff>:/widgetry/icons/action_add.png</iconset>
+           </property>
+           <property name="shortcut">
+            <string>Ctrl+N</string>
            </property>
           </widget>
          </item>
@@ -189,6 +173,9 @@
             <iconset resource="../resources/widgetry_resources.qrc">
              <normaloff>:/widgetry/icons/action_edit.png</normaloff>:/widgetry/icons/action_edit.png</iconset>
            </property>
+           <property name="shortcut">
+            <string>Ctrl+E</string>
+           </property>
           </widget>
          </item>
          <item>
@@ -196,6 +183,9 @@
            <property name="icon">
             <iconset resource="../resources/widgetry_resources.qrc">
              <normaloff>:/widgetry/icons/action_delete.png</normaloff>:/widgetry/icons/action_delete.png</iconset>
+           </property>
+           <property name="shortcut">
+            <string>Del</string>
            </property>
           </widget>
          </item>
@@ -205,91 +195,79 @@
      </layout>
     </widget>
    </item>
-   <item row="2" column="1" colspan="2">
-    <widget class="QWidget" name="pageInputBar" native="true">
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Orientation::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>238</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QToolButton" name="previousPageButton">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string notr="true">&lt;</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QSpinBox" name="pageInput">
-        <property name="minimumSize">
-         <size>
-          <width>64</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="wrapping">
-         <bool>true</bool>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignmentFlag::AlignCenter</set>
-        </property>
-        <property name="buttonSymbols">
-         <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
-        </property>
-        <property name="specialValueText">
-         <string>N / A</string>
-        </property>
-        <property name="suffix">
-         <string notr="true"> / 1</string>
-        </property>
-        <property name="minimum">
-         <number>0</number>
-        </property>
-        <property name="maximum">
-         <number>1</number>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="nextPageButton">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string notr="true">&gt;</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Orientation::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>238</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-     </layout>
+   <item row="1" column="1" rowspan="2">
+    <widget class="Widgetry::TableWidget" name="tableWidget" native="true">
+     <property name="minimumSize">
+      <size>
+       <width>400</width>
+       <height>0</height>
+      </size>
+     </property>
     </widget>
    </item>
   </layout>
+  <action name="actionShow">
+   <property name="icon">
+    <iconset resource="../resources/widgetry_resources.qrc">
+     <normaloff>:/widgetry/icons/action_show.png</normaloff>:/widgetry/icons/action_show.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Return</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionEdit">
+   <property name="icon">
+    <iconset resource="../resources/widgetry_resources.qrc">
+     <normaloff>:/widgetry/icons/action_edit.png</normaloff>:/widgetry/icons/action_edit.png</iconset>
+   </property>
+   <property name="text">
+    <string>Edit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionDelete">
+   <property name="icon">
+    <iconset resource="../resources/widgetry_resources.qrc">
+     <normaloff>:/widgetry/icons/action_delete.png</normaloff>:/widgetry/icons/action_delete.png</iconset>
+   </property>
+   <property name="text">
+    <string>Delete</string>
+   </property>
+   <property name="shortcut">
+    <string>Del</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Widgetry::SearchBar</class>
+   <extends>QLineEdit</extends>
+   <header location="global">Widgetry/searchbar.h</header>
+   <slots>
+    <signal>searchRequested()</signal>
+   </slots>
+  </customwidget>
+  <customwidget>
+   <class>Widgetry::TableWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">Widgetry/tablewidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../resources/widgetry_resources.qrc"/>
  </resources>
@@ -311,52 +289,155 @@
    </hints>
   </connection>
   <connection>
-   <sender>previousPageButton</sender>
-   <signal>clicked()</signal>
-   <receiver>pageInput</receiver>
-   <slot>stepDown()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>414</x>
-     <y>355</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>450</x>
-     <y>359</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>nextPageButton</sender>
-   <signal>clicked()</signal>
-   <receiver>pageInput</receiver>
-   <slot>stepUp()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>511</x>
-     <y>357</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>472</x>
-     <y>359</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>searchInput</sender>
-   <signal>returnPressed()</signal>
-   <receiver>refreshButton</receiver>
-   <slot>click()</slot>
+   <signal>searchRequested()</signal>
+   <receiver>Widgetry::DataBrowser</receiver>
+   <slot>refresh()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>280</x>
      <y>22</y>
     </hint>
     <hint type="destinationlabel">
-     <x>620</x>
-     <y>22</y>
+     <x>366</x>
+     <y>194</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>filterButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Widgetry::DataBrowser</receiver>
+   <slot>refresh()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>112</x>
+     <y>355</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>366</x>
+     <y>194</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionShow</sender>
+   <signal>triggered()</signal>
+   <receiver>Widgetry::DataBrowser</receiver>
+   <slot>showCurrentItem()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>366</x>
+     <y>194</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionEdit</sender>
+   <signal>triggered()</signal>
+   <receiver>Widgetry::DataBrowser</receiver>
+   <slot>editCurrentItem()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>366</x>
+     <y>194</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionDelete</sender>
+   <signal>triggered()</signal>
+   <receiver>Widgetry::DataBrowser</receiver>
+   <slot>deleteSelectedItems()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>366</x>
+     <y>194</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>refreshButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Widgetry::DataBrowser</receiver>
+   <slot>refresh()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>621</x>
+     <y>21</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>366</x>
+     <y>194</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>addButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Widgetry::DataBrowser</receiver>
+   <slot>addNewItem()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>651</x>
+     <y>21</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>366</x>
+     <y>194</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>editButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Widgetry::DataBrowser</receiver>
+   <slot>editCurrentItem()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>681</x>
+     <y>21</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>366</x>
+     <y>194</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>deleteButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Widgetry::DataBrowser</receiver>
+   <slot>deleteSelectedItems()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>711</x>
+     <y>21</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>366</x>
+     <y>194</y>
     </hint>
    </hints>
   </connection>
  </connections>
+ <slots>
+  <slot>refresh()</slot>
+  <slot>showCurrentItem()</slot>
+  <slot>editCurrentItem()</slot>
+  <slot>deleteSelectedItems()</slot>
+  <slot>addNewItem()</slot>
+ </slots>
 </ui>

@@ -2,11 +2,16 @@
 #define WIDGETRY_LOGINDIALOG_H
 
 #include <Widgetry/global.h>
+#include <Widgetry/loginedit.h>
 
 #include <QtWidgets/qdialog.h>
 
 namespace DataGate {
 class AuthenticationError;
+}
+
+namespace Jsoner {
+class Object;
 }
 
 class QValidator;
@@ -24,10 +29,8 @@ class WIDGETRY_EXPORT LoginDialog : public QDialog
 
 public:
     enum IdentifierType {
-        LoginIdentifier,
-        EmailIdentifier,
-
-        UnknownIdentifier = -1
+        UsernameIdentifier = LoginEdit::UsernameLogin,
+        EmailIdentifier = LoginEdit::EmailLogin,
     };
 
     LoginDialog(QWidget *parent = nullptr);
@@ -57,15 +60,14 @@ public slots:
     void setVisible(bool visible) override;
 
 private slots:
-    void togglePasswordVisibility();
-
     void logIn();
+    void showMessage(const Jsoner::Object &user);
     void showError(const DataGate::AuthenticationError &error);
     void hideError();
 
-private:
-    void restore(bool full);
+    void adaptToView(int index);
 
+private:
     Ui::LoginDialog *ui;
 
     bool m_showOnLogOut;
