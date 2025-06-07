@@ -142,7 +142,7 @@ void LoginDialog::showMessage(const Jsoner::Object &user)
 
 void LoginDialog::showError(const AuthenticationError &error)
 {
-    ui->errorOutput->setText(error.errorString());
+    ui->errorOutput->setText(error.text());
     ui->stackedWidget->setCurrentIndex(2);
     m_cleanTimer->start();
 }
