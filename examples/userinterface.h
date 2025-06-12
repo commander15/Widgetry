@@ -13,6 +13,7 @@ public:
 
 public slots:
     void selectIt();
+    void translate();
 };
 
 #endif // USERINTERFACE_H

@@ -20,7 +20,7 @@ class DataInterface;
 
 class DataInterfaceForge;
 
-typedef void(DataGate::AbstractDataController::*DataControllerRawMethod)(const DataGate::DataQuery &, const DataGate::DataQueryProgressCallback &, const DataGate::DataQueryResponseCallback &);
+typedef void(DataGate::AbstractDataController::*DataControllerRawMethod)(const DataGate::DataRequest &, const DataGate::DataRequestCallback &, const DataGate::DataResponseCallback &);
 
 class DataInterfacePrivate;
 class WIDGETRY_EXPORT DataBrowser : public UserInterface
@@ -85,7 +85,7 @@ protected:
     bool handleDeleteItems(const QVariantHash &parameters);
     void handleOperationResult(const WidgetOperation &operation) override;
 
-    virtual DataGate::DataQuery prepareQuery(const DataGate::DataQuery &query) const;
+    virtual DataGate::DataRequest prepareQuery(const DataGate::DataRequest &query) const;
 
     DataEditFinishedCallback editCallback(AbstractDataEdit::Operation operation) const;
 
@@ -94,9 +94,9 @@ protected:
     void showResponseMessage(const QString &title, const DataGate::DataResponse &response);
     void showResponseMessage(const QString &title, const QString &text, const DataGate::DataResponse &response);
 
-    void preFetch(const DataGate::DataQuery &query, const std::function<void(const Jsoner::Object &object)> &callback);
-    void executeDataRequest(DataControllerRawMethod method, const DataGate::DataQuery &query);
-    void executeDataRequest(DataControllerRawMethod method, const DataGate::DataQuery &query, const DataGate::DataQueryResponseCallback &callback);
+    void preFetch(const DataGate::DataRequest &query, const std::function<void(const Jsoner::Object &object)> &callback);
+    void executeDataRequest(DataControllerRawMethod method, const DataGate::DataRequest &query);
+    void executeDataRequest(DataControllerRawMethod method, const DataGate::DataRequest &query, const DataGate::DataResponseCallback &callback);
 
     friend class DataInterfaceForge;
 

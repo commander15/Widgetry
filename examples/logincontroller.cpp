@@ -8,7 +8,7 @@ LoginController::LoginController()
 {
 }
 
-void LoginController::attemptLogIn(const DataGate::LoginQuery &query, const DataGate::DataQueryResponseCallback &callback)
+void LoginController::attemptLogIn(const DataGate::LoginRequest &query, const DataGate::DataResponseCallback &callback)
 {
     static const QHash<QString, QString> credentials = {
         { "admin", "admin" }
@@ -26,7 +26,7 @@ void LoginController::attemptLogIn(const DataGate::LoginQuery &query, const Data
     QTimer::singleShot(2000, qApp, [callback, response] { callback(response); });
 }
 
-void LoginController::attemptLogOut(const DataGate::LoginQuery &query, const DataGate::DataQueryResponseCallback &callback)
+void LoginController::attemptLogOut(const DataGate::LoginRequest &query, const DataGate::DataResponseCallback &callback)
 {
     DataGate::DataResponse response;
     response.setSuccess(true);

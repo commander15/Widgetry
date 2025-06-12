@@ -4,11 +4,13 @@
 #include <Widgetry/global.h>
 #include <Widgetry/databrowser.h>
 #include <Widgetry/abstractdataedit.h>
+#include <Widgetry/databrowsertablecolumnbuilder.h>
 #include <Widgetry/dataeditfactory.h>
 
 #include <QtWidgets/qheaderview.h>
 #include <QtWidgets/qtoolbutton.h>
 
+class QSpacerItem;
 class QAbstractButton;
 
 namespace Widgetry {
@@ -31,6 +33,12 @@ public:
     template<typename Functor>QAction *action(const QIcon &icon, const QString &text, QObject *context, Functor &&functor);
     void action(QAction *action);
 
+    void parameter(const QString &name, const QVariant &value);
+
+    void topWidget(QWidget *widget, int stretch = 0, Qt::Alignment alignment = Qt::Alignment());
+    void topLayout(QLayout *layout, int stretch = 0);
+    void topSpacer(QSpacerItem *spacer);
+
     QAbstractButton *button(const QString &name, const QIcon &icon);
     QAbstractButton *button(const QString &name, const QIcon &icon, const QString &text);
     template<typename Functor> QAbstractButton *button(const QString &name, const QIcon &icon, QObject *context, Functor &&functor);
@@ -40,23 +48,25 @@ public:
     template<typename T> T *filter();
     void filter(AbstractDataEdit *filter);
 
-    template<typename T> T *tableDelegate(QObject *parent = nullptr);
-    void tableDelegate(QAbstractItemDelegate *delegate);
+    DataBrowserTableColumnBuilder column(const QString &field);
 
-    int tableColumn(const QString &field, QHeaderView::ResizeMode resizeMode = QHeaderView::Stretch);
-    int tableColumn(const QString &label, const QString &field, QHeaderView::ResizeMode resizeMode = QHeaderView::Stretch);
-    void tableColumn(int index, const QString &label);
+    template<typename T> T *delegate(QObject *parent = nullptr);
+    void delegate(QAbstractItemDelegate *delegate);
 
-    template<typename Functor> QAction *contextMenuAction(const QIcon &icon, QObject *context, Functor &&functor);
-    template<typename Functor> QAction *contextMenuAction(const QString &text, QObject *context, Functor &&functor);
-    template<typename Functor> QAction *contextMenuAction(const QIcon &icon, const QString &text, QObject *context, Functor &&functor);
-    void contextMenuAction(QAction *action);
+    template<typename Functor> QAction *menuAction(const QString &name, const QIcon &icon, QObject *context, Functor &&functor);
+    template<typename Functor> QAction *menuAction(const QString &name, const QString &text, QObject *context, Functor &&functor);
+    template<typename Functor> QAction *menuAction(const QString &name, const QIcon &icon, const QString &text, QObject *context, Functor &&functor);
+    QAction *menuAction(const QString &name, const QIcon &icon, const QString &text);
+    void menuAction(QAction *action);
 
-    template<typename T> DataEditFactory<T> *edit();
+    template<typename Handler> Handler *handler();
+    void handler(AbstractDataBrowserHandler *handler);
+
+    template<typename T> DataEditFactory<T> &edit();
     void edit(AbstractDataEditFactory *factory);
 
-    template<typename T> T *dataManager();
-    void dataManager(DataGate::AbstractDataManager *manager);
+    template<typename T> T *data();
+    void data(DataGate::AbstractDataManager *manager);
 
     void cancel();
 
@@ -109,53 +119,58 @@ T *DataBrowserBlueprint::filter()
 }
 
 template<typename T>
-inline T *DataBrowserBlueprint::tableDelegate(QObject *parent)
+inline T *DataBrowserBlueprint::delegate(QObject *parent)
 {
     T *delegate = new T(parent ? parent : browser());
-    tableDelegate(delegate);
+    delegate(delegate);
     return delegate;
 }
 
 template<typename Functor>
-QAction *DataBrowserBlueprint::contextMenuAction(const QIcon &icon, QObject *context, Functor &&functor)
+QAction *DataBrowserBlueprint::menuAction(const QString &name, const QIcon &icon, QObject *context, Functor &&functor)
 {
-    auto *action = new QAction(icon, QString(), browser());
+    QAction *action = menuAction(name, icon, QString());
     QObject::connect(action, &QAction::triggered, context, functor);
-    contextMenuAction(action);
     return action;
 }
 
 template<typename Functor>
-QAction *DataBrowserBlueprint::contextMenuAction(const QString &text, QObject *context, Functor &&functor)
+QAction *DataBrowserBlueprint::menuAction(const QString &name, const QString &text, QObject *context, Functor &&functor)
 {
-    auto *action = new QAction(text, browser());
+    QAction *action = menuAction(name, QIcon(), text);
     QObject::connect(action, &QAction::triggered, context, functor);
-    contextMenuAction(action);
     return action;
 }
 
 template<typename Functor>
-QAction *DataBrowserBlueprint::contextMenuAction(const QIcon &icon, const QString &text, QObject *context, Functor &&functor)
+QAction *DataBrowserBlueprint::menuAction(const QString &name, const QIcon &icon, const QString &text, QObject *context, Functor &&functor)
 {
-    auto *action = new QAction(icon, text, browser());
+    QAction *action = menuAction(name, icon, text);
     QObject::connect(action, &QAction::triggered, context, functor);
-    contextMenuAction(action);
     return action;
+}
+
+template<typename Handler>
+Handler *DataBrowserBlueprint::handler()
+{
+    Handler *handler = new Handler();
+    this->handler(handler);
+    return handler;
 }
 
 template<typename T>
-DataEditFactory<T> *DataBrowserBlueprint::edit()
+DataEditFactory<T> &DataBrowserBlueprint::edit()
 {
     DataEditFactory<T> *factory = new DataEditFactory<T>();
     this->edit(factory);
-    return factory;
+    return *factory;
 }
 
 template<typename T>
-inline T *DataBrowserBlueprint::dataManager()
+inline T *DataBrowserBlueprint::data()
 {
     T *controller = new T();
-    dataManager(controller);
+    data(controller);
     return controller;
 }
 

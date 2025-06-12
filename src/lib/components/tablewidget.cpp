@@ -2,11 +2,14 @@
 #include "tablewidget_p.h"
 #include "ui_tablewidget.h"
 
+#include <QtCore/qsettings.h>
+
 #include <QtGui/qevent.h>
+
+#include <QtWidgets/qmenu.h>
 
 #include <DataGate/tablemodel.h>
 #include <DataGate/dataresponse.h>
-#include <qmenu.h>
 
 using namespace DataGate;
 
@@ -21,6 +24,7 @@ TableWidget::TableWidget(QWidget *parent)
     ui->tableView->installEventFilter(this);
     connect(ui->tableView, &QAbstractItemView::doubleClicked, this, &TableWidget::doubleClicked);
 
+    connect(ui->pageInput, &QSpinBox::valueChanged, this, &TableWidget::pageChanged);
     connect(ui->pageInput, &QAbstractSpinBox::editingFinished, this, [this] {
         setPage(ui->pageInput->value());
     });
@@ -30,6 +34,8 @@ TableWidget::TableWidget(QWidget *parent)
 
     ui->nextButton->setEnabled(false);
     connect(ui->nextButton, &QAbstractButton::clicked, this, [this] { setPage(page() + 1); });
+
+    setFocusProxy(ui->tableView);
 }
 
 TableWidget::~TableWidget()
@@ -77,7 +83,7 @@ void TableWidget::setPage(int page)
     WIDGETRY_D(TableWidget);
     if (d->model) {
         d->model->setPage(page);
-        d->model->get();
+        emit fetchRequested();
     }
 }
 
@@ -103,6 +109,20 @@ void TableWidget::setContextMenu(QMenu *menu)
 {
     WIDGETRY_D(TableWidget);
     d->contextMenu = menu;
+}
+
+void TableWidget::loadSettings(QSettings *settings)
+{
+    if (settings->contains("header/state")) {
+        QHeaderView *header = ui->tableView->horizontalHeader();
+        header->restoreState(settings->value("header/state").toByteArray());
+    }
+}
+
+void TableWidget::saveSettings(QSettings *settings) const
+{
+    QHeaderView *header = ui->tableView->horizontalHeader();
+    settings->setValue("header/state", header->saveState());
 }
 
 DataGate::TableModel *TableWidget::model() const
@@ -160,18 +180,25 @@ void TableWidget::processSelection(const QItemSelection &selected, const QItemSe
 
 void TableWidget::processResponse(const DataGate::DataResponse &response)
 {
-    if (!response.isSuccess())
+    WIDGETRY_D(TableWidget);
+
+    if (!response.isSuccess()) {
+        ui->pageInput->setValue(d->lastPage);
         return;
+    }
 
     ui->pageInput->setMaximum(response.pageCount());
     ui->pageInput->setValue(response.page());
     ui->pageInput->setSuffix(QStringLiteral(" / %1").arg(response.pageCount()));
     ui->previousButton->setEnabled(response.page() > 1);
     ui->nextButton->setEnabled(response.page() < response.pageCount());
+
+    d->lastPage = response.page();
 }
 
 Widgetry::TableWidgetPrivate::TableWidgetPrivate(TableWidget *q, const QByteArray &id)
     : WidgetPrivate(q, id)
+    , lastPage(1)
     , contextMenu(nullptr)
     , model(nullptr)
 {

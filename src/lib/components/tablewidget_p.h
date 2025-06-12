@@ -14,6 +14,7 @@ public:
 
     void init(Ui::TableWidget *ui);
 
+    int lastPage;
     QMenu *contextMenu;
     DataGate::TableModel *model;
 };

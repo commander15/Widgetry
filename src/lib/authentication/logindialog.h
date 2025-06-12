@@ -6,6 +6,8 @@
 
 #include <QtWidgets/qdialog.h>
 
+class QSettings;
+
 namespace DataGate {
 class AuthenticationError;
 }
@@ -51,6 +53,9 @@ public:
 
     void showOnLogOut();
     void setShowOnLogOut(bool show);
+
+    void loadSettings(QSettings *settings);
+    void saveSettings(QSettings *settings) const;
 
 public slots:
     void setLogo(const QPixmap &logo);

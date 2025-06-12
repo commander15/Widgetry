@@ -7,7 +7,7 @@
 #include <Widgetry/dataedit.h>
 
 #include <DataGate/tablemodel.h>
-#include <DataGate/dataquery.h>
+#include <DataGate/datarequest.h>
 #include <DataGate/dataresponse.h>
 #include <DataGate/permissionmanager.h>
 
@@ -235,7 +235,7 @@ void DataInterfaceForge::fetchSearchSuggestions(const QString &query)
     else if (timer.elapsed() < 1000)
         return;
 
-    DataGate::DataQuery dataQuery;
+    DataGate::DataRequest dataQuery;
     dataQuery.setString(query);
     dataQuery = d_ptr->forgeInterface()->prepareQuery(dataQuery);
 

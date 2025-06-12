@@ -7,7 +7,7 @@
 #include <QtWidgets/qheaderview.h>
 
 namespace DataGate {
-class DataQuery;
+class DataRequest;
 class DataResponse;
 class AbstractDataManager;
 }
@@ -25,6 +25,8 @@ namespace Ui {
 class DataSelector;
 }
 
+class DataBrowser;
+
 class DataSelectorPrivate;
 class WIDGETRY_EXPORT DataSelector : public QDialog
 {
@@ -33,10 +35,17 @@ class WIDGETRY_EXPORT DataSelector : public QDialog
 public:
     enum SelectorOption {
         SearchByText,
+        AlternatingRowColors,
+        SingleSelection,
+        MultiSelection,
+        ExtendedSelection,
+        ContiguousSelection,
         InfiniteLoad,
-        NoButtons
+        AcceptOnDoubleClick,
+        WithButtons
     };
 
+    DataSelector(DataBrowser *browser, Qt::WindowFlags flags = Qt::WindowFlags());
     DataSelector(QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
     virtual ~DataSelector();
 
@@ -44,29 +53,39 @@ public:
     Q_SLOT void search(const QString &query);
     Q_SLOT void refresh();
     Q_SLOT void clear();
-    void setLabel(int index, const QString &name);
-    void setResizeMode(int index, QHeaderView::ResizeMode mode);
 
-    QStringList fields() const;
-    void setFields(const QStringList &fields);
-
-    bool hasOption(SelectorOption option) const;
-    void setOption(SelectorOption option, bool on = true);
+    void setLabel(const QString &field, const QString &name);
+    void setResizeMode(const QString &field, QHeaderView::ResizeMode mode);
 
     Jsoner::Object selectedObject() const;
     Jsoner::Array selectedObjects() const;
 
-    DataGate::DataQuery searchQuery() const;
-    void setSearchQuery(const DataGate::DataQuery &query);
+    Jsoner::Array modelObjects() const;
+    void setModelObjects(const Jsoner::Array &objects);
 
-    DataGate::AbstractDataManager *dataManager() const;
-    void setDataManager(DataGate::AbstractDataManager *manager);
+    bool hasOption(SelectorOption option) const;
+    void setOption(SelectorOption option, bool on = true);
+
+    QStringList fields() const;
+    void setFields(const QStringList &fields);
+
+    DataGate::DataRequest request() const;
+    void setRequest(const DataGate::DataRequest &request);
+
+    DataGate::AbstractDataManager *manager() const;
+    void setManager(DataGate::AbstractDataManager *manager);
+
+protected:
+    void showEvent(QShowEvent *event) override;
 
 private:
     Q_SLOT void fetchCompletions(const QString &query);
     Q_SLOT void sortData(int index, Qt::SortOrder order);
     Q_SLOT void fetchData(const QString &query, bool force = false);
     Q_SLOT void fetchMore();
+
+    Q_SLOT void processDoubleClick(const QModelIndex &index);
+
     void processResponse(const DataGate::DataResponse &response);
 
     Ui::DataSelector *ui;

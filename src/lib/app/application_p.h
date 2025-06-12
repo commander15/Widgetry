@@ -21,13 +21,21 @@ public:
     QSplashScreen *splash() const;
     QSplashScreen *splash();
 
-    QSettings *settings();
-
     Application *q_ptr;
+
+    LoginDialog *loginDialog;
+    QWidget *mainWidget;
+
+    //DataGate::AbstractLoginManager *loginManager;
+    DataGate::AbstractDataManager *dataManager;
+
+    QSettings *settings();
 
 private:
     QSplashScreen *m_splash;
     QSettings *m_settings;
+
+    friend class Application;
 };
 
 }

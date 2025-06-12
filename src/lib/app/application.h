@@ -7,6 +7,11 @@
 
 class QSettings;
 
+namespace DataGate {
+class AbstractLoginManager;
+class AbstractDataManager;
+}
+
 namespace Widgetry {
 
 class LoginDialog;
@@ -17,6 +22,11 @@ class WIDGETRY_EXPORT Application : public QApplication
     Q_OBJECT
 
 public:
+    enum LaunchMode {
+        AutoLauch,
+        ManualLaunch
+    };
+
     explicit Application(int &argc, char **argv);
     virtual ~Application();
 
@@ -30,7 +40,21 @@ public:
     Q_SLOT void clearSplashMessage();
     void clearSplash(QWidget *widget = nullptr, bool showWidget = false);
 
+    LoginDialog *loginDialog() const;
+    void setLoginDialog(LoginDialog *dialog);
+
+    QWidget *mainWidget() const;
+    void setMainWidget(QWidget *widget);
+
+    DataGate::AbstractLoginManager *loginManager() const;
+    void setLoginManager(DataGate::AbstractLoginManager *manager);
+
+    DataGate::AbstractDataManager *dataManager() const;
+    void setDataManager(DataGate::AbstractDataManager *manager);
+
     QSettings *settings() const;
+
+    int exec(LaunchMode mode);
 
     static Application *instance();
 

@@ -20,7 +20,9 @@ public:
     void initEdit() override
     {
         iconAction = new QAction(QIcon(":/widgetry/icons/login_icon.png"), QString(), q_ptr);
-        validator = new QRegularExpressionValidator(expressions.at(loginType), q_ptr);
+        q_ptr->addAction(iconAction, QLineEdit::LeadingPosition);
+        q_ptr->setClearButtonEnabled(true);
+        setRegularExpression(expressions.at(loginType));
     }
 
     void retranslateEdit() override
@@ -50,9 +52,6 @@ public:
 LoginEdit::LoginEdit(QWidget *parent)
     : LineEdit(new LoginEditPrivate(this), parent)
 {
-    WIDGETRY_D(LoginEdit);
-    setClearButtonEnabled(true);
-    addAction(d->iconAction, LeadingPosition);
 }
 
 LoginEdit::~LoginEdit()
@@ -69,8 +68,8 @@ void LoginEdit::setLoginType(LoginType type)
 {
     WIDGETRY_D(LoginEdit);
     if (d->loginType != type) {
+        d->setRegularExpression(d->expressions.at(type));
         d->loginType = type;
-        d->validator->setRegularExpression(d->expressions.at(type));
         d->retranslateEdit();
     }
 }

@@ -6,6 +6,7 @@
 #include <DataGate/authenticator.h>
 
 #include <QtCore/qtimer.h>
+#include <QtCore/qsettings.h>
 
 using namespace DataGate;
 
@@ -100,6 +101,20 @@ void LoginDialog::setShowOnLogOut(bool show)
         disconnect(auth, &Authenticator::loggedOut, this, &QDialog::open);
 
     m_showOnLogOut = show;
+}
+
+void LoginDialog::loadSettings(QSettings *settings)
+{
+    settings->beginGroup("login");
+    settings->setValue(ui->identifierInput->placeholderText(), ui->identifierInput->text());
+    settings->endGroup();
+}
+
+void LoginDialog::saveSettings(QSettings *settings) const
+{
+    settings->beginGroup("login");
+    ui->identifierInput->setText(settings->value(ui->identifierInput->placeholderText()).toString());
+    settings->endGroup();
 }
 
 void LoginDialog::setLogo(const QPixmap &logo)

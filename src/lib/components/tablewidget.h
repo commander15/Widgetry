@@ -52,12 +52,17 @@ public:
     QMenu *contextMenu() const;
     void setContextMenu(QMenu *menu);
 
+    void loadSettings(QSettings *settings) override;
+    void saveSettings(QSettings *settings) const override;
+
     DataGate::TableModel *model() const;
     void setModel(DataGate::TableModel *model);
 
     Q_SIGNAL void selectionChanged();
     Q_SIGNAL void doubleClicked(const QModelIndex &index);
     Q_SIGNAL void contextMenuRequested();
+
+    Q_SIGNAL void fetchRequested();
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;

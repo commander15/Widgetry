@@ -7,7 +7,7 @@
 
 #include <Jsoner/tablemodel.h>
 
-#include <DataGate/dataquery.h>
+#include <DataGate/datarequest.h>
 #include <DataGate/dataresponse.h>
 
 namespace Widgetry {
@@ -20,10 +20,13 @@ public:
     void fetchData(const QString &query, bool append = false);
 
     DataSelector *q_ptr;
+    class LoadIndicator *indicator;
+
     bool infiniteLoad;
+    bool acceptOnClick;
     QTimer requestTimer;
 
-    DataGate::DataQuery query;
+    DataGate::DataRequest request;
     DataGate::DataResponse response;
     Jsoner::TableModel model;
     DataGate::AbstractDataManager *manager;

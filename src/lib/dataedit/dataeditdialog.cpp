@@ -21,6 +21,9 @@ void DataEditDialogHelper::init(AbstractDataEdit *edit)
 {
     QDialog *dialog = this;
 
+    dialog->setWindowTitle(edit->editWidget()->windowTitle());
+    connect(edit->editWidget(), &QWidget::windowTitleChanged, dialog, &QWidget::setWindowTitle);
+
     // Create the main layout for the dialog
     QVBoxLayout *layout = new QVBoxLayout(dialog);
 

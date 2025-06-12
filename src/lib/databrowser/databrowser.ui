@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string notr="true">Browser</string>
   </property>
-  <layout class="QGridLayout" name="interfaceLayout" rowstretch="0,1,0" columnstretch="0,2">
+  <layout class="QGridLayout" name="mainLayout" rowstretch="0,1,0" columnstretch="0,2">
    <item row="1" column="0" rowspan="2">
     <widget class="QFrame" name="filterFrame">
      <property name="frameShape">
@@ -83,7 +83,7 @@
    </item>
    <item row="0" column="0" colspan="2">
     <widget class="QWidget" name="topBar" native="true">
-     <layout class="QHBoxLayout" name="topBarLayout" stretch="0,0,0,0">
+     <layout class="QHBoxLayout" name="topBarLayout" stretch="0,2,0,3,0">
       <property name="leftMargin">
        <number>0</number>
       </property>
@@ -97,7 +97,33 @@
        <number>0</number>
       </property>
       <item>
+       <widget class="QToolButton" name="iconButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="icon">
+         <iconset resource="../resources/widgetry_resources.qrc">
+          <normaloff>:/widgetry/icons/widgetry.png</normaloff>:/widgetry/icons/widgetry.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>28</width>
+          <height>18</height>
+         </size>
+        </property>
+        <property name="autoRaise">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="Widgetry::SearchBar" name="searchInput">
+        <property name="minimumSize">
+         <size>
+          <width>300</width>
+          <height>0</height>
+         </size>
+        </property>
         <property name="maximumSize">
          <size>
           <width>500</width>
@@ -121,21 +147,29 @@
        </widget>
       </item>
       <item>
-       <spacer name="horizontalSpacer_3">
-        <property name="orientation">
-         <enum>Qt::Orientation::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
+       <widget class="QWidget" name="horizontalWidget" native="true">
+        <layout class="QHBoxLayout" name="innerTopLayout">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+        </layout>
+       </widget>
       </item>
       <item>
        <widget class="QWidget" name="buttonsContainer" native="true">
         <layout class="QHBoxLayout" name="buttonsContainerLayout">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
          <property name="topMargin">
           <number>0</number>
          </property>
@@ -292,7 +326,7 @@
    <sender>searchInput</sender>
    <signal>searchRequested()</signal>
    <receiver>Widgetry::DataBrowser</receiver>
-   <slot>refresh()</slot>
+   <slot>reload()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>280</x>
@@ -308,7 +342,7 @@
    <sender>filterButton</sender>
    <signal>clicked()</signal>
    <receiver>Widgetry::DataBrowser</receiver>
-   <slot>refresh()</slot>
+   <slot>reload()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>112</x>
@@ -439,5 +473,6 @@
   <slot>editCurrentItem()</slot>
   <slot>deleteSelectedItems()</slot>
   <slot>addNewItem()</slot>
+  <slot>reload()</slot>
  </slots>
 </ui>

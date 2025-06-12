@@ -1,11 +1,15 @@
 #include "datacontroller.h"
 
-#include <DataGate/dataquery.h>
+#include <DataGate/datarequest.h>
 #include <DataGate/dataresponse.h>
 
 #include <Jsoner/object.h>
 
 #include <QtCore/qrandom.h>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qtimer.h>
+
+#define NETWORK_LATENCY 1000
 
 using namespace DataGate;
 
@@ -25,15 +29,20 @@ DataController::DataController()
 
 bool DataController::hasFeature(Feature feature, DataGate::AbstractDataClient *client) const
 {
+    switch (feature) {
+    //case DataGate::AbstractDataManager::SearchByKeywords:
+    //case DataGate::AbstractDataManager::SearchByFilters:
+        return false;
+    }
     return client;
 }
 
-void DataController::fetchSomeSearchSuggestions(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
+void DataController::fetchSomeSearchSuggestions(const DataRequest &request, const DataRequestCallback &onProgress, const DataResponseCallback &onResponse)
 {
     Jsoner::Array results;
     for (const QJsonValue &value : std::as_const(m_objects)) {
         const QString key = value.toObject().value("name").toString();
-        if (key.startsWith(query.string(), Qt::CaseInsensitive))
+        if (key.startsWith(request.query(), Qt::CaseInsensitive))
             results.append(key);
     }
 
@@ -44,10 +53,10 @@ void DataController::fetchSomeSearchSuggestions(const DataQuery &query, const Da
     onResponse(response);
 }
 
-void DataController::fetchManyObjects(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
+void DataController::fetchManyObjects(const DataRequest &request, const DataRequestCallback &onProgress, const DataResponseCallback &onResponse)
 {
-    const QString q = query.string();
-    const QVariantHash filters = query.filters();
+    const QString q = request.query();
+    const QVariantMap filters = request.filters();
 
     Jsoner::Array objects;
 
@@ -79,7 +88,7 @@ void DataController::fetchManyObjects(const DataQuery &query, const DataQueryPro
         }
     }
 
-    int currentPage = query.page();
+    int currentPage = request.page();
     int totalPage = pageCount;
 
     DataResponse response;
@@ -107,62 +116,70 @@ void DataController::fetchManyObjects(const DataQuery &query, const DataQueryPro
 
     response.setArray(result);
     response.setPage(currentPage);
-    onResponse(response);
+
+    response.setTitle("Error");
+    response.setText("Hey ho");
+
+    QTimer::singleShot(NETWORK_LATENCY, qApp, [onResponse, response] { onResponse(response); });
 }
 
-void DataController::fetchOneObject(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
+void DataController::fetchOneObject(const DataRequest &request, const DataRequestCallback &onProgress, const DataResponseCallback &onResponse)
 {
-    const int id = query.object().integer("id");
+    const int id = request.object().integer("id");
 
     DataResponse response;
     if (id <= m_objects.size()) {
         response.setObject(m_objects.at(id - 1));
         response.setSuccess(true);
     }
-    onResponse(response);
+
+    QTimer::singleShot(3000, qApp, [onResponse, response] { onResponse(response); });
 }
 
-void DataController::addOneObject(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
+void DataController::addOneObject(const DataRequest &request, const DataRequestCallback &onProgress, const DataResponseCallback &onResponse)
 {
-    Jsoner::Object object = query.object();
+    Jsoner::Object object = request.object();
     object.put("id", m_objects.size());
     m_objects.append(object);
 
     DataResponse response;
     response.setObject(object);
     response.setSuccess(true);
-    onResponse(response);
+
+    QTimer::singleShot(NETWORK_LATENCY, qApp, [onResponse, response] { onResponse(response); });
 }
 
-void DataController::editOneObject(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
+void DataController::editOneObject(const DataRequest &request, const DataRequestCallback &onProgress, const DataResponseCallback &onResponse)
 {
-    const int id = query.object().integer("id");
+    const int id = request.object().integer("id");
 
     DataResponse response;
     if (id <= m_objects.size()) {
-        m_objects.replace(id - 1, query.object());
-        response.setObject(query.object());
+        m_objects.replace(id - 1, request.object());
+        response.setObject(request.object());
         response.setSuccess(true);
     }
-    onResponse(response);
+
+    QTimer::singleShot(NETWORK_LATENCY, qApp, [onResponse, response] { onResponse(response); });
 }
 
-void DataController::deleteOneObject(const DataGate::DataQuery &query, const DataGate::DataQueryProgressCallback &onProgress, const DataGate::DataQueryResponseCallback &onResponse)
+void DataController::deleteOneObject(const DataGate::DataRequest &request, const DataGate::DataRequestCallback &onProgress, const DataGate::DataResponseCallback &onResponse)
 {
-    const int id = query.object().integer("id");
+    const int id = request.object().integer("id");
 
     DataResponse response;
     if (id <= m_objects.size()) {
         m_objects.removeAt(id - 1);
-        response.setObject(query.object());
+        response.setObject(request.object());
         response.setSuccess(true);
     }
-    onResponse(response);
+
+    QTimer::singleShot(NETWORK_LATENCY, qApp, [onResponse, response] { onResponse(response); });
 }
 
-void DataController::deleteManyObjects(const DataQuery &query, const DataQueryProgressCallback &onProgress, const DataQueryResponseCallback &onResponse)
+void DataController::deleteManyObjects(const DataRequest &request, const DataRequestCallback &onProgress, const DataResponseCallback &onResponse)
 {
-    const int id = query.object().integer("id");
+    const int id = request.object().integer("id");
     auto it = std::find_if(m_objects.begin(), m_objects.end(), [&id](const QJsonValue &value) {
         return value.toObject().value("id").toInt() == id;
     });
@@ -171,8 +188,8 @@ void DataController::deleteManyObjects(const DataQuery &query, const DataQueryPr
         m_objects.erase(it);
         DataResponse response;
         response.setSuccess(true);
-        onResponse(response);
+        QTimer::singleShot(request.object().size() * NETWORK_LATENCY, qApp, [onResponse, response] { onResponse(response); });
     } else {
-        onResponse(DataResponse());
+        QTimer::singleShot(NETWORK_LATENCY, qApp, [onResponse] { onResponse(DataResponse()); });
     }
 }

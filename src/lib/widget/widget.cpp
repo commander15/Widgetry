@@ -3,6 +3,8 @@
 
 #include <Widgetry/widgetoperation.h>
 
+#include <QtCore/qsettings.h>
+
 #include <QtGui/qevent.h>
 
 namespace Widgetry {
@@ -21,6 +23,10 @@ Widget::Widget(WidgetPrivate *d, QWidget *parent, Qt::WindowFlags flags)
     : QWidget(parent, flags)
     , d_ptr(d)
 {
+    setIcon(QIcon(":/widgetry/icons/widgetry.png"));
+
+    connect(this, &QWidget::windowIconChanged, this, &Widget::iconChanged);
+    connect(this, &QWidget::windowTitleChanged, this, &Widget::titleChanged);
 }
 
 Widget::~Widget()
@@ -64,7 +70,22 @@ QAction *Widget::action() const
 
 void Widget::setAction(QAction *action)
 {
+    if (action) {
+        action->setIcon(icon());
+        action->setText(title());
+    }
+
+    if (d_ptr->action) {
+        disconnect(this, &Widget::iconChanged, d_ptr->action, &QAction::setIcon);
+        disconnect(this, &Widget::titleChanged, d_ptr->action, &QAction::setText);
+    }
+
     d_ptr->action = action;
+
+    if (d_ptr->action) {
+        connect(this, &Widget::iconChanged, d_ptr->action, &QAction::setIcon);
+        connect(this, &Widget::titleChanged, d_ptr->action, &QAction::setText);
+    }
 }
 
 bool Widget::isOperationSupported(const QString &operation) const
@@ -100,8 +121,11 @@ QVariant Widget::operate(const QString &operation, const QVariant &parameter, bo
 
 QVariant Widget::operate(const QString &operation, const QVariantHash &parameters, bool *success)
 {
-    if (!isOperationSupported(operation))
+    if (!isOperationSupported(operation)) {
+        if (success)
+            *success = false;
         return QVariant();
+    }
 
     WidgetOperation op(operation);
     op.setParameters(parameters);
@@ -109,7 +133,7 @@ QVariant Widget::operate(const QString &operation, const QVariantHash &parameter
     op.setReceiverId(id());
 
     bool successFallback = false;
-    return handleOperation(op, success ? success : &successFallback);
+    return handleOperationRequest(op, success ? *success : successFallback);
 }
 
 void Widget::sync()
@@ -117,6 +141,16 @@ void Widget::sync()
     const QStringList availableOperations = this->availableOperations();
     for (const QString &operation : availableOperations)
         emit operationSupportChanged(operation, isOperationSupported(operation));
+}
+
+void Widget::loadSettings(QSettings *settings)
+{
+    restoreGeometry(settings->value("geo").toByteArray());
+}
+
+void Widget::saveSettings(QSettings *settings) const
+{
+    settings->setValue("geo", saveGeometry());
 }
 
 void Widget::prepareUi()
@@ -132,22 +166,23 @@ void Widget::translateUi(bool full)
     Q_UNUSED(full);
 }
 
-void Widget::requestServerOperation(const QString &name)
+void Widget::requestManagerOperation(const QString &name)
 {
     WidgetOperation operation(name);
-    operation.setReceiverId(QByteArray());
+    operation.setReceiverId(QByteArrayLiteral("Widgetry::WidgetManager"));
     requestOperation(operation);
 }
 
-void Widget::requestServerOperation(WidgetOperation &operation)
+void Widget::requestManagerOperation(WidgetOperation &operation)
 {
-    operation.setReceiverId(QByteArray());
+    operation.setReceiverId(QByteArrayLiteral("Widgetry::WidgetManager"));
     requestOperation(operation);
 }
 
-void Widget::requestOperation(const QString &name)
+void Widget::requestOperation(const QString &name, const QByteArray &target)
 {
     WidgetOperation operation(name);
+    operation.setReceiverId(target);
     requestOperation(operation);
 }
 
@@ -157,11 +192,11 @@ void Widget::requestOperation(WidgetOperation &operation)
     emit operationRequested(operation);
 }
 
-QVariant Widget::handleOperation(const WidgetOperation &operation, bool *success)
+QVariant Widget::handleOperationRequest(const WidgetOperation &operation, bool &success)
 {
     // No-op
     Q_UNUSED(operation);
-    *success = false;
+    success = false;
     return QVariant();
 }
 
@@ -188,8 +223,11 @@ void Widget::hideEvent(QHideEvent *event)
 
 void Widget::changeEvent(QEvent *event)
 {
-    if (event->type() == QEvent::LanguageChange)
+    if (event->type() == QEvent::LanguageChange) {
+        event->accept();
         translateUi(true);
+    }
+
     QWidget::changeEvent(event);
 }
 

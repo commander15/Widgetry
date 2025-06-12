@@ -2,6 +2,7 @@
 #define WIDGETRY_DATABROWSERBLUEPRINTTASK_P_H
 
 #include <Widgetry/databrowser.h>
+#include <Widgetry/databrowsertablecolumnbuilder.h>
 #include <Widgetry/private/databrowser_p.h>
 
 #include "ui_databrowser.h"
@@ -11,6 +12,14 @@
 namespace Widgetry {
 
 namespace DataBrowserBlueprintUtils {
+
+struct LayoutItem {
+    QWidget *widget = nullptr;
+    QLayout *layout = nullptr;
+    QSpacerItem *spacer = nullptr;
+    int stretch = 0;
+    Qt::Alignment alignment = Qt::Alignment();
+};
 
 struct VisualItem
 {
@@ -71,18 +80,16 @@ struct Action : VisualItem
 {
     bool find(DataBrowser *browser) override
     {
-        const QList<QAction *> actions = browser->actions();
-        auto it = std::find_if(actions.begin(), actions.end(), [this](QAction *action) {
-            return action->objectName() == name;
-        });
-        action = (it != actions.end() ? *it : nullptr);
-        return action;
+        if (action) return true;
+        action = browser->findChild<QAction *>(name);
+        return action != nullptr;
     }
 
     void create(DataBrowser *browser) override
     {
         if (action) return;
         action = new QAction(icon, text, browser);
+        action->setObjectName(name);
         action->setToolTip(tooltip);
         deletable = true;
     }
@@ -105,15 +112,6 @@ struct Action : VisualItem
     }
 
     QAction *action = nullptr;
-};
-
-
-struct TableColumn {
-    int index = -1;
-    QString label;
-    QString field;
-    QHeaderView::ResizeMode resizeMode = QHeaderView::Stretch;
-    bool useResize = false;
 };
 
 }
@@ -161,9 +159,13 @@ public:
 
     QIcon icon;
     QString title;
+    QList<LayoutItem> topItems;
+    QVariantHash parameters;
+    QList<AbstractDataBrowserHandler *> handlers;
 
 private:
     void prepare();
+    void complete();
 
     Action m_action;
     QList<Button> m_buttons;
@@ -183,8 +185,7 @@ public:
     void cleanup() override;
 
     void setDelegate(QAbstractItemDelegate *delegate, bool deletable = true);
-    int addColumn(const TableColumn &column);
-    void addColumn(int index, const TableColumn &column);
+    DataBrowserTableColumnBuilder addColumn(const QString &field);
     QAction *addContextMenuAction(const QString &name, const Action &action);
     void addContextMenuAction(const QString &name, QAction *action);
 
@@ -193,7 +194,7 @@ private:
 
     QAbstractItemDelegate *m_delegate;
     bool m_deletableDelegate;
-    QList<TableColumn> columns;
+    QList<DataBrowserTableColumnBuilder> columns;
     QList<Action> contextMenuActions;
 };
 

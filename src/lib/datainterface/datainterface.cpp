@@ -7,7 +7,7 @@
 #include <Widgetry/abstractdataeditfactory.h>
 
 #include <DataGate/abstractdatacontroller.h>
-#include <DataGate/dataquery.h>
+#include <DataGate/datarequest.h>
 #include <DataGate/dataresponse.h>
 #include <DataGate/tablemodel.h>
 #include <DataGate/permissionmanager.h>
@@ -442,7 +442,7 @@ void DataInterface::handleOperationResult(const Operation &operation)
     Q_UNUSED(operation);
 }
 
-DataGate::DataQuery DataInterface::prepareQuery(const DataGate::DataQuery &query) const
+DataGate::DataRequest DataInterface::prepareQuery(const DataGate::DataRequest &query) const
 {
     return query;
 }
@@ -495,7 +495,7 @@ void DataInterface::showResponseMessage(const QString &title, const QString &tex
     box.exec();
 }
 
-void DataInterface::preFetch(const DataGate::DataQuery &query, const std::function<void (const Jsoner::Object &)> &callback)
+void DataInterface::preFetch(const DataGate::DataRequest &query, const std::function<void (const Jsoner::Object &)> &callback)
 {
     executeDataRequest(&AbstractDataController::fetchObject, query, [this, callback](const DataResponse &response) {
         if (!response.isSuccess()) {
@@ -507,7 +507,7 @@ void DataInterface::preFetch(const DataGate::DataQuery &query, const std::functi
     });
 }
 
-void DataInterface::executeDataRequest(DataControllerRawMethod method, const DataGate::DataQuery &query)
+void DataInterface::executeDataRequest(DataControllerRawMethod method, const DataGate::DataRequest &query)
 {
     executeDataRequest(method, query, [this](const DataResponse &response) {
         if (!response.text().isEmpty() || !response.informativeText().isEmpty())
@@ -515,7 +515,7 @@ void DataInterface::executeDataRequest(DataControllerRawMethod method, const Dat
     });
 }
 
-void DataInterface::executeDataRequest(DataControllerRawMethod method, const DataGate::DataQuery &query, const DataGate::DataQueryResponseCallback &callback)
+void DataInterface::executeDataRequest(DataControllerRawMethod method, const DataGate::DataRequest &query, const DataGate::DataResponseCallback &callback)
 {
     WIDGETRY_D(DataInterface);
 

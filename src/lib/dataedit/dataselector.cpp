@@ -2,6 +2,9 @@
 #include "dataselector_p.h"
 #include "ui_dataselector.h"
 
+#include <Widgetry/databrowser.h>
+#include <Widgetry/application.h>
+
 #include <QtGui/qshortcut.h>
 
 #include <QtWidgets/qscrollbar.h>
@@ -12,6 +15,12 @@
 using namespace DataGate;
 
 namespace Widgetry {
+
+DataSelector::DataSelector(DataBrowser *browser, Qt::WindowFlags flags)
+    : DataSelector(static_cast<QWidget *>(browser), flags)
+{
+    d_ptr->manager = browser->dataManager();
+}
 
 DataSelector::DataSelector(QWidget *parent, Qt::WindowFlags flags)
     : QDialog(parent, flags)
@@ -26,6 +35,7 @@ DataSelector::DataSelector(QWidget *parent, Qt::WindowFlags flags)
     connect(ui->searchInput, &SearchBar::searchRequested, this, &DataSelector::refresh);
 
     ui->tableView->setModel(&d_ptr->model);
+    connect(ui->tableView, &QAbstractItemView::doubleClicked, this, &DataSelector::processDoubleClick);
 
     QHeaderView *view = ui->tableView->horizontalHeader();
     connect(view, &QHeaderView::sortIndicatorChanged, this, &DataSelector::sortData);
@@ -41,6 +51,8 @@ DataSelector::DataSelector(QWidget *parent, Qt::WindowFlags flags)
 
     QShortcut *gotoSearchBar = new QShortcut(QKeySequence::Find, this, ui->searchInput, QOverload<>::of(&QWidget::setFocus));
     Q_UNUSED(gotoSearchBar);
+
+    d_ptr->indicator = ui->loadIndicator;
 
     d_ptr->requestTimer.setInterval(500);
     d_ptr->requestTimer.setSingleShot(true);
@@ -72,66 +84,21 @@ void DataSelector::refresh()
 void DataSelector::clear()
 {
     ui->searchInput->clear();
-    d_ptr->model.setArray(Jsoner::Array());
+    setModelObjects(Jsoner::Array());
 }
 
-void DataSelector::setLabel(int index, const QString &name)
+void DataSelector::setLabel(const QString &field, const QString &name)
 {
-    d_ptr->model.setHeaderData(index, Qt::Horizontal, name);
+    int index = d_ptr->model.fields().indexOf(field);
+    if (index >= 0 && index < d_ptr->model.columnCount())
+        d_ptr->model.setHeaderData(index, Qt::Horizontal, name);
 }
 
-void DataSelector::setResizeMode(int index, QHeaderView::ResizeMode mode)
+void DataSelector::setResizeMode(const QString &field, QHeaderView::ResizeMode mode)
 {
-    ui->tableView->horizontalHeader()->setSectionResizeMode(index, mode);
-}
-
-QStringList DataSelector::fields() const
-{
-    return d_ptr->model.fields();
-}
-
-void DataSelector::setFields(const QStringList &fields)
-{
-    d_ptr->model.setFields(fields);
-}
-
-bool DataSelector::hasOption(SelectorOption option) const
-{
-    switch (option)
-    {
-        case SearchByText:
-            return ui->searchInput->isVisible();
-
-        case InfiniteLoad:
-            return d_ptr->infiniteLoad;
-
-        case NoButtons:
-            return ui->buttonBox->isHidden();
-    }
-
-    return false;
-}
-
-void DataSelector::setOption(SelectorOption option, bool on)
-{
-    switch (option)
-    {
-    case SearchByText:
-        ui->searchInput->setVisible(on);
-        if (on)
-            ui->stackedWidget->setCurrentIndex(0);
-        break;
-
-    case InfiniteLoad:
-        d_ptr->infiniteLoad = true;
-        break;
-
-    case NoButtons:
-        ui->buttonBox->setHidden(on);
-        if (on)
-            ui->stackedWidget->setCurrentIndex(1);
-        break;
-    }
+    int index = d_ptr->model.fields().indexOf(field);
+    if (index >= 0 && index < d_ptr->model.columnCount())
+        ui->tableView->horizontalHeader()->setSectionResizeMode(index, mode);
 }
 
 Jsoner::Object DataSelector::selectedObject() const
@@ -152,25 +119,156 @@ Jsoner::Array DataSelector::selectedObjects() const
     return objects;
 }
 
-DataQuery DataSelector::searchQuery() const
+Jsoner::Array DataSelector::modelObjects() const
 {
-    return d_ptr->query;
+    return d_ptr->model.array();
 }
 
-void DataSelector::setSearchQuery(const DataGate::DataQuery &query)
+void DataSelector::setModelObjects(const Jsoner::Array &objects)
 {
-    ui->searchInput->setText(query.string());
-    d_ptr->query = query;
+    d_ptr->model.setArray(objects);
+    ui->stackedWidget->setCurrentIndex(objects.isEmpty() ? 0 : 1);
 }
 
-DataGate::AbstractDataManager *DataSelector::dataManager() const
+bool DataSelector::hasOption(SelectorOption option) const
+{
+    switch (option)
+    {
+        case SearchByText:
+            return ui->searchInput->isVisible();
+
+        case AlternatingRowColors:
+            return ui->tableView->alternatingRowColors();
+
+        case SingleSelection:
+            return ui->tableView->selectionMode() == QAbstractItemView::SingleSelection;
+
+        case MultiSelection:
+            return ui->tableView->selectionMode() == QAbstractItemView::MultiSelection;
+
+        case ExtendedSelection:
+            return ui->tableView->selectionMode() == QAbstractItemView::ExtendedSelection;
+
+        case ContiguousSelection:
+            return ui->tableView->selectionMode() == QAbstractItemView::ContiguousSelection;
+
+        case InfiniteLoad:
+            return d_ptr->infiniteLoad;
+
+        case AcceptOnDoubleClick:
+            return d_ptr->acceptOnClick;
+
+        case WithButtons:
+            return ui->buttonBox->isVisible();
+    }
+
+    return false;
+}
+
+void DataSelector::setOption(SelectorOption option, bool on)
+{
+    switch (option) {
+    case SearchByText:
+        ui->searchInput->setVisible(on);
+        break;
+
+    case AlternatingRowColors:
+        ui->tableView->setAlternatingRowColors(on);
+        break;
+
+    case SingleSelection:
+        if (on)
+            ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
+        else
+            ui->tableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+        break;
+
+    case MultiSelection:
+        if (on)
+            ui->tableView->setSelectionMode(QAbstractItemView::MultiSelection);
+        else
+            ui->tableView->setSelectionMode(QAbstractItemView::SingleSelection);
+        break;
+
+    case ExtendedSelection:
+        if (on)
+            ui->tableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
+        else
+            ui->tableView->setSelectionMode(QAbstractItemView::MultiSelection);
+        break;
+
+    case ContiguousSelection:
+        if (on)
+            ui->tableView->setSelectionMode(QAbstractItemView::ContiguousSelection);
+        else
+            ui->tableView->setSelectionMode(QAbstractItemView::MultiSelection);
+        break;
+
+    case InfiniteLoad:
+        d_ptr->infiniteLoad = true;
+        break;
+
+    case AcceptOnDoubleClick:
+        if (d_ptr->acceptOnClick != on) {
+            if (d_ptr->acceptOnClick)
+                disconnect(ui->tableView, &QAbstractItemView::doubleClicked, this, &DataSelector::processDoubleClick);
+            else
+                connect(ui->tableView, &QAbstractItemView::doubleClicked, this, &DataSelector::processDoubleClick);
+            d_ptr->acceptOnClick = on;
+        }
+        break;
+
+    case WithButtons:
+        ui->buttonBox->setHidden(!on);
+        break;
+    }
+}
+
+QStringList DataSelector::fields() const
+{
+    return d_ptr->model.fields();
+}
+
+void DataSelector::setFields(const QStringList &fields)
+{
+    d_ptr->model.setFields(fields);
+
+    QHeaderView *header = ui->tableView->horizontalHeader();
+    header->setVisible(fields.count() > 1);
+
+    if (fields.count() == 1)
+        header->setSectionResizeMode(0, QHeaderView::Stretch);
+}
+
+DataRequest DataSelector::request() const
+{
+    return d_ptr->request;
+}
+
+void DataSelector::setRequest(const DataGate::DataRequest &request)
+{
+    ui->searchInput->setText(request.query());
+    d_ptr->request = request;
+
+    if (!request.query().isEmpty())
+        d_ptr->fetchData(request.query(), false);
+}
+
+DataGate::AbstractDataManager *DataSelector::manager() const
 {
     return d_ptr->manager;
 }
 
-void DataSelector::setDataManager(DataGate::AbstractDataManager *manager)
+void DataSelector::setManager(DataGate::AbstractDataManager *manager)
 {
     d_ptr->manager = manager;
+}
+
+void DataSelector::showEvent(QShowEvent *event)
+{
+    if (d_ptr->model.rowCount() == 0)
+        d_ptr->fetchData(ui->searchInput->text(), false);
+    QDialog::showEvent(event);
 }
 
 void DataSelector::fetchCompletions(const QString &query)
@@ -178,10 +276,10 @@ void DataSelector::fetchCompletions(const QString &query)
     if (!d_ptr->manager)
         return;
 
-    DataQuery dataQuery;
-    dataQuery.setString(query);
+    DataRequest request;
+    request.setQuery(query);
 
-    d_ptr->manager->fetchSearchSuggestions(dataQuery, [this](const DataResponse &response) {
+    d_ptr->manager->fetchSearchSuggestions(request, [this](const DataResponse &response) {
         if (!response.isSuccess())
             return;
 
@@ -196,17 +294,12 @@ void DataSelector::fetchCompletions(const QString &query)
 
 void DataSelector::sortData(int index, Qt::SortOrder order)
 {
-    d_ptr->query.setSort(d_ptr->model.fields().at(index), order);
+    d_ptr->request.setSort(d_ptr->model.fields().at(index), order);
     refresh();
 }
 
 void DataSelector::fetchData(const QString &query, bool force)
 {
-    if (query.isEmpty()) {
-        ui->stackedWidget->setCurrentIndex(0);
-        return;
-    }
-
     if (force) {
         if (d_ptr->requestTimer.isActive())
             d_ptr->requestTimer.stop();
@@ -219,22 +312,27 @@ void DataSelector::fetchData(const QString &query, bool force)
 
 void DataSelector::fetchMore()
 {
-    d_ptr->fetchData(d_ptr->query.string(), true);
+    d_ptr->fetchData(d_ptr->request.query(), true);
+}
+
+void DataSelector::processDoubleClick(const QModelIndex &index)
+{
+    if (index.isValid())
+        accept();
 }
 
 void DataSelector::processResponse(const DataGate::DataResponse &response)
 {
-    if (!response.isSuccess())
-        return;
-
-    d_ptr->model.setArray(response.array());
-    ui->stackedWidget->setCurrentIndex(response.array().isEmpty() ? 0 : 1);
+    if (response.isSuccess())
+        setModelObjects(response.array());
 }
 
 DataSelectorPrivate::DataSelectorPrivate(DataSelector *q)
     : q_ptr(q)
+    , indicator(nullptr)
     , infiniteLoad(true)
-    , manager(nullptr)
+    , acceptOnClick(true)
+    , manager(Application::instance()->dataManager())
 {
 }
 
@@ -243,18 +341,20 @@ void DataSelectorPrivate::fetchData(const QString &query, bool append)
     if (!manager || (append && !infiniteLoad))
         return;
 
-    if (append && this->query.page() >= this->response.pageCount())
+    if (append && request.page() >= response.pageCount())
         return;
 
-    this->query.setString(query);
-    if (append)
-        this->query.setPage(this->query.page() + 1);
+    indicator->show();
 
-    manager->fetchObjects(this->query, [append, this](const DataResponse &response) {
-        if (append && response.page() == this->query.page()) {
+    request.setQuery(query);
+    if (append)
+        request.setPage(request.page() + 1);
+
+    manager->fetchObjects(request, [append, this](const DataResponse &response) {
+        if (append && response.page() == request.page()) {
             DataResponse newResponse(response);
-            Jsoner::Array target = model.array();
             const Jsoner::Array source = response.array();
+            Jsoner::Array target = model.array();
             std::copy(source.begin(), source.end(), std::back_inserter(target));
             newResponse.setArray(target);
             q_ptr->processResponse(newResponse);
@@ -264,6 +364,8 @@ void DataSelectorPrivate::fetchData(const QString &query, bool append)
 
         if (response.isSuccess())
             this->response = response;
+
+        indicator->hide();
     });
 }
 

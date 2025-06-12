@@ -74,6 +74,35 @@ void DataBrowserBlueprint::action(QAction *action)
     d_ptr->coreTask()->setAction(action);
 }
 
+void DataBrowserBlueprint::parameter(const QString &name, const QVariant &value)
+{
+    d_ptr->coreTask()->parameters.insert(name, value);
+}
+
+void DataBrowserBlueprint::topWidget(QWidget *widget, int stretch, Qt::Alignment alignment)
+{
+    LayoutItem item;
+    item.widget = widget;
+    item.stretch = stretch;
+    item.alignment = alignment;
+    d_ptr->coreTask()->topItems.append(item);
+}
+
+void DataBrowserBlueprint::topLayout(QLayout *layout, int stretch)
+{
+    LayoutItem item;
+    item.layout = layout;
+    item.stretch = stretch;
+    d_ptr->coreTask()->topItems.append(item);
+}
+
+void DataBrowserBlueprint::topSpacer(QSpacerItem *spacer)
+{
+    LayoutItem item;
+    item.spacer = spacer;
+    d_ptr->coreTask()->topItems.append(item);
+}
+
 QAbstractButton *DataBrowserBlueprint::button(const QString &name, const QIcon &icon)
 {
     return button(name, icon, QString());
@@ -92,42 +121,37 @@ void DataBrowserBlueprint::button(QAbstractButton *button)
     d_ptr->coreTask()->registerButton(button->objectName(), button);
 }
 
+DataBrowserTableColumnBuilder DataBrowserBlueprint::column(const QString &field)
+{
+    return d_ptr->tableTask()->addColumn(field);
+}
+
 void DataBrowserBlueprint::filter(AbstractDataEdit *filter)
 {
     d_ptr->coreTask()->registerFilter(filter);
 }
 
-int DataBrowserBlueprint::tableColumn(const QString &field, QHeaderView::ResizeMode resizeMode)
-{
-    return tableColumn(field, field, resizeMode);
-}
-
-int DataBrowserBlueprint::tableColumn(const QString &label, const QString &field, QHeaderView::ResizeMode resizeMode)
-{
-    TableColumn column;
-    column.label = label;
-    column.field = field;
-    column.resizeMode = resizeMode;
-    column.useResize = true;
-    return d_ptr->tableTask()->addColumn(column);
-}
-
-void DataBrowserBlueprint::tableColumn(int index, const QString &label)
-{
-    TableColumn column;
-    column.label = label;
-    column.useResize = false;
-    d_ptr->tableTask()->addColumn(index, column);
-}
-
-void DataBrowserBlueprint::tableDelegate(QAbstractItemDelegate *delegate)
+void DataBrowserBlueprint::delegate(QAbstractItemDelegate *delegate)
 {
     d_ptr->tableTask()->setDelegate(delegate, true);
 }
 
-void DataBrowserBlueprint::contextMenuAction(QAction *action)
+QAction *DataBrowserBlueprint::menuAction(const QString &name, const QIcon &icon, const QString &text)
+{
+    Action action;
+    action.icon = icon;
+    action.text = text;
+    return d_ptr->tableTask()->addContextMenuAction(name, action);
+}
+
+void DataBrowserBlueprint::menuAction(QAction *action)
 {
     d_ptr->tableTask()->addContextMenuAction(action->objectName(), action);
+}
+
+void DataBrowserBlueprint::handler(AbstractDataBrowserHandler *handler)
+{
+    d_ptr->coreTask()->handlers.append(handler);
 }
 
 void DataBrowserBlueprint::edit(AbstractDataEditFactory *factory)
@@ -135,7 +159,7 @@ void DataBrowserBlueprint::edit(AbstractDataEditFactory *factory)
     d_ptr->coreTask()->setEditFactory(factory);
 }
 
-void DataBrowserBlueprint::dataManager(DataGate::AbstractDataManager *manager)
+void DataBrowserBlueprint::data(DataGate::AbstractDataManager *manager)
 {
     d_ptr->coreTask()->setDataManager(manager);
 }

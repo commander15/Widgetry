@@ -3,7 +3,11 @@
 
 #include "lineedit.h"
 
+#include <QtCore/qstringlistmodel.h>
+
 #include <QtGui/qvalidator.h>
+
+#include <QtWidgets/qcompleter.h>
 
 namespace Widgetry {
 
@@ -13,12 +17,28 @@ public:
     LineEditPrivate(LineEdit *q);
     virtual ~LineEditPrivate() = default;
 
-    virtual void initEdit() {}
-    virtual void retranslateEdit() {}
+    virtual void initEdit();
+    virtual void retranslateEdit();
+
+    QRegularExpression regularExpression() const;
+    void setRegularExpression(const QRegularExpression &regex);
+
+    QStringList completions() const;
+    void setCompletions(const QStringList &completions);
 
     LineEdit *q_ptr;
+    int maxCompletionCount;
 
-    QRegularExpressionValidator *validator;
+protected:
+    QCompleter *completer();
+    virtual void createCompleter();
+
+private:
+    QRegularExpressionValidator *m_validator;
+    QStringListModel *m_completionModel;
+    QCompleter *m_completer;
+
+    friend class LineEdit;
 };
 
 }

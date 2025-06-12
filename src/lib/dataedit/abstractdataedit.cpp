@@ -28,11 +28,17 @@ AbstractDataEdit::Operation AbstractDataEdit::operation() const
     return d_ptr->operation;
 }
 
+void AbstractDataEdit::setObject(const Jsoner::Object &object)
+{
+    d_ptr->object = object;
+    render(object, d_ptr->operation);
+}
+
 void AbstractDataEdit::setObject(const Jsoner::Object &object, Operation operation)
 {
-    render(object, operation);
     d_ptr->object = object;
     d_ptr->operation = operation;
+    render(object, operation);
 
     setReadOnly(operation == ShowOperation);
 }

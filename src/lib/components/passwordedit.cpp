@@ -18,11 +18,16 @@ public:
 
     void initEdit() override
     {
+        q_ptr->setEchoMode(QLineEdit::Password);
+
         iconAction = new QAction(QIcon(":/widgetry/icons/login_password.png"), QString(), q_ptr);
+        q_ptr->addAction(iconAction, QLineEdit::LeadingPosition);
+
         showPassword = new QAction(QIcon(":/widgetry/icons/password_show.png"), QString(), q_ptr);
+        q_ptr->addAction(showPassword, QLineEdit::TrailingPosition);
 
         static const QRegularExpression regex(R"(^.{6,}$)");
-        validator = new QRegularExpressionValidator(regex, q_ptr);
+        setRegularExpression(regex);
     }
 
     void retranslateEdit() override
@@ -38,13 +43,7 @@ PasswordEdit::PasswordEdit(QWidget *parent)
     : LineEdit(new PasswordEditPrivate(this), parent)
 {
     WIDGETRY_D(PasswordEdit);
-
-    setEchoMode(QLineEdit::Password);
-
-    addAction(d->iconAction, LeadingPosition);
-
     connect(d->showPassword, &QAction::triggered, this, &PasswordEdit::togleEchoMode);
-    addAction(d->showPassword, TrailingPosition);
 }
 
 PasswordEdit::~PasswordEdit()

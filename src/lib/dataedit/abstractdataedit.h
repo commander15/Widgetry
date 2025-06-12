@@ -46,6 +46,7 @@ public:
 
     Jsoner::Object object() const;
     Operation operation() const;
+    void setObject(const Jsoner::Object &object);
     void setObject(const Jsoner::Object &object, Operation operation);
 
     bool isComplete() const;

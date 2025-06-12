@@ -4,6 +4,7 @@ target_headers(Widgetry
         loginedit.h passwordedit.h
         searchbar.h
         tablewidget.h
+        loadindicator.h
     PRIVATE
         lineedit_p.h
         tablewidget_p.h
@@ -15,4 +16,5 @@ target_sources(Widgetry
         loginedit.cpp passwordedit.cpp
         searchbar.cpp
         tablewidget.cpp tablewidget.ui
+        loadindicator.cpp
 )

@@ -3,30 +3,29 @@
 #include "userwindow.h"
 #include "useredit.h"
 
-#include "datacontroller.h"
+#include <Jsoner/object.h>
+#include <Jsoner/array.h>
 
 #include <Widgetry/databrowserblueprint.h>
 #include <Widgetry/dataselector.h>
+#include <Widgetry/abstractdatabrowserhandler.h>
 
 UserInterface::UserInterface(QWidget *parent)
     : Widgetry::DataBrowser("users", parent)
 {
     Widgetry::DataBrowserBlueprint ui(this);
 
+    ui.icon("/home/commander/Downloads/ChatGPT Image May 10, 2025, 02_34_14 PM.png");
     ui.title(tr("Users"));
 
-    ui.button("selectButton", QIcon("/home/commander/Projects/TMS/DEV/TMS/src/resources/icons/action_print.png"), this, &UserInterface::selectIt);
+    ui.column("id").label(tr("ID")).size(100);
+    ui.column("name").label(tr("Name")).resize(QHeaderView::Stretch);
+    ui.column("score").label(tr("Score")).resize(QHeaderView::ResizeToContents);
 
-    ui.tableColumn(tr("ID"), "id", QHeaderView::ResizeToContents);
-    ui.tableColumn(tr("Name"), "name", QHeaderView::Stretch);
-    ui.tableColumn(tr("Score"), "score", QHeaderView::ResizeToContents);
+    ui.menuAction("actionTranslate", "Translate", this, &UserInterface::translate);
 
-    ui.edit<UserWindow>()->mainField("id")->maxCount(2);
+    ui.edit<UserWindow>().mainField("id").maxCount(2);
     ui.filter<UserEdit>()->registerFields();
-
-    ui.contextMenuAction("Hello", this, &UserInterface::selectIt);
-
-    ui.dataManager<DataController>();
 }
 
 UserInterface::~UserInterface()
@@ -37,10 +36,13 @@ void UserInterface::selectIt()
 {
     Widgetry::DataSelector selector(this);
     selector.setWindowTitle(tr("User selector"));
-    selector.setDataManager(dataManager());
+    selector.setOption(Widgetry::DataSelector::SearchByText, false);
+    selector.setOption(Widgetry::DataSelector::WithButtons, false);
+    selector.setManager(dataManager());
 
-    DataGate::DataQuery query = newQuery(RefreshQuery);
-    selector.setSearchQuery(query);
+    DataGate::DataRequest query = newRequest(Widgetry::AbstractRequestInterceptor::IndexRequest);
+    query.setQuery("15");
+    selector.setRequest(query);
 
     QStringList headers;
     QStringList fields;
@@ -54,8 +56,9 @@ void UserInterface::selectIt()
 
     selector.setFields(fields);
     for (int i(0); i < headers.size(); ++i) {
-        selector.setLabel(i, headers.at(i));
-        selector.setResizeMode(i, QHeaderView::Stretch);
+        const QString field = fields.at(i);
+        selector.setLabel(field, headers.at(i));
+        selector.setResizeMode(field, QHeaderView::Stretch);
     }
 
     if (selector.exec()) {
@@ -63,4 +66,15 @@ void UserInterface::selectIt()
     } else {
         qDebug() << "No selection";
     }
+}
+
+void UserInterface::translate()
+{
+    Widgetry::DataBrowserBlueprint ui(this);
+    ui.icon(":/widgetry/icons/widgetry.png");
+    ui.column("id").label(tr("IDentifier")).size(300);
+    ui.menuAction("actionTranslate", icon(), "Go for translation !");
+    ui.menuAction("actionShow", icon(), tr("Open"));
+    ui.button("refreshButton", icon(), "Yo !");
+    ui.button("selectButton", QIcon("/home/commander/Projects/TMS/DEV/TMS/src/resources/icons/action_print.png"), this, &UserInterface::selectIt);
 }

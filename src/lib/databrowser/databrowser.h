@@ -18,6 +18,8 @@ namespace Ui {
 class DataBrowser;
 }
 
+class AbstractDataBrowserHandler;
+
 class AbstractDataEditFactory;
 
 class WIDGETRY_EXPORT DataBrowser : public Widgetry::Widget, public DataGate::AbstractDataClient
@@ -34,6 +36,7 @@ public:
 
     Q_SLOT void search(const QString &query);
     Q_SLOT void filter(const QVariantHash &filters);
+    Q_SLOT void reload();
     Q_SLOT void refresh();
 
     Jsoner::Object currentObject() const;
@@ -55,6 +58,11 @@ public:
 
     Q_SLOT void sync() override;
 
+    void loadSettings(QSettings *settings) override;
+    void saveSettings(QSettings *settings) const override;
+
+    void registerHandler(AbstractDataBrowserHandler *handler);
+
     AbstractDataEdit *filterEdit() const;
     void setFilterEdit(AbstractDataEdit *edit);
 
@@ -67,27 +75,14 @@ public:
     DataEditFinishedCallback editCallback(AbstractDataEdit::Operation operation);
 
 protected:
-    enum QueryType {
-        RefreshQuery,
-        ShowQuery,
-        AddQuery,
-        EditQuery,
-        DeleteQuery,
-
-        EmptyQuery = -1
-    };
-
     void prepareUi() override;
     void translateUi(bool full = true) override;
 
-    QVariant handleOperation(const WidgetOperation &operation, bool *success) override;
+    QVariant handleOperationRequest(const WidgetOperation &operation, bool &success) override;
     void handleOperationResult(const WidgetOperation &operation, const QVariantHash &result, bool success) override;
 
-    virtual DataGate::DataQuery newQuery(QueryType type);
-    DataGate::DataQuery newQuery() override final;
-
-    virtual bool processDataResponse(const DataGate::DataQuery &query, const DataGate::DataResponse &response);
-    virtual void showResponseMessage(const DataGate::DataQuery &query, const DataGate::DataResponse &response);
+    DataGate::DataRequest newRequest(int type);
+    DataGate::DataRequest newRequest() override final;
 
 private:
     Ui::DataBrowser *ui;

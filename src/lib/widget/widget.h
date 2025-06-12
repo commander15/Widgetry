@@ -5,6 +5,8 @@
 
 #include <QtWidgets/qwidget.h>
 
+class QSettings;
+
 namespace Widgetry {
 
 class WidgetOperation;
@@ -13,7 +15,6 @@ class WidgetPrivate;
 class WIDGETRY_EXPORT Widget : public QWidget
 {
     Q_OBJECT
-    Q_PROPERTY(QByteArray id READ id WRITE setId FINAL)
 
 public:
     Widget(const QByteArray &id, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
@@ -40,11 +41,14 @@ public:
     Q_SIGNAL void operationSupportChanged(const QString &operation, bool supported);
     Q_SIGNAL void operationRequested(const WidgetOperation &operation);
 
-    QVariant operate(const QString &operation, bool *success);
+    QVariant operate(const QString &operation, bool *success = nullptr);
     QVariant operate(const QString &operation, const QVariant &parameter, bool *success = nullptr);
     QVariant operate(const QString &operation, const QVariantHash &parameters, bool *success = nullptr);
 
     Q_SLOT virtual void sync();
+
+    virtual void loadSettings(QSettings *settings);
+    virtual void saveSettings(QSettings *settings) const;
 
 protected:
     Widget(WidgetPrivate *d, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
@@ -53,13 +57,13 @@ protected:
     virtual void cleanupUi();
     virtual void translateUi(bool full = true);
 
-    void requestServerOperation(const QString &name);
-    void requestServerOperation(WidgetOperation &operation);
+    void requestManagerOperation(const QString &name);
+    void requestManagerOperation(WidgetOperation &operation);
 
-    void requestOperation(const QString &name);
+    void requestOperation(const QString &name, const QByteArray &target);
     void requestOperation(WidgetOperation &operation);
 
-    virtual QVariant handleOperation(const WidgetOperation &operation, bool *success);
+    virtual QVariant handleOperationRequest(const WidgetOperation &operation, bool &success);
     virtual void handleOperationResult(const WidgetOperation &operation, const QVariantHash &result, bool success);
 
     void showEvent(QShowEvent *event) override;
