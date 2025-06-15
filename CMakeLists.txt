@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.30)
 
 project(Widgetry
     DESCRIPTION "The UX oriented C++ UI framework"
-    VERSION     "2.1.0"
+    VERSION     "2.1.1"
     LANGUAGES   CXX C
 )
 
