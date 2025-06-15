@@ -52,6 +52,11 @@ public:
     DataGate::AbstractDataManager *dataManager() const;
     void setDataManager(DataGate::AbstractDataManager *manager);
 
+    template<typename T> T *object(const char *name) const
+    { return static_cast<T *>(this->object(name)); }
+    QObject *object(const char *name) const;
+    void setObject(const char *name, QObject *instance);
+
     QSettings *settings() const;
 
     int exec(LaunchMode mode);

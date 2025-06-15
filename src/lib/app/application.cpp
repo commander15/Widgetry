@@ -124,6 +124,16 @@ void Application::setDataManager(DataGate::AbstractDataManager *manager)
     d_ptr->dataManager = manager;
 }
 
+QObject *Application::object(const char *name) const
+{
+    return property(name).value<QObject *>();
+}
+
+void Application::setObject(const char *name, QObject *instance)
+{
+    setProperty(name, QVariant::fromValue(instance));
+}
+
 QSettings *Application::settings() const
 {
     return d_ptr->settings();
