@@ -9,6 +9,7 @@ class DataBrowserTableColumnBuilderData : public QSharedData
 public:
     QString label;
     QString field;
+    int occurence = 0;
 
     int size = -1;
 
@@ -19,10 +20,11 @@ public:
     bool useVisibility = false;
 };
 
-DataBrowserTableColumnBuilder::DataBrowserTableColumnBuilder(const QString &field)
+DataBrowserTableColumnBuilder::DataBrowserTableColumnBuilder(const QString &field, int occurence)
     : d_ptr(new DataBrowserTableColumnBuilderData())
 {
     d_ptr->field = field;
+    d_ptr->occurence = occurence;
 }
 
 DataBrowserTableColumnBuilder &DataBrowserTableColumnBuilder::operator=(const DataBrowserTableColumnBuilder &other)
@@ -38,7 +40,16 @@ DataBrowserTableColumnBuilder::~DataBrowserTableColumnBuilder() = default;
 
 int DataBrowserTableColumnBuilder::index(const Jsoner::TableModel *model) const
 {
-    return model->fields().indexOf(d_ptr->field);
+    const QStringList fields = model->fields();
+
+    int index = fields.indexOf(d_ptr->field);
+    if (d_ptr->occurence == 0)
+        return index;
+
+    int occurence = d_ptr->occurence;
+    for (int i(occurence); i > 0 && index >= 0; --i)
+        index = fields.indexOf(d_ptr->field, index + 1);
+    return index;
 }
 
 QString DataBrowserTableColumnBuilder::fieldName() const

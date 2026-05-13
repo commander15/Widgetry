@@ -21,8 +21,8 @@ public slots:
     void clear() override;
 
 protected:
-    void render(const Jsoner::Object &object, Operation operation) override;
-    void extract(Jsoner::Object &object, Operation operation) const override;
+    void render(const Jsoner::Object &object) override;
+    void extract(Jsoner::Object &object) const override;
     bool validateInput() override;
     void makeWriteable(bool writeable) override;
 

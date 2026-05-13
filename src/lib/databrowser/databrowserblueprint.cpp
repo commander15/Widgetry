@@ -16,25 +16,8 @@ DataBrowserBlueprint::DataBrowserBlueprint(DataBrowser *browser)
 
 DataBrowserBlueprint::~DataBrowserBlueprint()
 {
-    const bool init = !d_ptr->data->blueprinted;
-
-    while (!d_ptr->tasks.isEmpty()) {
-        AbstractDataBrowserBlueprintTask *task = d_ptr->tasks.dequeue();
-
-        if (!d_ptr->commit)
-            task->cleanup();
-        else if (init)
-            task->initialize();
-        else
-            task->update();
-
-        delete task;
-    }
-
-    if (d_ptr->commit) {
-        d_ptr->data->blueprinted = true;
-        d_ptr->browser->sync();
-    }
+    if (d_ptr->commit)
+        commit();
 }
 
 QIcon DataBrowserBlueprint::icon(const QString &fileName)
@@ -121,9 +104,9 @@ void DataBrowserBlueprint::button(QAbstractButton *button)
     d_ptr->coreTask()->registerButton(button->objectName(), button);
 }
 
-DataBrowserTableColumnBuilder DataBrowserBlueprint::column(const QString &field)
+DataBrowserTableColumnBuilder DataBrowserBlueprint::column(const QString &field, int occurence)
 {
-    return d_ptr->tableTask()->addColumn(field);
+    return d_ptr->tableTask()->addColumn(field, occurence);
 }
 
 void DataBrowserBlueprint::filter(AbstractDataEdit *filter)
@@ -162,6 +145,28 @@ void DataBrowserBlueprint::edit(AbstractDataEditFactory *factory)
 void DataBrowserBlueprint::data(DataGate::AbstractDataManager *manager)
 {
     d_ptr->coreTask()->setDataManager(manager);
+}
+
+void DataBrowserBlueprint::commit()
+{
+    const bool init = !d_ptr->data->blueprinted;
+
+    while (!d_ptr->tasks.isEmpty()) {
+        AbstractDataBrowserBlueprintTask *task = d_ptr->tasks.dequeue();
+
+        if (!d_ptr->commit)
+            task->cleanup();
+        else if (init)
+            task->initialize();
+        else
+            task->update();
+
+        delete task;
+    }
+
+    d_ptr->data->blueprinted = true;
+    d_ptr->browser->sync();
+    d_ptr->commit = false;
 }
 
 void DataBrowserBlueprint::cancel()

@@ -3,25 +3,26 @@
 
 #include "abstractdataedit.h"
 
-#include <Jsoner/object.h>
-
 #include <QtCore/qstring.h>
+
+#include <Jsoner/object.h>
 
 namespace Widgetry {
 
 class AbstractDataEditPrivate
 {
 public:
-    explicit AbstractDataEditPrivate(AbstractDataEdit *q);
+    explicit AbstractDataEditPrivate(AbstractDataEdit *q, QWidget *widget);
     virtual ~AbstractDataEditPrivate() = default;
 
     AbstractDataEdit *q_ptr;
+    QWidget *widget;
 
     Jsoner::Object object;
     AbstractDataEdit::Operation operation;
     bool readOnly;
 
-    QString completionErrorString;
+    QString validationErrorString;
 
     DataEditFinishedCallback finishCallback;
 

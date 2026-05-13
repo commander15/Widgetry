@@ -48,7 +48,7 @@ public:
     template<typename T> T *filter();
     void filter(AbstractDataEdit *filter);
 
-    DataBrowserTableColumnBuilder column(const QString &field);
+    DataBrowserTableColumnBuilder column(const QString &field, int occurence = 0);
 
     template<typename T> T *delegate(QObject *parent = nullptr);
     void delegate(QAbstractItemDelegate *delegate);
@@ -68,6 +68,7 @@ public:
     template<typename T> T *data();
     void data(DataGate::AbstractDataManager *manager);
 
+    void commit();
     void cancel();
 
     DataBrowser *browser() const;
@@ -122,7 +123,7 @@ template<typename T>
 inline T *DataBrowserBlueprint::delegate(QObject *parent)
 {
     T *delegate = new T(parent ? parent : browser());
-    delegate(delegate);
+    this->delegate(delegate);
     return delegate;
 }
 

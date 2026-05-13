@@ -51,8 +51,10 @@ public:
     QList<AbstractRequestInterceptor *> requestInterceptors;
     QList<AbstractRequestWatcher *> requestWatchers;
     QList<AbstractInteractionHandler *> interactionHandlers;
+    QList<AbstractEditHandler *> editHandlers;
 
     bool blueprinted = false;
+    bool browserReady = false;
 };
 
 }

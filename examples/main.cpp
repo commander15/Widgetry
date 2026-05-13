@@ -4,21 +4,17 @@
 #include "logincontroller.h"
 #include "datacontroller.h"
 #include "mainwindow.h"
+#include "useredit.h"
+#include "userwindow.h"
 
 #include <Widgetry/loadindicator.h>
 
 #include <Widgetry/widgetry.h>
+#include <Widgetry/databrowserblueprint.h>
 
 int main(int argc, char *argv[])
 {
     Widgetry::Application app(argc, argv);
-
-    Widgetry::LoadIndicator indic0, indic1, indic2;
-    indic0.show();
-    indic1.show();
-    indic2.show();
-
-    return app.exec(Widgetry::Application::ManualLaunch);
 
     LoginController logins;
     app.setLoginManager(&logins);
@@ -31,8 +27,21 @@ int main(int argc, char *argv[])
     login.showOnLogOut();
     app.setLoginDialog(&login);
 
-    MainWindow ui;
-    app.setMainWidget(&ui);
+    Widgetry::DataBrowser browser;
+    app.setMainWidget(&browser);
+
+    if (true) {
+        auto tr = [](const char *msg) { return msg; };
+
+        Widgetry::DataBrowserBlueprint ui(&browser);
+        ui.icon("/home/commander/Downloads/ChatGPT Image May 10, 2025, 02_34_14 PM.png");
+        ui.title(tr("Users"));
+        ui.column("id").label(tr("ID")).size(100);
+        ui.column("name").label(tr("Name")).resize(QHeaderView::Stretch);
+        ui.column("score").label(tr("Score")).resize(QHeaderView::ResizeToContents);
+        ui.edit<UserWindow>().mainField("id").maxCount(2);
+        ui.filter<UserEdit>()->registerFields();
+    }
 
     return app.exec(Widgetry::Application::AutoLauch);
 }

@@ -75,16 +75,17 @@ public:
     DataEditFinishedCallback editCallback(AbstractDataEdit::Operation operation);
 
 protected:
-    void prepareUi() override;
+    void prepareUi(bool firstShow = false) override;
     void translateUi(bool full = true) override;
 
-    QVariant handleOperationRequest(const WidgetOperation &operation, bool &success) override;
-    void handleOperationResult(const WidgetOperation &operation, const QVariantHash &result, bool success) override;
+    WidgetResponse handleRequest(const WidgetRequest &request) override;
 
     DataGate::DataRequest newRequest(int type);
     DataGate::DataRequest newRequest() override final;
 
 private:
+    Q_DISABLE_COPY_MOVE(DataBrowser)
+
     Ui::DataBrowser *ui;
 
     friend class DataBrowserPrivate;

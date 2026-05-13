@@ -2,9 +2,8 @@
 #define WIDGETRY_LOGINDIALOG_H
 
 #include <Widgetry/global.h>
+#include <Widgetry/dialog.h>
 #include <Widgetry/loginedit.h>
-
-#include <QtWidgets/qdialog.h>
 
 class QSettings;
 
@@ -25,7 +24,7 @@ namespace Ui {
 class LoginDialog;
 }
 
-class WIDGETRY_EXPORT LoginDialog : public QDialog
+class WIDGETRY_EXPORT LoginDialog : public Dialog
 {
     Q_OBJECT
 

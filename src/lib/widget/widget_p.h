@@ -3,18 +3,15 @@
 
 #include "widget.h"
 
+#include <Widgetry/private/abstractwidget_p.h>
+
 namespace Widgetry {
 
-class WidgetPrivate
+class WidgetPrivate : public AbstractWidgetPrivate
 {
 public:
     WidgetPrivate(Widget *q, const QByteArray &id);
     virtual ~WidgetPrivate() = default;
-
-    Widget *q_ptr;
-
-    QByteArray id;
-    QAction *action;
 };
 
 }

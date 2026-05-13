@@ -6,7 +6,7 @@
 #include <Widgetry/private/databrowserhandler_p.h>
 #include <Widgetry/abstractdataeditfactory.h>
 #include <Widgetry/abstractdataedit.h>
-#include <Widgetry/widgetoperation.h>
+#include <Widgetry/widgetrequest.h>
 #include <Widgetry/private/debug_p.h>
 
 #include <QtCore/qsettings.h>
@@ -29,15 +29,14 @@ DataBrowser::DataBrowser(const QByteArray &id, QWidget *parent, Qt::WindowFlags 
     , ui(new Ui::DataBrowser())
 {
     WIDGETRY_D(DataBrowser);
-    ui->setupUi(this);
 
+    ui->setupUi(this);
     d->init(ui);
 
     auto registerHandler = [this, d](AbstractDataBrowserHandler *handler) {
         handler->browser = this;
         handler->ui = ui;
         handler->data = d;
-        return handler;
     };
 
     auto interceptor = new RequestInterceptor();
@@ -53,10 +52,12 @@ DataBrowser::DataBrowser(const QByteArray &id, QWidget *parent, Qt::WindowFlags 
     d->interactionHandlers.append(interaction);
 
     setFocusProxy(ui->tableWidget);
+
+    d->browserReady = true;
 }
 
 DataBrowser::DataBrowser(QWidget *parent, Qt::WindowFlags flags)
-    : Widget(QByteArray(), parent, flags)
+    : DataBrowser(QByteArray(), parent, flags)
 {
 }
 
@@ -101,7 +102,7 @@ void DataBrowser::refresh()
     WIDGETRY_D(DataBrowser);
 
     if (!d->tableModel.manager()) {
-        widgetryWarning() << "DataBrowser::refresh(): no data controller set !";
+        widgetryWarning() << "DataBrowser::refresh(): no data manager set !";
         return;
     }
 
@@ -149,7 +150,7 @@ void DataBrowser::addItem(const Jsoner::Object &object)
                 return;
 
             if (response.isSuccess())
-                QMetaObject::invokeMethod(d->q_ptr, "refresh", Qt::QueuedConnection);
+                QMetaObject::invokeMethod(d->widget, "refresh", Qt::QueuedConnection);
         });
     });
 }
@@ -172,7 +173,7 @@ void DataBrowser::editItem(const Jsoner::Object &object)
                 return;
 
             if (response.isSuccess())
-                QMetaObject::invokeMethod(d->q_ptr, "refresh", Qt::QueuedConnection);
+                QMetaObject::invokeMethod(d->widget, "refresh", Qt::QueuedConnection);
         });
     });
 }
@@ -230,10 +231,11 @@ void DataBrowser::sync()
 
     ui->searchInput->setVisible(d->hasDataFeature(AbstractDataManager::SearchByKeywords));
     ui->toggleFiltersButtons->setVisible(d->hasDataFeature(AbstractDataManager::SearchByFilters));
-    ui->tableWidget->view()->setSortingEnabled(d->hasDataFeature(AbstractDataManager::ResultsSorting));
     ui->addButton->setEnabled(d->hasDataFeature(AbstractDataManager::ObjectAdd));
-
+    ui->tableWidget->view()->setSortingEnabled(d->hasDataFeature(AbstractDataManager::ResultsSorting));
+    ui->tableWidget->setPageInputVisible(d->hasDataFeature(DataGate::AbstractDataManager::ResultsPagination));
     d->adaptToSelection();
+
     Widget::sync();
 }
 
@@ -273,6 +275,11 @@ void DataBrowser::registerHandler(AbstractDataBrowserHandler *handler)
     case AbstractDataBrowserHandler::InteractionHandler:
         if (!d->interactionHandlers.contains(handler))
             d->interactionHandlers.insert(d->interactionHandlers.size() - 2, static_cast<AbstractInteractionHandler *>(handler));
+        break;
+
+    case AbstractDataBrowserHandler::EditHandler:
+        if (!d->editHandlers.contains(handler))
+            d->editHandlers.append(static_cast<AbstractEditHandler *>(handler));
         break;
     }
 }
@@ -327,7 +334,7 @@ void DataBrowser::setDataManager(DataGate::AbstractDataManager *manager)
 DataEditFinishedCallback DataBrowser::editCallback(AbstractDataEdit::Operation operation)
 {
     return [this, operation](const Jsoner::Object &object, int result) {
-        if (object.isEmpty() || result != AbstractDataEdit::Accepted)
+        if (object.isEmpty() || result != AbstractDataEdit::Success)
             return;
 
         switch (operation) {
@@ -346,14 +353,17 @@ DataEditFinishedCallback DataBrowser::editCallback(AbstractDataEdit::Operation o
     };
 }
 
-void DataBrowser::prepareUi()
+void DataBrowser::prepareUi(bool firstShow)
 {
     WIDGETRY_D(DataBrowser);
 
-    if (!d->tableModel.manager())
-        setDataManager(Application::instance()->dataManager());
+    if (!d->browserReady)
+        return;
 
-    if (d->tableModel.rowCount() == 0)
+    if (firstShow)
+        d->updateLayout();
+
+    if (d->tableModel.rowCount() == 0 && d->tableModel.manager() != nullptr)
         refresh();
 }
 
@@ -367,41 +377,35 @@ void DataBrowser::translateUi(bool full)
     Widget::translateUi(full);
 }
 
-QVariant DataBrowser::handleOperationRequest(const WidgetOperation &operation, bool &success)
+WidgetResponse DataBrowser::handleRequest(const WidgetRequest &request)
 {
-    const QString function = operation.name();
-    success = true;
+    const QString function = request.name();
 
     if (function == QStringLiteral("search")) {
-        search(operation.parameter().toString());
+        search(request.parameter().toString());
     } else if (function == QStringLiteral("filter")) {
-        filter(operation.parameter().toHash());
+        filter(request.parameter().toHash());
     } else if (function == QStringLiteral("refresh")) {
         refresh();
     } else if (function == QStringLiteral("showCurrentItem")) {
         showCurrentItem();
     } else if (function == QStringLiteral("showItem")) {
-        showItem(operation.parameter().toJsonObject());
+        showItem(request.parameter().toJsonObject());
     } else if (function == QStringLiteral("addNewItem")) {
         addNewItem();
     } else if (function == QStringLiteral("addItem")) {
-        addItem(operation.parameter().toJsonObject());
+        addItem(request.parameter().toJsonObject());
     } else if (function == QStringLiteral("editCurrentItem")) {
         editCurrentItem();
     } else if (function == QStringLiteral("editItem")) {
-        editItem(operation.parameter().toJsonObject());
+        editItem(request.parameter().toJsonObject());
     } else if (function == QStringLiteral("deleteSelectedItems")) {
         deleteSelectedItems();
     } else if (function == QStringLiteral("deleteItems")) {
-        deleteItems(operation.parameter().toJsonArray());
+        deleteItems(request.parameter().toJsonArray());
     }
 
-    return Widget::handleOperationRequest(operation, success);
-}
-
-void DataBrowser::handleOperationResult(const WidgetOperation &operation, const QVariantHash &result, bool success)
-{
-    Widget::handleOperationResult(operation, result, success);
+    return Widget::handleRequest(request);
 }
 
 DataRequest DataBrowser::newRequest(int type)
@@ -451,6 +455,7 @@ DataBrowserPrivate::DataBrowserPrivate(DataBrowser *q, const QByteArray &id)
     , editFactory(nullptr)
     , filterWidget(nullptr)
 {
+    tableModel.setManager(Application::instance()->dataManager());
     connect(&tableModel, &TableModel::finished, this, &DataBrowserPrivate::processModelResponse);
 }
 
@@ -459,19 +464,35 @@ DataBrowserPrivate::~DataBrowserPrivate()
     if (editFactory)
         delete editFactory;
 
-    while (!requestInterceptors.isEmpty())
-        delete requestInterceptors.takeFirst();
+    while (!requestInterceptors.isEmpty()) {
+        AbstractRequestInterceptor *interceptor = requestInterceptors.takeFirst();
+        if (interceptor->autoDelete())
+            delete interceptor;
+    }
 
-    while (!requestWatchers.isEmpty())
-        delete requestWatchers.takeFirst();
+    while (!requestWatchers.isEmpty()) {
+        AbstractRequestWatcher *watcher = requestWatchers.takeFirst();
+        if (watcher->autoDelete())
+            delete watcher;
+    }
 
-    while (!interactionHandlers.isEmpty())
-        delete interactionHandlers.takeFirst();
+    while (!interactionHandlers.isEmpty()) {
+        AbstractInteractionHandler *handler = interactionHandlers.takeFirst();
+        if (handler->autoDelete())
+            delete handler;
+    }
+
+    while (!editHandlers.isEmpty()) {
+        AbstractEditHandler *handler = editHandlers.takeFirst();
+        if (handler->autoDelete())
+            delete handler;
+    }
 }
 
 void DataBrowserPrivate::init(Ui::DataBrowser *ui)
 {
     WIDGETRY_Q(DataBrowser);
+    this->ui = ui;
 
     ui->iconButton->setIcon(q->icon());
     connect(q, &Widget::iconChanged, ui->iconButton, &QAbstractButton::setIcon);
@@ -480,6 +501,7 @@ void DataBrowserPrivate::init(Ui::DataBrowser *ui)
 
     ui->toggleFiltersButtons->installEventFilter(this);
     ui->filterFrame->installEventFilter(this);
+    ui->filterFrame->hide();
 
     ui->tableWidget->addAction(ui->actionShow);
     ui->tableWidget->setModel(&tableModel);
@@ -497,8 +519,6 @@ void DataBrowserPrivate::init(Ui::DataBrowser *ui)
 
     QShortcut *shortcut = new QShortcut(QKeySequence::Find, q);
     connect(shortcut, &QShortcut::activated, ui->searchInput, QOverload<>::of(&QWidget::setFocus));
-
-    this->ui = ui;
 }
 
 void DataBrowserPrivate::fetchSearchSuggestions(const QString &text)
@@ -527,9 +547,11 @@ void DataBrowserPrivate::fetchSearchSuggestions(const QString &text)
 
 void DataBrowserPrivate::beginRequest(const DataGate::DataRequest &query)
 {
+    ui->tableWidget->setEnabled(false);
+
     for (AbstractRequestWatcher *watcher : std::as_const(requestWatchers))
-        if (watcher->requestStarted(query))
-            return;
+        if (!watcher->requestStarted(query))
+            break;
 }
 
 DataRequestCallback DataBrowserPrivate::monitorRequest(const DataGate::DataRequest &query)
@@ -542,7 +564,8 @@ DataRequestCallback DataBrowserPrivate::monitorRequest(const DataGate::DataReque
 
 bool DataBrowserPrivate::endRequest(const DataRequest &query, const DataResponse &response, bool commit)
 {
-    WIDGETRY_Q(DataBrowser);
+    ui->tableWidget->setEnabled(true);
+    ui->tableWidget->setFocus();
 
     if (!response.isSuccess() && filterWidget)
         filterWidget->setObject(QJsonObject::fromVariantMap(query.filters()));
@@ -558,11 +581,10 @@ bool DataBrowserPrivate::endRequest(const DataRequest &query, const DataResponse
         }
     }
 
-    if (response.hasMessage()) {
+    if (response.hasMessage())
         for (AbstractInteractionHandler *handler : std::as_const(interactionHandlers))
             if (handler->showMessage(query, response))
                 break;
-    }
 
     return error;
 }
@@ -586,31 +608,63 @@ void DataBrowserPrivate::openEdit(const QJsonObject &item, AbstractDataEdit::Ope
     DataRequest query = q->newRequest(AbstractRequestInterceptor::ShowRequest);
     query.setObject(item);
 
-    beginRequest(query);
-    controller->fetchObject(query, monitorRequest(query), [=](const DataResponse &response) {
-        if (endRequest(query, response) || !response.isSuccess())
-            return;
-
-        AbstractDataEdit *edit = editFactory->create(response.object(), operation, q_ptr);
+    auto exec = [=](const Jsoner::Object &object) {
+        AbstractDataEdit *edit = editFactory->create(object, operation, q);
         if (!edit) {
             widgetryWarning() << q->title() << ": unable to create an edit widget !";
             return;
         }
 
         edit->setBrowser(q);
-        edit->exec([callback](const Jsoner::Object &item, int result) {
-            if (result == AbstractDataEdit::Accepted && callback)
+
+        for (AbstractEditHandler *handler : std::as_const(editHandlers))
+            handler->prepareEdit(edit, operation);
+
+        edit->run([callback, this, edit](const Jsoner::Object &item, int result) {
+            if (result == AbstractDataEdit::Success && callback) {
                 callback(item);
+
+                for (AbstractEditHandler *handler : std::as_const(editHandlers))
+                    handler->cleanupEdit(edit);
+            }
         });
+    };
+
+    if (operation == AbstractDataEdit::AddOperation) {
+        exec(item);
+        return;
+    }
+
+    if (!controller->hasFeature(DataGate::AbstractDataManager::ObjectFetch, q)) {
+        exec(item);
+    }
+
+    beginRequest(query);
+    controller->fetchObject(query, monitorRequest(query), [this, query, exec](const DataResponse &response) {
+        if (!endRequest(query, response) && response.isSuccess())
+            exec(response.object());
     });
 }
 
 bool DataBrowserPrivate::hasDataFeature(AbstractDataManager::Feature feature) const
 {
     WIDGETRY_Q(DataBrowser);
+
     // ToDo: add optional (bool attrib based) permission check here !
+
     AbstractDataManager *dataController = tableModel.manager();
-    return dataController ? dataController->hasFeature(feature, q) : false;
+    if (dataController == nullptr || !dataController->hasFeature(feature, q))
+        return false;
+
+    switch (feature) {
+    case AbstractDataManager::ObjectFetch:
+    case AbstractDataManager::ObjectAdd:
+    case AbstractDataManager::ObjectEdit:
+        return editFactory != nullptr;
+
+    default:
+        return true;
+    }
 }
 
 void DataBrowserPrivate::adaptToSelection()
@@ -622,7 +676,7 @@ void DataBrowserPrivate::adaptToSelection()
     ui->editButton->setEnabled(single && hasDataFeature(AbstractDataManager::ObjectEdit));
     ui->deleteButton->setEnabled((single || multiple) && hasDataFeature(AbstractDataManager::ObjectDelete));
 
-    ui->actionShow->setVisible(single);
+    ui->actionShow->setVisible(single && hasDataFeature(AbstractDataManager::ObjectFetch));
     ui->actionEdit->setVisible(single && hasDataFeature(AbstractDataManager::ObjectEdit));
     ui->actionDelete->setVisible((single || multiple) && hasDataFeature(AbstractDataManager::ObjectDelete));
 }
@@ -642,11 +696,13 @@ bool DataBrowserPrivate::eventFilter(QObject *watched, QEvent *event)
     if (watched == ui->toggleFiltersButtons) {
         switch (event->type()) {
         case QEvent::EnabledChange:
-            ui->filterFrame->setVisible(ui->toggleFiltersButtons->isChecked());
+            if (!ui->toggleFiltersButtons->isEnabled() && ui->filterFrame->isVisible())
+                ui->filterFrame->hide();
             break;
 
         case QEvent::Hide:
-            ui->filterFrame->hide();
+            if (ui->filterFrame->isVisible())
+                ui->filterFrame->hide();
             break;
 
         default:

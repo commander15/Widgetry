@@ -23,7 +23,7 @@ DataSelector::DataSelector(DataBrowser *browser, Qt::WindowFlags flags)
 }
 
 DataSelector::DataSelector(QWidget *parent, Qt::WindowFlags flags)
-    : QDialog(parent, flags)
+    : Dialog(parent, flags)
     , ui(new Ui::DataSelector)
     , d_ptr(new DataSelectorPrivate(this))
 {

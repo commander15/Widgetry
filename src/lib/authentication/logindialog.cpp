@@ -13,7 +13,7 @@ using namespace DataGate;
 namespace Widgetry {
 
 LoginDialog::LoginDialog(QWidget *parent) :
-    QDialog(parent),
+    Dialog(parent),
     ui(new Ui::LoginDialog),
     m_showOnLogOut(false),
     m_cleanTimer(new QTimer(this))

@@ -1,12 +1,6 @@
 #include "widget.h"
 #include "widget_p.h"
 
-#include <Widgetry/widgetoperation.h>
-
-#include <QtCore/qsettings.h>
-
-#include <QtGui/qevent.h>
-
 namespace Widgetry {
 
 Widget::Widget(const QByteArray &id, QWidget *parent, Qt::WindowFlags flags)
@@ -21,221 +15,60 @@ Widget::Widget(QWidget *parent, Qt::WindowFlags flags)
 
 Widget::Widget(WidgetPrivate *d, QWidget *parent, Qt::WindowFlags flags)
     : QWidget(parent, flags)
-    , d_ptr(d)
+    , AbstractWidget(d)
 {
-    setIcon(QIcon(":/widgetry/icons/widgetry.png"));
-
-    connect(this, &QWidget::windowIconChanged, this, &Widget::iconChanged);
-    connect(this, &QWidget::windowTitleChanged, this, &Widget::titleChanged);
+    d->initWidget<Widget>();
 }
 
 Widget::~Widget()
 {
 }
 
-QByteArray Widget::id() const
-{
-    return d_ptr->id;
-}
-
-void Widget::setId(const QByteArray &id)
-{
-    d_ptr->id = id;
-}
-
-QIcon Widget::icon() const
-{
-    return windowIcon();
-}
-
-void Widget::setIcon(const QIcon &icon)
-{
-    setWindowIcon(icon);
-}
-
-QString Widget::title() const
-{
-    return windowTitle();
-}
-
-void Widget::setTitle(const QString &title)
-{
-    setWindowTitle(title);
-}
-
-QAction *Widget::action() const
-{
-    return d_ptr->action;
-}
-
-void Widget::setAction(QAction *action)
-{
-    if (action) {
-        action->setIcon(icon());
-        action->setText(title());
-    }
-
-    if (d_ptr->action) {
-        disconnect(this, &Widget::iconChanged, d_ptr->action, &QAction::setIcon);
-        disconnect(this, &Widget::titleChanged, d_ptr->action, &QAction::setText);
-    }
-
-    d_ptr->action = action;
-
-    if (d_ptr->action) {
-        connect(this, &Widget::iconChanged, d_ptr->action, &QAction::setIcon);
-        connect(this, &Widget::titleChanged, d_ptr->action, &QAction::setText);
-    }
-}
-
-bool Widget::isOperationSupported(const QString &operation) const
-{
-    return availableOperations().contains(operation);
-}
-
-QStringList Widget::supportedOperations() const
-{
-    QStringList operations = availableOperations();
-    operations.removeIf([this](const QString &operation) {
-        return !isOperationSupported(operation);
-    });
-    return operations;
-}
-
-QStringList Widget::availableOperations() const
-{
-    return QStringList();
-}
-
-QVariant Widget::operate(const QString &operation, bool *success)
-{
-    return operate(operation, QVariantHash(), success);
-}
-
-QVariant Widget::operate(const QString &operation, const QVariant &parameter, bool *success)
-{
-    QVariantHash parameters;
-    parameters.insert("parameter", parameter);
-    return operate(operation, parameters, success);
-}
-
-QVariant Widget::operate(const QString &operation, const QVariantHash &parameters, bool *success)
-{
-    if (!isOperationSupported(operation)) {
-        if (success)
-            *success = false;
-        return QVariant();
-    }
-
-    WidgetOperation op(operation);
-    op.setParameters(parameters);
-    op.setSenderId(id());
-    op.setReceiverId(id());
-
-    bool successFallback = false;
-    return handleOperationRequest(op, success ? *success : successFallback);
-}
-
 void Widget::sync()
 {
-    const QStringList availableOperations = this->availableOperations();
-    for (const QString &operation : availableOperations)
-        emit operationSupportChanged(operation, isOperationSupported(operation));
+    AbstractWidget::sync();
 }
 
-void Widget::loadSettings(QSettings *settings)
+void Widget::processIconChange(const QIcon &icon)
 {
-    restoreGeometry(settings->value("geo").toByteArray());
+    emit iconChanged(icon);
 }
 
-void Widget::saveSettings(QSettings *settings) const
+void Widget::processTitleChange(const QString &title)
 {
-    settings->setValue("geo", saveGeometry());
+    emit titleChanged(title);
 }
 
-void Widget::prepareUi()
+void Widget::processActionChange(QAction *current, QAction *previous)
 {
-}
-
-void Widget::cleanupUi()
-{
-}
-
-void Widget::translateUi(bool full)
-{
-    Q_UNUSED(full);
-}
-
-void Widget::requestManagerOperation(const QString &name)
-{
-    WidgetOperation operation(name);
-    operation.setReceiverId(QByteArrayLiteral("Widgetry::WidgetManager"));
-    requestOperation(operation);
-}
-
-void Widget::requestManagerOperation(WidgetOperation &operation)
-{
-    operation.setReceiverId(QByteArrayLiteral("Widgetry::WidgetManager"));
-    requestOperation(operation);
-}
-
-void Widget::requestOperation(const QString &name, const QByteArray &target)
-{
-    WidgetOperation operation(name);
-    operation.setReceiverId(target);
-    requestOperation(operation);
-}
-
-void Widget::requestOperation(WidgetOperation &operation)
-{
-    operation.setSenderId(id());
-    emit operationRequested(operation);
-}
-
-QVariant Widget::handleOperationRequest(const WidgetOperation &operation, bool &success)
-{
-    // No-op
-    Q_UNUSED(operation);
-    success = false;
-    return QVariant();
-}
-
-void Widget::handleOperationResult(const WidgetOperation &operation, const QVariantHash &result, bool success)
-{
-    // No-op
-    Q_UNUSED(operation);
-    Q_UNUSED(result);
-    Q_UNUSED(success)
-}
-
-void Widget::showEvent(QShowEvent *event)
-{
-    prepareUi();
-    translateUi(false);
-    QWidget::showEvent(event);
-}
-
-void Widget::hideEvent(QHideEvent *event)
-{
-    cleanupUi();
-    QWidget::hideEvent(event);
-}
-
-void Widget::changeEvent(QEvent *event)
-{
-    if (event->type() == QEvent::LanguageChange) {
-        event->accept();
-        translateUi(true);
+    if (previous) {
+        disconnect(this, &Widget::iconChanged, previous, &QAction::setIcon);
+        disconnect(this, &Widget::titleChanged, previous, &QAction::setText);
     }
 
-    QWidget::changeEvent(event);
+    if (current) {
+        setIcon(current->icon());
+        setTitle(current->text());
+        connect(this, &Widget::iconChanged, current, &QAction::setIcon);
+        connect(this, &Widget::titleChanged, current, &QAction::setText);
+    }
+}
+
+void Widget::processOperationSupportChanged(const QString &operation, bool supported)
+{
+    emit operationSupportChanged(operation, supported);
+}
+
+bool Widget::event(QEvent *event)
+{
+    d_ptr->processEvent(event);
+    return QWidget::event(event);
 }
 
 WidgetPrivate::WidgetPrivate(Widget *q, const QByteArray &id)
-    : q_ptr(q)
-    , id(id)
-    , action(nullptr)
+    : AbstractWidgetPrivate(q, q)
 {
+    this->id = id;
 }
 
 } // namespace Widgetry

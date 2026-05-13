@@ -1,194 +1,270 @@
 #include "abstractdataedit.h"
 #include "abstractdataedit_p.h"
 
-#include <Widgetry/private/dataeditdialog_p.h>
+#include <Widgetry/private/dataedithelper_p.h>
+
+#include <QtCore/qmetaobject.h>
+
+#include <QtWidgets/qwidget.h>
 
 namespace Widgetry {
 
-AbstractDataEdit::AbstractDataEdit()
-    : d_ptr(new AbstractDataEditPrivate(this))
-{
-}
-
-AbstractDataEdit::AbstractDataEdit(AbstractDataEditPrivate *d)
-    : d_ptr(d)
+AbstractDataEdit::AbstractDataEdit(QWidget *widget)
+    : d_ptr(new AbstractDataEditPrivate(this, widget))
 {
 }
 
 AbstractDataEdit::~AbstractDataEdit() = default;
 
-Jsoner::Object AbstractDataEdit::object() const
-{
-    extract(d_ptr->object, d_ptr->operation);
-    return d_ptr->object;
-}
-
 AbstractDataEdit::Operation AbstractDataEdit::operation() const
 {
-    return d_ptr->operation;
+    WIDGETRY_D(const AbstractDataEdit);
+    return d->operation;
+}Jsoner::Object AbstractDataEdit::object() const
+{
+    WIDGETRY_D(AbstractDataEdit);
+    extract(d->object);
+    return d->object;
 }
 
 void AbstractDataEdit::setObject(const Jsoner::Object &object)
 {
-    d_ptr->object = object;
-    render(object, d_ptr->operation);
+    WIDGETRY_D(AbstractDataEdit);
+    d->object = object;
+    render(object);
 }
 
 void AbstractDataEdit::setObject(const Jsoner::Object &object, Operation operation)
 {
-    d_ptr->object = object;
-    d_ptr->operation = operation;
-    render(object, operation);
+    WIDGETRY_D(AbstractDataEdit);
+    d->object = object;
+    d->operation = operation;
+    render(object);
 
     setReadOnly(operation == ShowOperation);
 }
 
-bool AbstractDataEdit::isComplete() const
-{
-    AbstractDataEdit *edit = const_cast<AbstractDataEdit *>(this);
-    edit->clearCompletionError();
-    return edit->validateInput();
-}
-
-QString AbstractDataEdit::completionError() const
-{
-    return d_ptr->completionErrorString;
-}
-
-bool AbstractDataEdit::isReadOnly() const
-{
-    return d_ptr->readOnly;
-}
-
-void AbstractDataEdit::setReadOnly(bool r)
-{
-    if (d_ptr->readOnly == r)
-        return;
-
-    makeWriteable(!r);
-    d_ptr->readOnly = r;
-}
-
-DataBrowser *AbstractDataEdit::browser() const
-{
-    return d_ptr->browser;
-}
-
-void AbstractDataEdit::setBrowser(DataBrowser *browser)
-{
-    d_ptr->browser = browser;
-}
-
-QWidget *AbstractDataEdit::editWidget() const
-{
-    AbstractDataEdit *edit = const_cast<AbstractDataEdit *>(this);
-    return reinterpret_cast<QWidget *>(edit);
-}
-
-AbstractDataEdit::EditType AbstractDataEdit::editType() const
-{
-    return CustomEdit;
-}
-
-QDialog *AbstractDataEdit::dialogFromEdit(AbstractDataEdit *edit, QWidget *parent, Qt::WindowFlags flags)
-{
-    DataEditDialogHelper *dialog = new DataEditDialogHelper(parent, flags);
-    dialog->init(edit);
-    return dialog;
-}
-
-AbstractDataEdit *AbstractDataEdit::editFromDialog(QDialog *dialog)
-{
-    return qobject_cast<DataEditDialogHelper *>(dialog);
-}
-
-void AbstractDataEdit::show()
-{
-    QWidget *w = editWidget();
-
-    if (w->isVisible()) {
-        if (w->isWindow() && !w->isActiveWindow())
-            w->activateWindow();
-        else if (!w->hasFocus())
-            w->setFocus();
-        return;
-    }
-
-    if (w->inherits("QDialog")) {
-        QDialog *d = static_cast<QDialog *>(w);
-        d->open();
-    } else {
-        w->show();
-    }
-}
-
-void AbstractDataEdit::show(const Jsoner::Object &object)
-{
-    setObject(object, ShowOperation);
-    show();
-}
-
-void AbstractDataEdit::add(const Jsoner::Object &object)
-{
-    setObject(object, AddOperation);
-    show();
-}
-
-void AbstractDataEdit::edit(const Jsoner::Object &object)
-{
-    setObject(object, EditOperation);
-    show();
-}
-
 void AbstractDataEdit::reset()
 {
-    render(d_ptr->object, d_ptr->operation);
+    WIDGETRY_D(AbstractDataEdit);
+    render(d->object);
 }
 
 void AbstractDataEdit::clear()
 {
-    setObject(Jsoner::Object(), d_ptr->operation);
+    WIDGETRY_D(AbstractDataEdit);
+    d_ptr->object = Jsoner::Object();
+    render(d_ptr->object);
 }
 
-void AbstractDataEdit::exec(const DataEditFinishedCallback &onFinished)
+bool AbstractDataEdit::hasValidInput() const
 {
-    d_ptr->finishCallback = onFinished;
-
-    QWidget *w = editWidget();
-
-    if (w->inherits("QDialog"))
-        static_cast<QDialog *>(w)->open();
-    else
-        show();
+    AbstractDataEdit *edit = const_cast<AbstractDataEdit *>(this);
+    edit->clearValidationError();
+    return edit->validateInput();
 }
 
-void AbstractDataEdit::setCompletionError(const QString &str)
+QString AbstractDataEdit::validationError() const
 {
-    d_ptr->completionErrorString = str;
+    WIDGETRY_D(const AbstractDataEdit);
+    return d->validationErrorString;
 }
 
-void AbstractDataEdit::clearCompletionError()
+bool AbstractDataEdit::isReadOnly() const
 {
-    d_ptr->completionErrorString.clear();
+    WIDGETRY_D(const AbstractDataEdit);
+    return d->readOnly;
 }
 
-void AbstractDataEdit::finishEditing(int result)
+void AbstractDataEdit::setReadOnly(bool r)
 {
-    if (d_ptr->finishCallback) {
-        d_ptr->finishCallback(object(), result);
+    WIDGETRY_D(AbstractDataEdit);
+    if (d->readOnly == r)
+        return;
 
-        if (d_ptr->operation != EditOperation)
-            d_ptr->finishCallback = nullptr;
+    makeWriteable(!r);
+    d->readOnly = r;
+}
+
+void AbstractDataEdit::begin()
+{
+    makeVisible(true);
+}
+
+void AbstractDataEdit::end(int result)
+{
+    WIDGETRY_D(AbstractDataEdit);
+    if (d->finishCallback) {
+        d->finishCallback(object(), result);
+        d->finishCallback = nullptr;
     }
+
+    makeVisible(false, result);
 }
 
-void AbstractDataEdit::handleResponse(const DataGate::DataResponse &response)
+void AbstractDataEdit::run(const DataEditFinishedCallback &onFinished)
 {
-    Q_UNUSED(response);
+    WIDGETRY_D(AbstractDataEdit);
+    d->finishCallback = onFinished;
+    begin();
 }
 
-AbstractDataEditPrivate::AbstractDataEditPrivate(AbstractDataEdit *q)
+DataBrowser *AbstractDataEdit::browser() const
+{
+    WIDGETRY_D(const AbstractDataEdit);
+    return d->browser;
+}
+
+void AbstractDataEdit::setBrowser(DataBrowser *browser)
+{
+    WIDGETRY_D(AbstractDataEdit);
+    d->browser = browser;
+}
+
+QWidget *AbstractDataEdit::editWidget() const
+{
+    return d_ptr->widget;
+}
+
+QString AbstractDataEdit::fieldName(QWidget *widget)
+{
+    QString name = widget->property("fieldName").toString();
+    if (!name.isEmpty())
+        return name;
+    else
+        return widget->objectName();
+}
+
+void AbstractDataEdit::setFieldName(QWidget *widget, const QString &name)
+{
+    widget->setProperty("fieldName", name);
+}
+
+QVariant AbstractDataEdit::fieldValue(QWidget *widget)
+{
+    const QMetaObject *meta = widget->metaObject();
+    QMetaProperty user = meta->userProperty();
+
+    if (!user.isValid() || !user.isReadable())
+        return QVariant();
+
+    return user.read(widget);
+}
+
+bool AbstractDataEdit::setFieldValue(QWidget *widget, const QVariant &value)
+{
+    const QMetaObject *meta = widget->metaObject();
+    QMetaProperty user = meta->userProperty();
+
+    if (!user.isValid() || !user.isWritable())
+        return false;
+
+    return user.write(widget, value);
+}
+
+bool AbstractDataEdit::clearFieldValue(QWidget *widget)
+{
+    const QMetaObject *meta = widget->metaObject();
+
+    // First, we try to find a clear method
+    int methodIndex = meta->indexOfMethod("clear");
+    if (methodIndex >= 0) {
+        QMetaMethod method = meta->method(methodIndex);
+        return method.invoke(widget);
+    }
+
+    // No clear method, going from the user property
+    QMetaProperty user = meta->userProperty();
+
+    if (!user.isValid())
+        return false;
+
+    if (user.isResettable())
+        return user.reset(widget);
+
+    if (user.isWritable())
+        return user.write(widget, QVariant(user.metaType()));
+
+    return false;
+}
+
+bool AbstractDataEdit::makeFieldWriteable(QWidget *widget, bool writeable)
+{
+    const QMetaObject *meta = widget->metaObject();
+
+    // First, we try to find a 'readOnly' property
+    int readOnlyIndex = meta->indexOfProperty("readOnly");
+    if (readOnlyIndex >= 0) {
+        QMetaProperty readOnly = meta->property(readOnlyIndex);
+        if (readOnly.isWritable())
+            return readOnly.write(widget, writeable);
+    }
+
+    // Next, we try to find a 'setReadOnly' method
+    int methodIndex = meta->indexOfMethod("setReadOnly");
+    if (methodIndex >= 0) {
+        QMetaMethod method = meta->method(methodIndex);
+        return method.invoke(widget, writeable);
+    }
+
+    // As last ressort, we just use enabled state of the widget
+    widget->setEnabled(writeable);
+    return true;
+}
+
+bool AbstractDataEdit::registerField(QWidget *field)
+{
+    return DataEditHelper::global()->registerField(field, nullptr, d_ptr->widget, DataEditHelper::DeduceMember);
+}
+
+bool AbstractDataEdit::registerField(QWidget *field, const char *member)
+{
+    return DataEditHelper::global()->registerField(field, member, d_ptr->widget, DataEditHelper::DeduceMember);
+}
+
+bool AbstractDataEdit::registerField(QWidget *field, const char *member, FieldMemberType type)
+{
+    return DataEditHelper::global()->registerField(field, member, d_ptr->widget, static_cast<DataEditHelper::FieldMemberType>(type));
+}
+
+void AbstractDataEdit::setValidationError(const QString &str)
+{
+    WIDGETRY_D(AbstractDataEdit);
+    d->validationErrorString = str;
+}
+
+void AbstractDataEdit::clearValidationError()
+{
+    WIDGETRY_D(AbstractDataEdit);
+    d->validationErrorString.clear();
+}
+
+bool AbstractDataEdit::validateInput()
+{
+    return true;
+}
+
+void AbstractDataEdit::makeWriteable(bool writable)
+{
+    d_ptr->widget->setEnabled(writable);
+}
+
+void AbstractDataEdit::makeVisible(bool visibible, int result)
+{
+    QWidget *w = d_ptr->widget;
+
+    if (visibible && !w->isVisible())
+        d_ptr->widget->show();
+
+    if (!visibible && w->isVisible())
+        d_ptr->widget->hide();
+
+    Q_UNUSED(result);
+}
+
+AbstractDataEditPrivate::AbstractDataEditPrivate(AbstractDataEdit *q, QWidget *widget)
     : q_ptr(q)
+    , widget(widget)
     , operation(AbstractDataEdit::ShowOperation)
     , readOnly(false)
     , finishCallback(nullptr)

@@ -21,6 +21,8 @@ TableWidget::TableWidget(QWidget *parent)
 {
     ui->setupUi(this);
 
+    ui->mainLayout->setContentsMargins(QMargins());
+
     ui->tableView->installEventFilter(this);
     connect(ui->tableView, &QAbstractItemView::doubleClicked, this, &TableWidget::doubleClicked);
 
@@ -91,6 +93,22 @@ int TableWidget::pageCount() const
 {
     WIDGETRY_D(const TableWidget);
     return ui->pageInput->maximum();
+}
+
+bool TableWidget::isPageInputVisible() const
+{
+    return ui->pageInput->isVisible();
+}
+
+void TableWidget::setPageInputVisible(bool v)
+{
+    if (v) {
+        ui->mainLayout->setSpacing(6);
+        ui->paginatorWidget->setVisible(true);
+    } else {
+        ui->mainLayout->setSpacing(0);
+        ui->paginatorWidget->setVisible(false);
+    }
 }
 
 QTableView *TableWidget::view() const

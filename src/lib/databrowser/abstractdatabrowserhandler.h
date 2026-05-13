@@ -2,6 +2,7 @@
 #define WIDGETRY_ABSTRACTDATABROWSERHANDLER_H
 
 #include <Widgetry/global.h>
+#include <Widgetry/abstractdataedit.h>
 
 #include <QtCore/qcoreapplication.h>
 
@@ -33,10 +34,14 @@ public:
     enum HandlerType {
         RequestInterceptor,
         RequestWatcher,
-        InteractionHandler
+        InteractionHandler,
+        EditHandler
     };
 
     virtual ~AbstractDataBrowserHandler() = default;
+
+    bool autoDelete() const { return m_autoDelete; }
+    void setAutoDelete(bool autoDelete) { m_autoDelete = autoDelete; }
 
     virtual int handlerType() const = 0;
 
@@ -44,6 +49,9 @@ protected:
     DataBrowser *browser = nullptr;
     Ui::DataBrowser *ui = nullptr;
     DataBrowserPrivate *data = nullptr;
+
+private:
+    bool m_autoDelete = true;
 
     friend class DataBrowser;
 };
@@ -89,6 +97,17 @@ public:
     virtual QMessageBox::StandardButton askDeletionConfirmation(const Jsoner::Array &objects) = 0;
 
     int handlerType() const override final { return InteractionHandler; }
+};
+
+class WIDGETRY_EXPORT AbstractEditHandler : public AbstractDataBrowserHandler
+{
+public:
+    virtual ~AbstractEditHandler() = default;
+
+    virtual void prepareEdit(AbstractDataEdit *edit, AbstractDataEdit::Operation operation) = 0;
+    virtual void cleanupEdit(AbstractDataEdit *edit);
+
+    int handlerType() const override final { return EditHandler; }
 };
 
 } // namespace Widgetry

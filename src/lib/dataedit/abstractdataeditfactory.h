@@ -24,10 +24,11 @@ public:
 
     int editCount() const;
     QList<AbstractDataEdit *> edits() const;
+
     virtual AbstractDataEdit *create(const Jsoner::Object &object, AbstractDataEdit::Operation operation, QWidget *parent = nullptr);
 
 protected:
-    AbstractDataEdit *createContainer(AbstractDataEdit *edit, QWidget *parent, Qt::WindowFlags flags);
+    virtual AbstractDataEdit *createContainer(AbstractDataEdit *edit, QWidget *parent, Qt::WindowFlags flags);
     virtual AbstractDataEdit *createEdit(QWidget *parent = nullptr) = 0;
 
 private:

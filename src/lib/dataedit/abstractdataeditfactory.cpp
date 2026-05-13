@@ -6,7 +6,7 @@
 #include <Widgetry/databrowser.h>
 #include <Widgetry/datawindow.h>
 #include <Widgetry/dataedit.h>
-#include <Widgetry/private/dataeditdialog_p.h>
+#include <Widgetry/private/dataedithelperdialog_p.h>
 
 namespace Widgetry {
 
@@ -17,8 +17,6 @@ AbstractDataEditFactory::AbstractDataEditFactory()
 
 AbstractDataEditFactory::~AbstractDataEditFactory()
 {
-    while (d_ptr->edits.size() > 0)
-        delete d_ptr->edits.takeFirst();
 }
 
 void AbstractDataEditFactory::setMainField(const QString &field)
@@ -35,7 +33,7 @@ void AbstractDataEditFactory::setSingleInstance(bool single)
 void AbstractDataEditFactory::setMaxCount(int count)
 {
     d_ptr->maxCount = (count > 0 ? count : 1);
-    d_ptr->singleInstance = false;
+    d_ptr->singleInstance = (d_ptr->maxCount == 1);
 }
 
 void AbstractDataEditFactory::setContainerFlags(Qt::WindowFlags flags)
@@ -74,34 +72,38 @@ AbstractDataEdit *AbstractDataEditFactory::create(const Jsoner::Object &object, 
 
     AbstractDataEdit *edit = d_ptr->editForKey(key);
 
-    if (!edit && (d_ptr->canCreateEdit() || d_ptr->cleanupInvisibleEdits() > 0)) {
-        edit = createEdit(parent);
-        if (edit) {
-            edit = createContainer(edit, parent, d_ptr->containerFlags);
-            d_ptr->registerEdit(edit);
-        }
+    if (edit == nullptr && (!d_ptr->canCreateEdit() && d_ptr->cleanupInvisibleEdits() == 0))
+        return nullptr;
+
+    edit = createEdit(parent);
+    if (edit == nullptr)
+        return nullptr;
+
+    DataBrowser *browser;
+    if (parent && parent->inherits("Widgetry::DataBrowser"))
+        browser = static_cast<DataBrowser *>(parent);
+    else
+        browser = nullptr;
+
+    if (browser != nullptr)
+        edit->setBrowser(browser);
+
+    if (edit->editType() == AbstractDataEdit::WindowEdit && browser != nullptr) {
+        DataWindow *window = static_cast<DataWindow *>(edit);
+        window->registerAdd(browser->editCallback(AbstractDataEdit::AddOperation));
+        window->registerEdit(browser->editCallback(AbstractDataEdit::EditOperation));
     }
 
-    if (edit)
-        edit->setObject(object, operation);
-
+    edit = createContainer(edit, parent, d_ptr->containerFlags);
+    edit->setObject(object, operation);
+    d_ptr->registerEdit(edit);
     return edit;
 }
 
 AbstractDataEdit *AbstractDataEditFactory::createContainer(AbstractDataEdit *edit, QWidget *parent, Qt::WindowFlags flags)
 {
-    if (edit->editType() == AbstractDataEdit::WindowEdit && parent && parent->inherits("Widgetry::DataInterface")) {
-        DataBrowser *browser = static_cast<DataBrowser *>(parent);
-        DataWindow *window = static_cast<DataWindow *>(edit);
-        window->registerAdd(browser->editCallback(AbstractDataEdit::AddOperation));
-        window->registerEdit(browser->editCallback(AbstractDataEdit::EditOperation));
-        return window;
-    }
-
-    if (edit->editType() == AbstractDataEdit::WidgetEdit && d_ptr->allowDialogCreation) {
-        DataEditDialogHelper *dialog = new DataEditDialogHelper(parent, flags, !d_ptr->singleInstance);
-        dialog->init(edit);
-        return dialog;
+    if (edit->editType() == AbstractDataEdit::WidgetEdit && d_ptr->allowDialogCreation && !edit->editWidget()->isWindow()) {
+        return DataEditDialog::fromEdit(edit, parent, flags);
     }
 
     return edit;
@@ -127,9 +129,9 @@ bool AbstractDataEditFactoryPrivate::canCreateEdit() const
 void AbstractDataEditFactoryPrivate::registerEdit(AbstractDataEdit *edit)
 {
     QWidget *w = edit->editWidget();
-    QObject::connect(w, &QObject::destroyed, w, [this, edit] { unregisterEdit(edit); });
-
     edits.append(edit);
+
+    connect(w, &QObject::destroyed, this, [this, edit] { unregisterEdit(edit); });
 }
 
 void AbstractDataEditFactoryPrivate::unregisterEdit(AbstractDataEdit *edit)
@@ -139,18 +141,17 @@ void AbstractDataEditFactoryPrivate::unregisterEdit(AbstractDataEdit *edit)
 
 int AbstractDataEditFactoryPrivate::cleanupInvisibleEdits()
 {
-    QList<AbstractDataEdit *> invisibleEdits;
+    int count = 0;
 
-    std::for_each(edits.begin(), edits.end(), [&invisibleEdits](AbstractDataEdit *edit) {
+    std::for_each(edits.begin(), edits.end(), [&count](AbstractDataEdit *edit) {
         QWidget *w = edit->editWidget();
-        if (!w->isVisible())
-            invisibleEdits.append(edit);
+        if (!w->isVisible()) {
+            ++count;
+            w->deleteLater();
+        }
     });
 
-    for (AbstractDataEdit *edit : std::as_const(invisibleEdits))
-        delete edit;
-
-    return invisibleEdits.size();
+    return count;
 }
 
 } // namespace Widgetry

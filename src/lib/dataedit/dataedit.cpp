@@ -1,190 +1,51 @@
 #include "dataedit.h"
 #include "dataedit_p.h"
 
-#include <QtCore/qmetaobject.h>
-
-#include "QDateEdit"
-
 namespace Widgetry {
 
 DataEdit::DataEdit(QWidget *parent, Qt::WindowFlags flags)
-    : DataEdit(new DataEditPrivate(this), parent, flags)
+    : DataEdit(new DataEditPrivate(this, QByteArray()), parent, flags)
 {
 }
 
 DataEdit::DataEdit(DataEditPrivate *d, QWidget *parent, Qt::WindowFlags flags)
-    : QWidget(parent, flags)
-    , AbstractDataEdit(d)
+    : Widgetry::Widget(d, parent, flags)
+    , AbstractDataEdit(this)
 {
-    initEditing(this, &DataEdit::editingFinished);
+    bindEnd(this, &DataEdit::editingFinished);
+    d->edit = AbstractDataEdit::d_ptr.get();
 }
 
 DataEdit::~DataEdit()
 {
 }
 
-QWidget *DataEdit::editWidget() const
+void DataEdit::render(const Jsoner::Object &object)
 {
-    return const_cast<DataEdit *>(this);
+    Q_UNUSED(object);
 }
 
-AbstractDataEdit::EditType DataEdit::editType() const
+void DataEdit::extract(Jsoner::Object &object) const
 {
-    return WidgetEdit;
+    Q_UNUSED(object);
 }
 
-void DataEdit::show()
+void DataEdit::makeVisible(bool visible, int result)
 {
-    QWidget::show();
-}
-
-void DataEdit::show(const Jsoner::Object &object)
-{
-    setObject(object, ShowOperation);
-    QWidget::show();
-}
-
-void DataEdit::add(const Jsoner::Object &object)
-{
-    setObject(object, AddOperation);
-    QWidget::show();
-}
-
-void DataEdit::edit(const Jsoner::Object &object)
-{
-    setObject(object, EditOperation);
-    QWidget::show();
-}
-
-void DataEdit::reset()
-{
-    AbstractDataEdit::reset();
-}
-
-void DataEdit::clear()
-{
-    AbstractDataEdit::clear();
-}
-
-bool DataEdit::registerField(QWidget *field)
-{
-    const QMetaProperty property = field->metaObject()->userProperty();
-    if (property.isValid() && property.hasNotifySignal())
-        return registerField(field, property.notifySignal().name(), SignalMember);
-    else
-        return false;
-}
-
-bool DataEdit::registerField(QWidget *field, const char *member)
-{
-    return registerField(field, member, DeduceMember);
-}
-
-bool DataEdit::registerField(QWidget *field, const char *member, FieldMemberType type)
-{
-    const QMetaObject *meta = field->metaObject();
-
-    int signalIndex = -1;
-
-    if (type == PropertyMember) {
-        for (int i(0); i < meta->propertyCount(); ++i) {
-            const QMetaProperty property = meta->property(i);
-            if (strcmp(property.name(), member) == 0) {
-                if (property.hasNotifySignal()) {
-                    signalIndex = property.notifySignalIndex();
-                    break;
-                }
-            }
-        }
-    } else if (type == SignalMember) {
-        for (int i(0); i < meta->methodCount(); ++i) {
-            const QMetaMethod method = meta->method(i);
-
-            if (method.methodType() != QMetaMethod::Signal)
-                continue;
-
-            if (strcmp(method.name(), member) == 0) {
-                signalIndex = method.methodIndex();
-                break;
-            }
-        }
-    } else {
-        return registerField(field, member, SignalMember) || registerField(field, member, PropertyMember);
+    if (visible && !isVisible()) {
+        show();
+        return;
     }
 
-    if (signalIndex >= 0) {
-        const QMetaMethod signal = meta->method(signalIndex);
-
-        char handleOverload[33] = "handleFieldChange";
-        strncat(handleOverload, "(", 32);
-        if (signal.parameterCount() > 0) {
-            const QMetaType type(signal.parameterType(0));
-            strncat(handleOverload, type.name(), 32);
-        }
-        strncat(handleOverload, ")", 32);
-
-        const QMetaObject *meta = metaObject();
-        for (int i(0); i < meta->methodCount(); ++i) {
-            const QMetaMethod method = meta->method(i);
-            const QByteArray name = QByteArray::fromRawData(method.name(), strlen(method.name()));
-
-            if (!name.startsWith("handleFieldChange"))
-                continue;
-
-            if (QMetaObject::checkConnectArgs(signal, method)) {
-                connect(field, signal, this, method);
-                return true;
-            }
-        }
-    } else {
-        qWarning() << "can't find signal for member" << member << "on" << meta->className();
+    if (!visible && isVisible()) {
+        hide();
+        emit editingFinished(result);
     }
-
-    return false;
 }
 
-void DataEdit::handleFieldChange()
-{
-    emit complete();
-}
-
-void DataEdit::handleFieldChange(bool)
-{
-    emit complete();
-}
-
-void DataEdit::handleFieldChange(int)
-{
-    emit complete();
-}
-
-void DataEdit::handleFieldChange(double)
-{
-    emit complete();
-}
-
-void DataEdit::handleFieldChange(const QString &)
-{
-    emit complete();
-}
-
-void DataEdit::handleFieldChange(const QDate &)
-{
-    emit complete();
-}
-
-void DataEdit::handleFieldChange(const QTime &)
-{
-    emit complete();
-}
-
-void DataEdit::handleFieldChange(const QDateTime &)
-{
-    emit complete();
-}
-
-DataEditPrivate::DataEditPrivate(DataEdit *q)
-    : AbstractDataEditPrivate(q)
+DataEditPrivate::DataEditPrivate(DataEdit *q, const QByteArray &id)
+    : WidgetPrivate(q, id)
+    , edit(nullptr)
 {
 }
 

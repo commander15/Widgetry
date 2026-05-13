@@ -5,6 +5,7 @@ target_headers(Widgetry
         searchbar.h
         tablewidget.h
         loadindicator.h
+        itemdelegate.h
     PRIVATE
         lineedit_p.h
         tablewidget_p.h
@@ -17,4 +18,5 @@ target_sources(Widgetry
         searchbar.cpp
         tablewidget.cpp tablewidget.ui
         loadindicator.cpp
+        itemdelegate.cpp
 )

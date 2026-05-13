@@ -25,13 +25,13 @@ void UserEdit::clear()
     ui->scoreInput->setValue(0);
 }
 
-void UserEdit::render(const Jsoner::Object &object, Operation operation)
+void UserEdit::render(const Jsoner::Object &object)
 {
     ui->nameInput->setText(object.string("name"));
     ui->scoreInput->setValue(object.integer("score"));
 }
 
-void UserEdit::extract(Jsoner::Object &object, Operation operation) const
+void UserEdit::extract(Jsoner::Object &object) const
 {
     object.insert("name", ui->nameInput->text());
     object.insert("score", ui->scoreInput->value());
@@ -42,17 +42,17 @@ bool UserEdit::validateInput()
     int nameSize = ui->nameInput->text().size();
 
     if (nameSize == 0) {
-        setCompletionError(tr("You have a name, right ?"));
+        setValidationError(tr("You have a name, right ?"));
         return false;
     }
 
     if (nameSize < 2) {
-        setCompletionError(tr("You're name is 1 caracter lengh, c'mon"));
+        setValidationError(tr("You're name is 1 caracter lengh, c'mon"));
         return false;
     }
 
     if (ui->scoreInput->value() == 0) {
-        setCompletionError(tr("Score is 0, really ?"));
+        setValidationError(tr("Score is 0, really ?"));
         return false;
     }
 

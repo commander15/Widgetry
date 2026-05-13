@@ -3,12 +3,11 @@
 
 #include "datawindow.h"
 
-#include <Widgetry/private/widget_p.h>
-#include <Widgetry/private/abstractdataedit_p.h>
+#include <Widgetry/private/dataedit_p.h>
 
 namespace Widgetry {
 
-class DataWindowPrivate : public WidgetPrivate
+class DataWindowPrivate : public DataEditPrivate
 {
 public:
     struct Edit {
@@ -18,8 +17,8 @@ public:
 
     DataWindowPrivate(DataWindow *q, const QByteArray &id);
 
-    AbstractDataEditPrivate *edit;
     QVector<Edit> edits;
+    bool browserSet;
 
     DataEditFinishedCallback addCallback;
     DataEditFinishedCallback editCallback;

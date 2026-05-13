@@ -45,16 +45,9 @@ public slots:
     void clear() override;
 
 protected:
-    void render(const Jsoner::Object &object, Operation operation) override;
-    void extract(Jsoner::Object &object, Operation operation) const override;
+    void render(const Jsoner::Object &object) override;
+    void extract(Jsoner::Object &object) const override;
     void makeWriteable(bool writeable) override;
-
-    static QString fieldName(QWidget *widget);
-    static void setFieldName(QWidget *widget, const QString &name);
-    static QVariant fieldValue(QWidget *widget);
-    static bool setFieldValue(QWidget *widget, const QVariant &value);
-    static bool clearFieldValue(QWidget *widget);
-    static bool makeFieldWriteable(QWidget *widget, bool writeable = true);
 };
 
 } // namespace Widgetry

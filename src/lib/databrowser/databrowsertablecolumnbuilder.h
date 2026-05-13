@@ -17,7 +17,7 @@ class DataBrowserTableColumnBuilderData;
 class WIDGETRY_EXPORT DataBrowserTableColumnBuilder
 {
 public:
-    DataBrowserTableColumnBuilder(const QString &field);
+    DataBrowserTableColumnBuilder(const QString &field, int occurence = 0);
     DataBrowserTableColumnBuilder(const DataBrowserTableColumnBuilder &other);
     ~DataBrowserTableColumnBuilder();
 

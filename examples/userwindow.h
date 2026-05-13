@@ -16,7 +16,7 @@ public:
     ~UserWindow();
 
 protected:
-    void render(const Jsoner::Object &object, Operation operation) override;
+    void render(const Jsoner::Object &object) override;
     void makeWriteable(bool writeable) override;
 
 private:

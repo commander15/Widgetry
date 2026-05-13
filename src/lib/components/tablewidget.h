@@ -47,6 +47,9 @@ public:
 
     int pageCount() const;
 
+    bool isPageInputVisible() const;
+    void setPageInputVisible(bool v);
+
     QTableView *view() const;
 
     QMenu *contextMenu() const;

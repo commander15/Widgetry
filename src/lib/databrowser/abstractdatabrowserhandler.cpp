@@ -18,4 +18,9 @@ bool AbstractInteractionHandler::showMessage(const DataRequest &query, const Dat
     return false;
 }
 
+void AbstractEditHandler::cleanupEdit(AbstractDataEdit *edit)
+{
+    Q_UNUSED(edit);
+}
+
 } // namespace Widgetry

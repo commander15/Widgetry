@@ -5,8 +5,6 @@
 
 #include <Jsoner/object.h>
 
-#include <QtWidgets/qwidget.h>
-
 #include <QtCore/qscopedpointer.h>
 
 namespace DataGate {
@@ -31,17 +29,18 @@ public:
     };
 
     enum EditType {
-        WindowEdit,
         WidgetEdit,
-        CustomEdit
+        DialogEdit,
+        CustomEdit,
+        WindowEdit
     };
 
     enum EditCode {
-        Accepted = 1,
-        Rejected = 0
+        Success = 1,
+        Failure = 0
     };
 
-    explicit AbstractDataEdit();
+    explicit AbstractDataEdit(QWidget *widget);
     virtual ~AbstractDataEdit();
 
     Jsoner::Object object() const;
@@ -49,31 +48,33 @@ public:
     void setObject(const Jsoner::Object &object);
     void setObject(const Jsoner::Object &object, Operation operation);
 
-    bool isComplete() const;
-    QString completionError() const;
+    virtual void reset();
+    virtual void clear();
+
+    bool hasValidInput() const;
+    QString validationError() const;
 
     bool isReadOnly() const;
     void setReadOnly(bool r = true);
 
-    virtual DataBrowser *browser() const;
-    virtual void setBrowser(DataBrowser *browser);
+    virtual void begin();
+    virtual void end(int result = Success);
+    virtual void run(const DataEditFinishedCallback &onFinished);
 
-    virtual QWidget *editWidget() const;
-    virtual EditType editType() const;
+    DataBrowser *browser() const;
+    void setBrowser(DataBrowser *browser);
 
-    static QDialog *dialogFromEdit(AbstractDataEdit *edit, QWidget *parent = nullptr, Qt::WindowFlags flags = Qt::WindowFlags());
-    static AbstractDataEdit *editFromDialog(QDialog *dialog);
+    QWidget *editWidget() const;
+    virtual EditType editType() const { return CustomEdit; }
 
-public:
-    void show();
-    void show(const Jsoner::Object &object);
-    void add(const Jsoner::Object &object);
-    void edit(const Jsoner::Object &object);
+    static QString fieldName(QWidget *widget);
+    static void setFieldName(QWidget *widget, const QString &name);
 
-    virtual void reset();
-    virtual void clear();
+    static QVariant fieldValue(QWidget *widget);
+    static bool setFieldValue(QWidget *widget, const QVariant &value);
+    static bool clearFieldValue(QWidget *widget);
 
-    virtual void exec(const DataEditFinishedCallback &onFinished);
+    static bool makeFieldWriteable(QWidget *widget, bool writeable = true);
 
 protected:
     enum FieldMemberType {
@@ -82,21 +83,24 @@ protected:
         DeduceMember
     };
 
-    AbstractDataEdit(AbstractDataEditPrivate *d);
+    template<typename Edit, typename Signal> void bindBegin(Edit *edit, Signal &&signal)
+    { QObject::connect(edit, signal, edit, [this] { begin(); }); }
 
-    template<typename Edit, typename Signal> void initEditing(Edit *edit, Signal &&signal)
-    { QObject::connect(edit, signal, edit, [this](int result) { finishEditing(result); }); }
+    template<typename Edit, typename Signal> void bindEnd(Edit *edit, Signal &&signal)
+    { QObject::connect(edit, signal, edit, [this](int result) { end(result); }); }
 
-    virtual void render(const Jsoner::Object &object, Operation operation) = 0;
-    virtual void extract(Jsoner::Object &object, Operation operation) const = 0;
-    virtual bool validateInput() = 0;
-    virtual void makeWriteable(bool writeable) = 0;
+    bool registerField(QWidget *field);
+    bool registerField(QWidget *field, const char *member);
+    bool registerField(QWidget *field, const char *member, FieldMemberType type);
 
-    void setCompletionError(const QString &str);
-    void clearCompletionError();
+    void setValidationError(const QString &str);
+    void clearValidationError();
 
-    virtual void finishEditing(int result = Accepted);
-    virtual void handleResponse(const DataGate::DataResponse &response);
+    virtual void render(const Jsoner::Object &object) = 0;
+    virtual void extract(Jsoner::Object &object) const = 0;
+    virtual bool validateInput();
+    virtual void makeWriteable(bool writable);
+    virtual void makeVisible(bool visibible, int result = Success);
 
     QScopedPointer<AbstractDataEditPrivate> d_ptr;
 

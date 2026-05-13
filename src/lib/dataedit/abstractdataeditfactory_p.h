@@ -1,12 +1,16 @@
 #ifndef WIDGETRY_ABSTRACTDATAEDITFACTORY_P_H
 #define WIDGETRY_ABSTRACTDATAEDITFACTORY_P_H
 
-#include "abstractdataeditfactory.h"
+#include <Widgetry/abstractdataedit.h>
+
+#include <QtCore/qobject.h>
 
 namespace Widgetry {
 
-class AbstractDataEditFactoryPrivate
+class AbstractDataEditFactoryPrivate : public QObject
 {
+    Q_OBJECT
+
 public:
     AbstractDataEdit *editForKey(const QVariant &key) const;
 

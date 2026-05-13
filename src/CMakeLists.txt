@@ -20,14 +20,16 @@ write_basic_package_version_file(${PACKAGE_NAME}ConfigVersion.cmake
     ARCH_INDEPENDENT
 )
 
-install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_NAME}Config.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_NAME}ConfigVersion.cmake
-    DESTINATION lib/cmake/${PACKAGE_NAME}
-)
+if (WIDGETRY_INSTALL)
+    install(FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_NAME}Config.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_NAME}ConfigVersion.cmake
+        DESTINATION lib/cmake/${PACKAGE_NAME}
+    )
 
-install(EXPORT WidgetryTargets
-    NAMESPACE ${PACKAGE_NAME}::
-    FILE ${PACKAGE_NAME}Targets.cmake
-    DESTINATION lib/cmake/${PACKAGE_NAME}
-)
+    install(EXPORT WidgetryTargets
+        NAMESPACE ${PACKAGE_NAME}::
+        FILE ${PACKAGE_NAME}Targets.cmake
+        DESTINATION lib/cmake/${PACKAGE_NAME}
+    )
+endif()

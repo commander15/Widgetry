@@ -26,6 +26,7 @@ add_subdirectory(app)
 add_subdirectory(components)
 add_subdirectory(authentication)
 add_subdirectory(widget)
+add_subdirectory(window)
 add_subdirectory(databrowser)
 add_subdirectory(dataedit)
 #add_subdirectory(communication)
@@ -46,17 +47,19 @@ target_compile_definitions(Widgetry
         WIDGETRY_BUILD
 )
 
-target_link_libraries(Widgetry PUBLIC Qt::Core Qt::Gui Qt::Widgets DataGate::DataGate Jsoner::Jsoner)
-
-install(CODE "file(REMOVE_RECURSE ${CMAKE_INSTALL_PREFIX}/include/Widgetry)")
-
-install(TARGETS Widgetry
-    EXPORT WidgetryTargets
-    ARCHIVE        DESTINATION lib
-    LIBRARY        DESTINATION lib
-    RUNTIME        DESTINATION bin
-    PUBLIC_HEADER  DESTINATION include/Widgetry
-    #PRIVATE_HEADER DESTINATION include/Widgetry/private
-)
+target_link_libraries(Widgetry PUBLIC Qt::Core Qt::Gui Qt::Widgets DataGate::DataGate)
 
 generate_target_headers(Widgetry FOLDER Widgetry)
+
+if (WIDGETRY_INSTALL)
+    install(CODE "file(REMOVE_RECURSE ${CMAKE_INSTALL_PREFIX}/include/Widgetry)")
+
+    install(TARGETS Widgetry
+        EXPORT WidgetryTargets
+        ARCHIVE        DESTINATION lib
+        LIBRARY        DESTINATION lib
+        RUNTIME        DESTINATION bin
+        PUBLIC_HEADER  DESTINATION include/Widgetry
+        #PRIVATE_HEADER DESTINATION include/Widgetry/private
+    )
+endif()

@@ -12,17 +12,33 @@ class LoadIndicatorPrivate
 {
 public:
     LoadIndicatorPrivate()
-    { if (!movie) movie = new QMovie(":/widgetry/animations/busy_indicator.gif"); movieRef.ref();  }
+    { if (!movie) movie.reset(new QMovie(":/widgetry/animations/busy_indicator.gif"));  }
 
-    ~LoadIndicatorPrivate()
-    { if (movieRef.deref()) return; delete movie; movie = nullptr; }
+    bool isPlaying() const
+    { return m_playing; }
 
-    bool playing = false;
+    void start()
+    {
+        s_playRef.ref();
+        if (movie->state() != QMovie::Running)
+            movie->start();
+        m_playing = true;
+    }
+
+    void stop()
+    {
+        if (!s_playRef.deref() && movie->state() == QMovie::Running)
+            movie->stop();
+        m_playing = false;
+    }
+
     QLabel *label = nullptr;
+    static inline QScopedPointer<QMovie> movie = QScopedPointer<QMovie>(nullptr);
 
-    static inline QAtomicInt playRef;
-    static inline QAtomicInt movieRef;
-    static inline QMovie *movie = nullptr;
+private:
+    bool m_playing = false;
+
+    static inline QAtomicInt s_playRef;
 };
 
 LoadIndicator::LoadIndicator(QWidget *parent)
@@ -30,7 +46,7 @@ LoadIndicator::LoadIndicator(QWidget *parent)
     , d_ptr(new LoadIndicatorPrivate())
 {
     d_ptr->label = new QLabel(this);
-    d_ptr->label->setMovie(d_ptr->movie);
+    d_ptr->label->setMovie(d_ptr->movie.get());
     d_ptr->label->setAlignment(Qt::AlignCenter);
     d_ptr->label->setScaledContents(true);
 
@@ -40,22 +56,19 @@ LoadIndicator::LoadIndicator(QWidget *parent)
 
 LoadIndicator::~LoadIndicator()
 {
-    if (d_ptr->playing)
-        d_ptr->playRef.deref();
+    if (d_ptr->isPlaying())
+        d_ptr->stop();
 }
 
 void LoadIndicator::showEvent(QShowEvent *event)
 {
-    d_ptr->playRef.ref();
-    if (d_ptr->movie->state() != QMovie::Running)
-        d_ptr->movie->start();
+    d_ptr->start();
     QWidget::showEvent(event);
 }
 
 void LoadIndicator::hideEvent(QHideEvent *event)
 {
-    if (!d_ptr->playRef.deref() && d_ptr->movie->state() == QMovie::Running)
-        d_ptr->movie->stop();
+    d_ptr->stop();
     QWidget::hideEvent(event);
 }
 

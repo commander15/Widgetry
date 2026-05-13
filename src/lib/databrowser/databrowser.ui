@@ -48,6 +48,9 @@
       </item>
       <item row="2" column="1">
        <widget class="QPushButton" name="filterButton">
+        <property name="focusPolicy">
+         <enum>Qt::FocusPolicy::NoFocus</enum>
+        </property>
         <property name="text">
          <string>Filter</string>
         </property>
@@ -100,6 +103,9 @@
        <widget class="QToolButton" name="iconButton">
         <property name="enabled">
          <bool>false</bool>
+        </property>
+        <property name="focusPolicy">
+         <enum>Qt::FocusPolicy::NoFocus</enum>
         </property>
         <property name="icon">
          <iconset resource="../resources/widgetry_resources.qrc">
@@ -302,6 +308,15 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>searchInput</tabstop>
+  <tabstop>toggleFiltersButtons</tabstop>
+  <tabstop>refreshButton</tabstop>
+  <tabstop>addButton</tabstop>
+  <tabstop>editButton</tabstop>
+  <tabstop>deleteButton</tabstop>
+  <tabstop>filterButton</tabstop>
+ </tabstops>
  <resources>
   <include location="../resources/widgetry_resources.qrc"/>
  </resources>
@@ -313,7 +328,7 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>313</x>
+     <x>380</x>
      <y>32</y>
     </hint>
     <hint type="destinationlabel">

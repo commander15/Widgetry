@@ -19,7 +19,7 @@ Application::Application(int &argc, char **argv)
     setApplicationName("App");;
     setApplicationVersion(WIDGETRY_VERSION_STR);
 
-    setOrganizationName("Commander Systems");
+    setOrganizationName("Widgetry");
 
     setStyle("fusion");
 

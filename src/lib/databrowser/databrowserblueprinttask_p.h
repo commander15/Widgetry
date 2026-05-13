@@ -185,7 +185,7 @@ public:
     void cleanup() override;
 
     void setDelegate(QAbstractItemDelegate *delegate, bool deletable = true);
-    DataBrowserTableColumnBuilder addColumn(const QString &field);
+    DataBrowserTableColumnBuilder addColumn(const QString &field, int occurence);
     QAction *addContextMenuAction(const QString &name, const Action &action);
     void addContextMenuAction(const QString &name, QAction *action);
 

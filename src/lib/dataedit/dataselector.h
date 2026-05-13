@@ -2,8 +2,8 @@
 #define WIDGETRY_DATASELECTOR_H
 
 #include <Widgetry/global.h>
+#include <Widgetry/dialog.h>
 
-#include <QtWidgets/qdialog.h>
 #include <QtWidgets/qheaderview.h>
 
 namespace DataGate {
@@ -28,7 +28,7 @@ class DataSelector;
 class DataBrowser;
 
 class DataSelectorPrivate;
-class WIDGETRY_EXPORT DataSelector : public QDialog
+class WIDGETRY_EXPORT DataSelector : public Dialog
 {
     Q_OBJECT
 

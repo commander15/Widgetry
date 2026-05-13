@@ -3,15 +3,17 @@
 
 #include "dataedit.h"
 
-#include <Widgetry/private/abstractdataedit_p.h>
+#include <Widgetry/private/widget_p.h>
 
 namespace Widgetry {
 
-class DataEditPrivate : public AbstractDataEditPrivate
+class DataEditPrivate : public WidgetPrivate
 {
 public:
-    explicit DataEditPrivate(DataEdit *q);
+    explicit DataEditPrivate(DataEdit *q, const QByteArray &id);
     virtual ~DataEditPrivate() = default;
+
+    AbstractDataEditPrivate *edit;
 };
 
 } // namespace Widgetry

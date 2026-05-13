@@ -17,10 +17,10 @@ UserWindow::~UserWindow()
     delete ui;
 }
 
-void UserWindow::render(const Jsoner::Object &object, Operation operation)
+void UserWindow::render(const Jsoner::Object &object)
 {
     setWindowTitle(object.string("name"));
-    Widgetry::DataWindow::render(object, operation);
+    Widgetry::DataWindow::render(object);
     ui->lcdNumber->display(object.integer("score"));
 }
 

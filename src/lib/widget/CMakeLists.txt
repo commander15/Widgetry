@@ -1,11 +1,14 @@
 target_headers(Widgetry
     PUBLIC
-        widget.h widgetoperation.h
+        abstractwidget.h widgetrequest.h widgetresponse.h
+        widget.h dialog.h
     PRIVATE
-        widget_p.h widgetoperation_p.h
+        abstractwidget_p.h
+        widget_p.h dialog_p.h
 )
 
 target_sources(Widgetry
     PRIVATE
-        widget.cpp widgetoperation.cpp
+        abstractwidget.cpp widgetrequest.cpp
+        widget.cpp dialog.cpp
 )

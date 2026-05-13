@@ -1,5 +1,7 @@
 # User files
+CMakeLists.txt.user
 CMakeLists.txt.user*
+.qtcreator
 
 # Build dir
 build/

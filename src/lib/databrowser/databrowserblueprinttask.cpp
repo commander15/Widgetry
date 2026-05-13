@@ -47,10 +47,12 @@ void DataBrowserCoreTask::update()
             ui->buttonsContainerLayout->addWidget(button.button);
 
     QMenu *contextMenu = ui->tableWidget->contextMenu();
-    const QList<QAction *> contextActions = contextMenu->actions();
-    for (Action &action : m_actions)
-        if (action.apply() && !contextActions.contains(action.action))
-            contextMenu->addAction(action.action);
+    if (contextMenu != nullptr) {
+        const QList<QAction *> contextActions = contextMenu->actions();
+        for (Action &action : m_actions)
+            if (action.apply() && !contextActions.contains(action.action))
+                contextMenu->addAction(action.action);
+    }
 
     if (m_filter)
         browser->setFilterEdit(m_filter);
@@ -240,9 +242,9 @@ void DataBrowserTableTask::setDelegate(QAbstractItemDelegate *delegate, bool del
     this->m_deletableDelegate = deletable;
 }
 
-DataBrowserTableColumnBuilder DataBrowserTableTask::addColumn(const QString &field)
+DataBrowserTableColumnBuilder DataBrowserTableTask::addColumn(const QString &field, int occurence)
 {
-    DataBrowserTableColumnBuilder builder(field);
+    DataBrowserTableColumnBuilder builder(field, occurence);
     columns.append(builder);
     return builder;
 }
@@ -266,6 +268,7 @@ void DataBrowserTableTask::addContextMenuAction(const QString &name, QAction *ac
 
 void DataBrowserTableTask::sortColumns()
 {
+    return;
     auto comp = [this](const DataBrowserTableColumnBuilder &c1, const DataBrowserTableColumnBuilder &c2) {
         return c1.index(&data->tableModel) < c2.index(&data->tableModel);
     };
